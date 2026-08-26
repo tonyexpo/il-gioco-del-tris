@@ -1,0 +1,101 @@
+{
+  "version": 4,
+  "targets": {
+    "net10-windows": {
+      "Microsoft.NETFramework.ReferenceAssemblies/1.0.3": {
+        "type": "package"
+      }
+    },
+    "net10-windows/win-x86": {
+      "Microsoft.NETFramework.ReferenceAssemblies/1.0.3": {
+        "type": "package"
+      }
+    }
+  },
+  "libraries": {
+    "Microsoft.NETFramework.ReferenceAssemblies/1.0.3": {
+      "sha512": "vUc9Npcs14QsyOD01tnv/m8sQUnGTGOw1BCmKcv77LBJY7OxhJ+zJF7UD/sCL3lYNFuqmQEVlkfS4Quif6FyYg==",
+      "type": "package",
+      "path": "microsoft.netframework.referenceassemblies/1.0.3",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "microsoft.netframework.referenceassemblies.1.0.3.nupkg.sha512",
+        "microsoft.netframework.referenceassemblies.nuspec"
+      ]
+    }
+  },
+  "projectFileDependencyGroups": {
+    "net10-windows": [
+      "Microsoft.NETFramework.ReferenceAssemblies >= 1.0.3"
+    ]
+  },
+  "packageFolders": {
+    "C:\\Users\\Antonio Esposito\\.nuget\\packages\\": {},
+    "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
+  },
+  "project": {
+    "version": "1.0.0",
+    "restore": {
+      "projectUniqueName": "C:\\Users\\Antonio Esposito\\Desktop\\toctactoe2\\TicTacToeWPF\\TicTacToeWPF.csproj",
+      "projectName": "TicTacToeWPF",
+      "projectPath": "C:\\Users\\Antonio Esposito\\Desktop\\toctactoe2\\TicTacToeWPF\\TicTacToeWPF.csproj",
+      "packagesPath": "C:\\Users\\Antonio Esposito\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\Antonio Esposito\\Desktop\\toctactoe2\\TicTacToeWPF\\obj\\",
+      "projectStyle": "PackageReference",
+      "fallbackFolders": [
+        "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+      ],
+      "configFilePaths": [
+        "C:\\Users\\Antonio Esposito\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+      ],
+      "originalTargetFrameworks": [
+        "net10-windows"
+      ],
+      "sources": {
+        "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+        "https://api.nuget.org/v3/index.json": {}
+      },
+      "frameworks": {
+        "net10-windows": {
+          "framework": "net10",
+          "targetAlias": "net10-windows",
+          "projectReferences": {}
+        }
+      },
+      "warningProperties": {
+        "warnAsError": [
+          "NU1605"
+        ]
+      },
+      "restoreAuditProperties": {
+        "enableAudit": "true",
+        "auditLevel": "low",
+        "auditMode": "direct"
+      },
+      "SdkAnalysisLevel": "10.0.400"
+    },
+    "frameworks": {
+      "net10-windows": {
+        "framework": "net10",
+        "targetAlias": "net10-windows",
+        "dependencies": {
+          "Microsoft.NETFramework.ReferenceAssemblies": {
+            "suppressParent": "All",
+            "target": "Package",
+            "version": "[1.0.3, )",
+            "autoReferenced": true
+          }
+        },
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.400\\RuntimeIdentifierGraph.json"
+      }
+    },
+    "runtimes": {
+      "win-x86": {
+        "#import": []
+      }
+    }
+  }
+}

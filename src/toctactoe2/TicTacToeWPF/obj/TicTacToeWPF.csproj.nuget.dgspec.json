@@ -1,0 +1,72 @@
+{
+  "format": 1,
+  "restore": {
+    "C:\\Users\\Antonio Esposito\\Desktop\\toctactoe2\\TicTacToeWPF\\TicTacToeWPF.csproj": {}
+  },
+  "projects": {
+    "C:\\Users\\Antonio Esposito\\Desktop\\toctactoe2\\TicTacToeWPF\\TicTacToeWPF.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "C:\\Users\\Antonio Esposito\\Desktop\\toctactoe2\\TicTacToeWPF\\TicTacToeWPF.csproj",
+        "projectName": "TicTacToeWPF",
+        "projectPath": "C:\\Users\\Antonio Esposito\\Desktop\\toctactoe2\\TicTacToeWPF\\TicTacToeWPF.csproj",
+        "packagesPath": "C:\\Users\\Antonio Esposito\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\Antonio Esposito\\Desktop\\toctactoe2\\TicTacToeWPF\\obj\\",
+        "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        ],
+        "configFilePaths": [
+          "C:\\Users\\Antonio Esposito\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+        ],
+        "originalTargetFrameworks": [
+          "net10-windows"
+        ],
+        "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net10-windows": {
+            "framework": "net10",
+            "targetAlias": "net10-windows",
+            "projectReferences": {}
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "10.0.400"
+      },
+      "frameworks": {
+        "net10-windows": {
+          "framework": "net10",
+          "targetAlias": "net10-windows",
+          "dependencies": {
+            "Microsoft.NETFramework.ReferenceAssemblies": {
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[1.0.3, )",
+              "autoReferenced": true
+            }
+          },
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.400\\RuntimeIdentifierGraph.json"
+        }
+      },
+      "runtimes": {
+        "win-x86": {
+          "#import": []
+        }
+      }
+    }
+  }
+}

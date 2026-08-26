@@ -1,0 +1,22 @@
+<Window x:Class="TicTacToe.MainWindow" xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Title="Tris" Width="440" Height="590" MinWidth="380" MinHeight="520" WindowStartupLocation="CenterScreen" Background="#101827">
+  <Window.Resources>
+    <Style x:Key="BoardButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+      <Setter Property="Background" Value="#1F2A44"/><Setter Property="Foreground" Value="#F8FAFC"/><Setter Property="BorderBrush" Value="#334155"/><Setter Property="BorderThickness" Value="1"/><Setter Property="FontSize" Value="42"/><Setter Property="Margin" Value="5"/>
+      <Style.Triggers><Trigger Property="Content" Value="X"><Setter Property="Foreground" Value="#67E8F9"/></Trigger><Trigger Property="Content" Value="O"><Setter Property="Foreground" Value="#F9A8D4"/></Trigger></Style.Triggers>
+    </Style>
+  </Window.Resources>
+  <Grid Margin="28">
+    <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+    <TextBlock Text="TRIS" Foreground="#F8FAFC" FontSize="30" FontWeight="Bold" HorizontalAlignment="Center"/>
+    <TextBlock Grid.Row="1" Text="{Binding Status}" Foreground="#CBD5E1" FontSize="15" HorizontalAlignment="Center" Margin="0,8,0,18"/>
+    <UniformGrid Grid.Row="2" Rows="3" Columns="3" MaxWidth="360" MaxHeight="360" HorizontalAlignment="Center" VerticalAlignment="Center">
+      <Button Style="{StaticResource BoardButton}" Content="{Binding Cells[0].Display}" Command="{Binding PlayCommand}" CommandParameter="0"/><Button Style="{StaticResource BoardButton}" Content="{Binding Cells[1].Display}" Command="{Binding PlayCommand}" CommandParameter="1"/><Button Style="{StaticResource BoardButton}" Content="{Binding Cells[2].Display}" Command="{Binding PlayCommand}" CommandParameter="2"/>
+      <Button Style="{StaticResource BoardButton}" Content="{Binding Cells[3].Display}" Command="{Binding PlayCommand}" CommandParameter="3"/><Button Style="{StaticResource BoardButton}" Content="{Binding Cells[4].Display}" Command="{Binding PlayCommand}" CommandParameter="4"/><Button Style="{StaticResource BoardButton}" Content="{Binding Cells[5].Display}" Command="{Binding PlayCommand}" CommandParameter="5"/>
+      <Button Style="{StaticResource BoardButton}" Content="{Binding Cells[6].Display}" Command="{Binding PlayCommand}" CommandParameter="6"/><Button Style="{StaticResource BoardButton}" Content="{Binding Cells[7].Display}" Command="{Binding PlayCommand}" CommandParameter="7"/><Button Style="{StaticResource BoardButton}" Content="{Binding Cells[8].Display}" Command="{Binding PlayCommand}" CommandParameter="8"/>
+    </UniformGrid>
+    <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,18,0,12">
+      <TextBlock Text="Difficoltà" Foreground="#94A3B8" VerticalAlignment="Center" Margin="0,0,10,0"/><ComboBox Width="120" ItemsSource="{Binding Difficulties}" SelectedItem="{Binding Difficulty}"/>
+    </StackPanel>
+    <Button Grid.Row="4" Content="NUOVA PARTITA" Command="{Binding ResetCommand}" Width="170" Height="40" HorizontalAlignment="Center" Background="#22C55E" Foreground="White" BorderThickness="0"/>
+  </Grid>
+</Window>

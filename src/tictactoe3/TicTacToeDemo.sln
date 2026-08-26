@@ -1,0 +1,13 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{7E35C914-768D-433F-A3B1-111111111111}") = "TicTacToeDemo", "TicTacToeDemo\TicTacToeDemo.csproj", {7E35C914-768D-433F-A3B1-111111111111}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = prebuild
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+		Debug|x86 = Debug|x86
+		Release|x86 = Release|x86
+		Debug|x64 = Debug|x64
+		Release|x64 = Release|x64
+	EndGlobalSection
+EndGlobal

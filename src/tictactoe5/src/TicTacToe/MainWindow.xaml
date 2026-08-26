@@ -1,0 +1,85 @@
+<Window x:Class="TicTacToe.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Tris — Tic Tac Toe"
+        Width="420" Height="580"
+        WindowStartupLocation="CenterScreen">
+
+    <Window.Resources>
+        <!-- Stile dei pulsanti delle caselle -->
+        <Style x:Key="CellButton" TargetType="Button">
+            <Setter Property="FontFamily" Value="Segoe UI"/>
+            <Setter Property="FontSize" Value="40"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Margin" Value="6"/>
+            <Setter Property="Background" Value="#F3F4F6"/>
+            <Setter Property="Foreground" Value="#111827"/>
+            <Setter Property="BorderBrush" Value="#D1D5DB"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Style.Triggers>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Opacity" Value="0.65"/>
+                </Trigger>
+                <!-- Evidenzia la linea vincente -->
+                <DataTrigger Binding="{Binding IsWinning}" Value="True">
+                    <Setter Property="Background" Value="#BBF7D0"/>
+                    <Setter Property="BorderBrush" Value="#22C55E"/>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/> <!-- titolo -->
+            <RowDefinition Height="Auto"/> <!-- punteggio -->
+            <RowDefinition Height="Auto"/> <!-- stato partita -->
+            <RowDefinition Height="*"/>    <!-- griglia 3x3 -->
+            <RowDefinition Height="Auto"/> <!-- reset -->
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0"
+                   Text="Tic Tac Toe"
+                   FontSize="26" FontWeight="Bold"
+                   HorizontalAlignment="Center" Margin="0,0,0,8"/>
+
+        <StackPanel Grid.Row="1" Orientation="Horizontal"
+                    HorizontalAlignment="Center" Margin="0,0,0,4">
+            <TextBlock Text="X (tu): " FontWeight="SemiBold"/>
+            <TextBlock Text="{Binding ScoreX}" FontWeight="Bold" Foreground="#2563EB" Margin="0,0,16,0"/>
+            <TextBlock Text="Pareggi: " FontWeight="SemiBold"/>
+            <TextBlock Text="{Binding ScoreDraws}" FontWeight="Bold" Margin="0,0,16,0"/>
+            <TextBlock Text="O (PC): " FontWeight="SemiBold"/>
+            <TextBlock Text="{Binding ScoreO}" FontWeight="Bold" Foreground="#DC2626"/>
+        </StackPanel>
+
+        <TextBlock Grid.Row="2"
+                   Text="{Binding StatusText}"
+                   FontSize="15"
+                   HorizontalAlignment="Center" Margin="0,4,0,12"/>
+
+        <!-- Griglia 3x3: ItemsControl + UniformGrid -->
+        <ItemsControl Grid.Row="3" ItemsSource="{Binding Cells}">
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <UniformGrid Rows="3"/>
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <Button Style="{StaticResource CellButton}"
+                            Content="{Binding Content, Mode=OneWay}"
+                            IsEnabled="{Binding IsEnabled, Mode=OneWay}"
+                            CommandParameter="{Binding Index}"
+                            Command="{Binding DataContext.CellClickCommand, RelativeSource={RelativeSource AncestorType=Window}}"/>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
+        <Button Grid.Row="4"
+                Content="Reset"
+                FontSize="16" FontWeight="SemiBold"
+                Height="42" Margin="0,12,0,0"
+                Command="{Binding ResetCommand}"/>
+    </Grid>
+</Window>

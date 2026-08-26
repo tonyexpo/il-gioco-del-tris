@@ -1,0 +1,112 @@
+<Window x:Class="TicTacToeWPF.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:TicTacToeWPF.ViewModels"
+        xmlns:converters="clr-namespace:TicTacToeWPF.Converters"
+        mc:Ignorable="d"
+        Title="Tic Tac Toe WPF Demo" Height="450" Width="350">
+
+    <Window.Resources>
+        <!-- Converter per visualizzare lo stato del gioco (X, O o vuoto) -->
+        <converters:IndexToCharConverter x:Key="IndexToCharConverter"/>
+        
+        <!-- Stili personalizzati per migliorare l'UX -->
+        <Style TargetType="Button" x:Key="GameButtonStyle">
+            <Setter Property="FontSize" Value="48"/>
+            <Setter Property="Width" Value="100"/>
+            <Setter Property="Height" Value="100"/>
+            <Setter Property="Background" Value="#F0F0F0"/>
+            <Setter Property="BorderThickness" Value="2"/>
+            <Setter Property="BorderBrush" Value="#333333"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Border" CornerRadius="5" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <!-- Stato di disabilitazione (pulsante già premuto o gioco finito) -->
+                <Trigger Property:IsMouseOver="True">
+                    <Setter Property:Background" Value="#D0E0FF"/>
+                </Trigger>
+                <Trigger Property:IsEnabled="False">
+                    <Setter Property:Opacity" Value="0.7"/>
+                    <Setter Property:Cursor" Value="Hand"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- Stile per il pulsante di reset -->
+        <Style TargetType="{x:Type Button}" x:Key="PrimaryButtonStyle">
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="Padding" Value="20, 5"/>
+            <Setter Property="Background" Value="#4CAF50"/>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+
+    </Window.Resources>
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" /> <!-- Per la griglia dei pulsanti -->
+            <RowDefinition Height="Auto" /> <!-- Per lo stato e i controlli -->
+        </Grid.RowDefinitions>
+
+        <!-- 1. Griglia dei Pulsanti (3x3) -->
+        <StackPanel Grid.Row="0" Orientation="Horizontal" HorizontalAlignment="Center">
+            <ItemsControl ItemsSource="{Binding GridCommands}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <!-- Layout 3 colonne, 1 riga per ogni gruppo di 3 pulsanti -->
+                        <StackPanel Orientation="Vertical" VerticalAlignment="Stretch"/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <!-- Ogni elemento della collezione GridCommands è un comando (ICommand) -->
+                        <Grid Margin="5">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*" />
+                                <RowDefinition Height="*" />
+                                <RowDefinition Height="*" />
+                            </Grid.RowDefinitions>
+
+                            <!-- I pulsanti vengono generati dinamicamente per i 9 slot -->
+                            <Button Grid.Row="0" Grid.Column="0" Content="{Binding Path=., Converter={StaticResource IndexToCharConverter}, ConverterParameter='X'}" Command="{Binding}" CommandParameter="0"/>
+                            <Button Grid.Row="0" Grid.Column="1" Content="{Binding Path=., Converter={StaticResource IndexToCharConverter}, ConverterParameter='O'}" Command="{Binding}" CommandParameter="1"/>
+                            <Button Grid.Row="0" Grid.Column="2" Content="{Binding Path=., Converter={StaticResource IndexToCharConverter}, ConverterParameter=' '}" Command="{Binding}" CommandParameter="2"/>
+
+                            <Button Grid.Row="1" Grid.Column="0" Content="{Binding Path=., Converter={StaticResource IndexToCharConverter}, ConverterParameter='X'}" Command="{Binding}" CommandParameter="3"/>
+                            <Button Grid.Row="1" Grid.Column="1" Content="{Binding Path=., Converter={StaticResource IndexToCharConverter}, ConverterParameter='O'}" Command="{Binding}" CommandParameter="4"/>
+                            <Button Grid.Row="1" Grid.Column="2" Content="{Binding Path=., Converter={StaticResource IndexToCharConverter}, ConverterParameter=' '}" Command="{Binding}" CommandParameter="5"/>
+
+                            <Button Grid.Row="2" Grid.Column="0" Content="{Binding Path=., Converter={StaticResource IndexToCharConverter}, ConverterParameter='X'}" Command="{Binding}" CommandParameter="6"/>
+                            <Button Grid.Row="2" Grid.Column="1" Content="{Binding Path=., Converter={StaticResource IndexToCharConverter}, ConverterParameter='O'}" Command="{Binding}" CommandParameter="7"/>
+                            <Button Grid.Row="2" Grid.Column="2" Content="{Binding Path=., Converter={StaticResource IndexToCharConverter}, ConverterParameter=' '}" Command="{Binding}" CommandParameter="8"/>
+
+                        </Grid>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </StackPanel>
+
+        <!-- 2. Stato e Controlli -->
+        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0, 20, 0, 0">
+            <!-- Messaggio di stato del gioco (Binding al ViewModel) -->
+            <TextBlock Text="{Binding StatusMessage}" FontSize="18" FontWeight="Bold" VerticalAlignment="Center" Margin="0, 10, 30, 0"/>
+
+            <!-- Pulsante Reset (collegato al comando nel ViewModel) -->
+            <Button Content="Reset Gioco" Command="{Binding ResetCommand}"/>
+        </StackPanel>
+    </Grid>
+</Window>

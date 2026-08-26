@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "w+Tl4Dkim5s=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\Antonio Esposito\\Desktop\\toctactoe2\\TicTacToeWPF\\TicTacToeWPF.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\Antonio Esposito\\.nuget\\packages\\microsoft.netframework.referenceassemblies\\1.0.3\\microsoft.netframework.referenceassemblies.1.0.3.nupkg.sha512"
+  ],
+  "logs": []
+}

@@ -1,0 +1,39 @@
+<Window x:Class="TicTacToe.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Tris - X contro il PC (O)"
+        Height="580" Width="430"
+        WindowStartupLocation="CenterScreen">
+    <StackPanel Margin="16">
+        <TextBlock x:Name="StatusText"
+                   TextAlignment="Center" FontSize="17" FontWeight="SemiBold"
+                   TextWrapping="Wrap" Margin="0,0,0,14"
+                   Text="Sei sempre X. Tocca una casella per iniziare."/>
+
+        <Grid x:Name="Board">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <Button x:Name="Cell0" Grid.Row="0" Grid.Column="0" Margin="5" FontSize="46" FontWeight="Bold" Background="#FFF3F3F3" Click="OnCellClick" Tag="0"/>
+            <Button x:Name="Cell1" Grid.Row="0" Grid.Column="1" Margin="5" FontSize="46" FontWeight="Bold" Background="#FFF3F3F3" Click="OnCellClick" Tag="1"/>
+            <Button x:Name="Cell2" Grid.Row="0" Grid.Column="2" Margin="5" FontSize="46" FontWeight="Bold" Background="#FFF3F3F3" Click="OnCellClick" Tag="2"/>
+            <Button x:Name="Cell3" Grid.Row="1" Grid.Column="0" Margin="5" FontSize="46" FontWeight="Bold" Background="#FFF3F3F3" Click="OnCellClick" Tag="3"/>
+            <Button x:Name="Cell4" Grid.Row="1" Grid.Column="1" Margin="5" FontSize="46" FontWeight="Bold" Background="#FFF3F3F3" Click="OnCellClick" Tag="4"/>
+            <Button x:Name="Cell5" Grid.Row="1" Grid.Column="2" Margin="5" FontSize="46" FontWeight="Bold" Background="#FFF3F3F3" Click="OnCellClick" Tag="5"/>
+            <Button x:Name="Cell6" Grid.Row="2" Grid.Column="0" Margin="5" FontSize="46" FontWeight="Bold" Background="#FFF3F3F3" Click="OnCellClick" Tag="6"/>
+            <Button x:Name="Cell7" Grid.Row="2" Grid.Column="1" Margin="5" FontSize="46" FontWeight="Bold" Background="#FFF3F3F3" Click="OnCellClick" Tag="7"/>
+            <Button x:Name="Cell8" Grid.Row="2" Grid.Column="2" Margin="5" FontSize="46" FontWeight="Bold" Background="#FFF3F3F3" Click="OnCellClick" Tag="8"/>
+        </Grid>
+
+        <Button x:Name="ResetButton" Content="Ricomincia" Height="48" Margin="0,14,0,0"
+                FontSize="17" FontWeight="SemiBold" Click="OnResetClick"/>
+    </StackPanel>
+</Window>

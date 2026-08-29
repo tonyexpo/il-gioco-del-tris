@@ -45,7 +45,19 @@ src/
   tictactoe3/   → output della live/modello 3
   tictactoe4/   → output della live/modello 4
   tictactoe5/   → output della live/modello 5
+  tictactoe6/   → output della live/modello 6
 ```
+
+## Abbinamento cartella → modello
+
+| Cartella      | Modello                                      |
+|---------------|-----------------------------------------------|
+| `tictactoe1`  | gemma-4-e2b                                    |
+| `toctactoe2`  | gemma-4-e4b                                    |
+| `tictactoe3`  | gemma-4-12B-it Q4                              |
+| `tictactoe4`  | gpt-5.6-luna                                   |
+| `tictactoe5`  | qwen-3.8-27B Q3 (ud-unslothdynamic)            |
+| `tictactoe6`  | qwen-3.8-27B Q2 (ud)                           |
 
 ## Licenza
 

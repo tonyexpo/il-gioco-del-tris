@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="TicTacToe.Tests/TicTacToe.Tests.csproj" />
+  <Project Path="TicTacToe/TicTacToe.csproj" />
+</Solution>

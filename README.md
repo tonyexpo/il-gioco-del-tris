@@ -46,6 +46,8 @@ src/
   tictactoe4/   → output della live/modello 4
   tictactoe5/   → output della live/modello 5
   tictactoe6/   → output della live/modello 6
+  tictactoe7/   → output della live/modello 7
+  tictactoe8/   → output della live/modello 8
 ```
 
 ## Abbinamento cartella → modello
@@ -58,6 +60,8 @@ src/
 | `tictactoe4`  | gpt-5.6-luna                                   |
 | `tictactoe5`  | qwen-3.8-27B Q3 (ud-unslothdynamic)            |
 | `tictactoe6`  | qwen-3.8-27B Q2 (ud)                           |
+| `tictactoe7`  | GPT-6-Astra                                    |
+| `tictactoe8`  | Fable-5.1                                      |
 
 ## Licenza
 

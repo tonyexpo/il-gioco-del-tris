@@ -1,0 +1,211 @@
+<Window x:Class="TicTacToe.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:TicTacToe.ViewModels"
+        xmlns:m="clr-namespace:TicTacToe.Models"
+        Title="Tris" Width="380" Height="540"
+        MinWidth="320" MinHeight="460"
+        WindowStartupLocation="CenterScreen"
+        Background="#F5F5F5"
+        FontFamily="Segoe UI">
+
+    <Window.DataContext>
+        <vm:GameViewModel />
+    </Window.DataContext>
+
+    <Window.Resources>
+        <SolidColorBrush x:Key="XBrush" Color="#1E88E5" />
+        <SolidColorBrush x:Key="OBrush" Color="#E53935" />
+        <SolidColorBrush x:Key="WinBrush" Color="#43A047" />
+        <SolidColorBrush x:Key="MutedBrush" Color="#757575" />
+
+        <Style x:Key="CellButton" TargetType="Button">
+            <Setter Property="Margin" Value="5" />
+            <Setter Property="FontSize" Value="44" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="Background" Value="White" />
+            <Setter Property="BorderBrush" Value="#D0D0D0" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="8">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Mark}" Value="{x:Static m:Player.X}">
+                    <Setter Property="Content" Value="X" />
+                    <Setter Property="Foreground" Value="{StaticResource XBrush}" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Mark}" Value="{x:Static m:Player.O}">
+                    <Setter Property="Content" Value="O" />
+                    <Setter Property="Foreground" Value="{StaticResource OBrush}" />
+                </DataTrigger>
+                <MultiTrigger>
+                    <MultiTrigger.Conditions>
+                        <Condition Property="IsMouseOver" Value="True" />
+                        <Condition Property="IsEnabled" Value="True" />
+                    </MultiTrigger.Conditions>
+                    <Setter Property="Background" Value="#E3F2FD" />
+                    <Setter Property="BorderBrush" Value="{StaticResource XBrush}" />
+                </MultiTrigger>
+                <DataTrigger Binding="{Binding IsWinning}" Value="True">
+                    <Setter Property="Background" Value="#C8E6C9" />
+                    <Setter Property="BorderBrush" Value="{StaticResource WinBrush}" />
+                    <Setter Property="BorderThickness" Value="2" />
+                </DataTrigger>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Cursor" Value="Arrow" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="StatusText" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="20" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="#333333" />
+            <Setter Property="HorizontalAlignment" Value="Center" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Outcome}" Value="{x:Static m:GameOutcome.HumanWon}">
+                    <Setter Property="Foreground" Value="{StaticResource WinBrush}" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Outcome}" Value="{x:Static m:GameOutcome.ComputerWon}">
+                    <Setter Property="Foreground" Value="{StaticResource OBrush}" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Outcome}" Value="{x:Static m:GameOutcome.Draw}">
+                    <Setter Property="Foreground" Value="{StaticResource MutedBrush}" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding IsComputerThinking}" Value="True">
+                    <Setter Property="Foreground" Value="{StaticResource MutedBrush}" />
+                    <Setter Property="FontWeight" Value="Normal" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="ScoreLabel" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Foreground" Value="{StaticResource MutedBrush}" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+
+        <Style x:Key="ScoreValue" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="15" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="Margin" Value="4,0,16,0" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+
+        <Style x:Key="LinkButton" TargetType="Button">
+            <Setter Property="Foreground" Value="{StaticResource MutedBrush}" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <TextBlock Text="{TemplateBinding Content}"
+                                   Foreground="{TemplateBinding Foreground}"
+                                   TextDecorations="Underline" />
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="ResetButton" TargetType="Button">
+            <Setter Property="FontSize" Value="15" />
+            <Setter Property="Padding" Value="28,9" />
+            <Setter Property="Background" Value="{StaticResource XBrush}" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                Padding="{TemplateBinding Padding}"
+                                CornerRadius="6">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#1565C0" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <DockPanel Grid.Row="0" Margin="0,0,0,10">
+            <TextBlock Text="Tris" FontSize="22" FontWeight="Bold" VerticalAlignment="Center" />
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <TextBlock Text="Difficoltà" Style="{StaticResource ScoreLabel}" Margin="0,0,8,0" />
+                <ComboBox Width="110"
+                          ItemsSource="{Binding Difficulties}"
+                          SelectedItem="{Binding Difficulty}"
+                          DisplayMemberPath="Name"
+                          ToolTip="{Binding Difficulty.Description}"
+                          VerticalAlignment="Center" />
+            </StackPanel>
+        </DockPanel>
+
+        <TextBlock Grid.Row="1"
+                   Text="{Binding StatusMessage}"
+                   Style="{StaticResource StatusText}"
+                   Margin="0,0,0,10" />
+
+        <ItemsControl Grid.Row="2" ItemsSource="{Binding Cells}">
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <UniformGrid Rows="3" Columns="3" />
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+                <DataTemplate DataType="{x:Type vm:CellViewModel}">
+                    <Button Style="{StaticResource CellButton}"
+                            Command="{Binding DataContext.PlayCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                            CommandParameter="{Binding}" />
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
+        <DockPanel Grid.Row="3" Margin="0,14,0,0">
+            <Button DockPanel.Dock="Right"
+                    Content="azzera"
+                    Style="{StaticResource LinkButton}"
+                    Command="{Binding ResetScoreCommand}"
+                    VerticalAlignment="Center" />
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="Tu" Style="{StaticResource ScoreLabel}" />
+                <TextBlock Text="{Binding HumanWins}" Style="{StaticResource ScoreValue}" Foreground="{StaticResource XBrush}" />
+                <TextBlock Text="Pareggi" Style="{StaticResource ScoreLabel}" />
+                <TextBlock Text="{Binding Draws}" Style="{StaticResource ScoreValue}" Foreground="{StaticResource MutedBrush}" />
+                <TextBlock Text="PC" Style="{StaticResource ScoreLabel}" />
+                <TextBlock Text="{Binding ComputerWins}" Style="{StaticResource ScoreValue}" Foreground="{StaticResource OBrush}" />
+            </StackPanel>
+        </DockPanel>
+
+        <Button Grid.Row="4"
+                Content="Reset"
+                Style="{StaticResource ResetButton}"
+                Command="{Binding ResetCommand}"
+                Margin="0,12,0,0"
+                HorizontalAlignment="Center" />
+    </Grid>
+</Window>

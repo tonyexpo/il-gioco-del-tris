@@ -1,68 +1,53 @@
-# Il gioco del tris — demo multi-modello
+# Il gioco del Tris — modelli LLM alla prova del codice
 
-Questa repository raccoglie il codice prodotto durante una serie di video per il
-mio canale YouTube, in formato orizzontale, in cui uso lo **stesso identico
-prompt** per far sviluppare da modelli AI diversi — quasi sempre modelli
-**locali**, raramente un servizio SaaS — la stessa piccola applicazione
-desktop: il gioco del tris (tic-tac-toe).
+Un banco di prova ripetibile per capire quanto un modello linguistico regge davvero su un lavoro di sviluppo reale.
 
-Ogni cartella dentro `src/` corrisponde a una registrazione/modello diverso:
-è l'output ottenuto in quella specifica live, così com'è uscito dal modello.
+L'idea è semplice: **stesso progetto, stesso prompt, modelli diversi.** Un gioco del tris in WPF/MVVM, scritto da zero dal modello, con il codice conservato esattamente come viene prodotto — senza correzioni, senza ritocchi, senza il "poi l'ho sistemato io" che rende inutile qualsiasi confronto.
 
-## Il prompt
+Ogni prova è raccontata in un episodio video della **Saga del gioco del Tris**: [guarda la playlist](https://www.youtube.com/@developerreactsita) *(← sostituisci con il link diretto alla playlist)*
 
-Il prompt usato è sempre lo stesso, per garantire un confronto equo tra i
-vari modelli:
+## Perché non un benchmark classico
 
-> Sei uno sviluppatore senior. Sviluppa in WPF un gioco del tris (tic-tac-toe)
-> seguendo il pattern MVVM. L'UX è a discrezione ma deve restare semplice. La
-> logica del PC è randomica. Il giocatore umano è sempre X, il PC è sempre O.
-> È presente un pulsante di reset in basso. Cliccando su uno dei 9 pulsanti
-> della griglia la partita parte.
+I benchmark misurano risposte su task sintetici. Qui si misura una cosa diversa e più scomoda: se il codice compila, se l'applicazione parte, se la logica di gioco funziona, e quante iterazioni servono per arrivarci. È il tipo di verifica che conta quando devi decidere se un modello locale può stare dentro un flusso di lavoro vero.
 
-## Perché questa repo è "diversa" dal solito
+## Il metodo
 
-Lo scopo di questa repository **non è distribuire codice sorgente pulito da
-ricompilare**, ma fornire l'accesso esatto a quanto avvenuto sul PC durante
-ogni live registrata. Per questo, di proposito:
+1. Prompt identico per tutti i modelli (vedi [`PROMPT.md`](PROMPT.md))
+2. Nessuna correzione manuale al codice generato
+3. Massimo N iterazioni di follow-up, sempre le stesse per tutti
+4. Il risultato viene committato così com'è, in una cartella per modello — **codice sorgente e binari compilati**, così che nulla venga alterato a posteriori e chiunque possa verificare l'eseguibile che ho effettivamente provato
+5. Valutazione su criteri fissi: compila / parte / la logica è corretta / qualità dell'architettura MVVM
 
-- **Non è presente alcun `.gitignore`**: cartelle di build come `bin/`,
-  `obj/`, `.vs/` sono incluse così come generate durante la registrazione.
-- **Eventuali refusi nei nomi di cartelle/file vengono mantenuti**, non
-  corretti (es. `toctactoe2` invece di `tictactoe2`), perché riflettono
-  esattamente ciò che è stato scritto/generato durante la live.
+## La classifica
 
-In altre parole: quello che scarichi è garantito identico a quello mostrato
-nel video, senza alcuna "pulizia" successiva che potrebbe introdurre
-differenze rispetto a quanto visto on-screen.
+| # | Modello | Quantizzazione | Compila | Parte | Logica OK | Iterazioni | Esito | Episodio |
+|---|---------|----------------|---------|-------|-----------|------------|-------|----------|
+| 1 | | | | | | | | |
+| 2 | | | | | | | | |
+| 3 | | | | | | | | |
 
-## Struttura
+*(da compilare con gli esiti già registrati: Gemma-4 2B, 4B, 12B, Qwen 27B nelle sue quantizzazioni, i modelli di frontiera usati come termine di paragone)*
+
+## Ambiente di prova
+
+Le prove locali girano su hardware consumer, non su una workstation da datacenter: è parte del punto. Configurazione di riferimento:
+
+- GPU: *(da specificare)*
+- RAM: *(da specificare)*
+- Runtime: *(LM Studio / llama.cpp / altro)*
+
+## Struttura del repository
 
 ```
-src/
-  tictactoe1/   → output della live/modello 1
-  toctactoe2/   → output della live/modello 2
-  tictactoe3/   → output della live/modello 3
-  tictactoe4/   → output della live/modello 4
-  tictactoe5/   → output della live/modello 5
-  tictactoe6/   → output della live/modello 6
-  tictactoe7/   → output della live/modello 7
-  tictactoe8/   → output della live/modello 8
+/prompt         il prompt usato, invariato tra le prove
+/risultati      una cartella per modello: codice generato as-is + binari compilati
+/note           osservazioni per singola prova
 ```
-
-## Abbinamento cartella → modello
-
-| Cartella      | Modello                                      |
-|---------------|-----------------------------------------------|
-| `tictactoe1`  | gemma-4-e2b                                    |
-| `toctactoe2`  | gemma-4-e4b                                    |
-| `tictactoe3`  | gemma-4-12B-it Q4                              |
-| `tictactoe4`  | gpt-5.6-luna                                   |
-| `tictactoe5`  | qwen-3.8-27B Q3 (ud-unslothdynamic)            |
-| `tictactoe6`  | qwen-3.8-27B Q2 (ud)                           |
-| `tictactoe7`  | GPT-6-Astra                                    |
-| `tictactoe8`  | Fable-5.1                                      |
 
 ## Licenza
 
-Distribuito con licenza [Apache 2.0](LICENSE).
+*(da definire — MIT è la scelta usuale per un progetto dimostrativo)*
+
+---
+
+Progetto di [Antonio Esposito](https://antonioesposito.it) — Head of Software Development & Solution Architect.

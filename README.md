@@ -1,5 +1,17 @@
 # Il gioco del tris — demo multi-modello
 
+> ⚠️ **Nota sui binari inclusi.** Sì, in questa repo trovi anche `bin/`, `obj/`
+> e altri artefatti già compilati per ogni progetto. Non è la prassi comune su
+> GitHub, ma qui è una scelta deliberata: questi progetti sono la base di
+> codice mostrata nei video, e devono restare eseguibili e identici a quanto
+> visto on-screen anche per chi non ha voglia (o modo) di ricompilare tutto da
+> zero. Meglio un repo "sporco" ma garantito funzionante, che uno pulito ma
+> non testabile.
+
+> 📁 **Cerchi un modello specifico?** Ogni cartella in `src/` corrisponde a un
+> modello diverso: consulta la tabella [Abbinamento cartella → modello](#abbinamento-cartella--modello)
+> qui sotto per trovare quella giusta.
+
 Questa repository raccoglie il codice prodotto durante una serie di video per il
 mio canale YouTube, in formato orizzontale, in cui uso lo **stesso identico
 prompt** per far sviluppare da modelli AI diversi — quasi sempre modelli
@@ -48,6 +60,7 @@ src/
   tictactoe6/   → output della live/modello 6
   tictactoe7/   → output della live/modello 7
   tictactoe8/   → output della live/modello 8
+  tictactoe9/   → output della live/modello 9
 ```
 
 ## Abbinamento cartella → modello
@@ -62,6 +75,7 @@ src/
 | `tictactoe6`  | qwen-3.8-27B Q2 (ud)                           |
 | `tictactoe7`  | GPT-6-Astra                                    |
 | `tictactoe8`  | Fable-5.1                                      |
+| `tictactoe9`  | Bonsai 27B (basato su Qwen 3.6) — orchestrato da GPT-5.6-Sol in Goose |
 
 ## Licenza
 

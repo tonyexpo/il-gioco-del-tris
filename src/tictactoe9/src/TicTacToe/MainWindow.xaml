@@ -1,0 +1,57 @@
+<Window x:Class="TicTacToe.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Tris" Width="390" Height="520" MinWidth="340" MinHeight="460"
+        WindowStartupLocation="CenterScreen" ResizeMode="CanMinimize"
+        Background="#FFF4F7FB">
+    <Window.Resources>
+        <Style x:Key="CellButton" TargetType="Button">
+            <Setter Property="Margin" Value="5" />
+            <Setter Property="FontSize" Value="42" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Background" Value="White" />
+            <Setter Property="Foreground" Value="#FF243B64" />
+            <Setter Property="BorderBrush" Value="#FFB8C7DD" />
+            <Setter Property="BorderThickness" Value="2" />
+            <Setter Property="Cursor" Value="Hand" />
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" Text="TRIS" HorizontalAlignment="Center"
+                   FontSize="30" FontWeight="Bold" Foreground="#FF243B64" />
+        <TextBlock Grid.Row="1" Text="{Binding Status}" HorizontalAlignment="Center"
+                   Margin="0,8,0,14" FontSize="17" Foreground="#FF52657E" />
+
+        <Grid Grid.Row="2">
+            <Grid.RowDefinitions>
+                <RowDefinition /><RowDefinition /><RowDefinition />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition /><ColumnDefinition /><ColumnDefinition />
+            </Grid.ColumnDefinitions>
+
+            <Button Grid.Row="0" Grid.Column="0" Style="{StaticResource CellButton}" Content="{Binding Cells[0].Mark}" Command="{Binding PlayCellCommand}" CommandParameter="0" AutomationProperties.Name="Cella 1" />
+            <Button Grid.Row="0" Grid.Column="1" Style="{StaticResource CellButton}" Content="{Binding Cells[1].Mark}" Command="{Binding PlayCellCommand}" CommandParameter="1" AutomationProperties.Name="Cella 2" />
+            <Button Grid.Row="0" Grid.Column="2" Style="{StaticResource CellButton}" Content="{Binding Cells[2].Mark}" Command="{Binding PlayCellCommand}" CommandParameter="2" AutomationProperties.Name="Cella 3" />
+            <Button Grid.Row="1" Grid.Column="0" Style="{StaticResource CellButton}" Content="{Binding Cells[3].Mark}" Command="{Binding PlayCellCommand}" CommandParameter="3" AutomationProperties.Name="Cella 4" />
+            <Button Grid.Row="1" Grid.Column="1" Style="{StaticResource CellButton}" Content="{Binding Cells[4].Mark}" Command="{Binding PlayCellCommand}" CommandParameter="4" AutomationProperties.Name="Cella 5" />
+            <Button Grid.Row="1" Grid.Column="2" Style="{StaticResource CellButton}" Content="{Binding Cells[5].Mark}" Command="{Binding PlayCellCommand}" CommandParameter="5" AutomationProperties.Name="Cella 6" />
+            <Button Grid.Row="2" Grid.Column="0" Style="{StaticResource CellButton}" Content="{Binding Cells[6].Mark}" Command="{Binding PlayCellCommand}" CommandParameter="6" AutomationProperties.Name="Cella 7" />
+            <Button Grid.Row="2" Grid.Column="1" Style="{StaticResource CellButton}" Content="{Binding Cells[7].Mark}" Command="{Binding PlayCellCommand}" CommandParameter="7" AutomationProperties.Name="Cella 8" />
+            <Button Grid.Row="2" Grid.Column="2" Style="{StaticResource CellButton}" Content="{Binding Cells[8].Mark}" Command="{Binding PlayCellCommand}" CommandParameter="8" AutomationProperties.Name="Cella 9" />
+        </Grid>
+
+        <Button Grid.Row="3" Content="Nuova partita" Command="{Binding ResetCommand}"
+                Margin="0,18,0,0" Padding="18,11" HorizontalAlignment="Stretch"
+                FontSize="16" FontWeight="SemiBold" Background="#FF315E9E"
+                Foreground="White" BorderThickness="0" Cursor="Hand" />
+    </Grid>
+</Window>

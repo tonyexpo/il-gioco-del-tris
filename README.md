@@ -61,6 +61,7 @@ src/
   tictactoe7/   → output della live/modello 7
   tictactoe8/   → output della live/modello 8
   tictactoe9/   → output della live/modello 9
+  tictactoe10/  → output della live/modello 10
 ```
 
 ## Abbinamento cartella → modello
@@ -76,6 +77,7 @@ src/
 | `tictactoe7`  | GPT-6-Astra                                    |
 | `tictactoe8`  | Fable-5.1                                      |
 | `tictactoe9`  | Bonsai 27B (basato su Qwen 3.6) — orchestrato da GPT-5.6-Sol in Goose |
+| `tictactoe10` | Qwen-3.8-27B — orchestrato da GPT-5.6-Sol in scenario multi-agentico |
 
 ## Licenza
 

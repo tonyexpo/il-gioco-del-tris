@@ -1,0 +1,11 @@
+C:\Users\Antonio Esposito\Desktop\tictactoe10\_scratch\obj\Debug\net8.0-windows\Scratch.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Antonio Esposito\Desktop\tictactoe10\_scratch\obj\Debug\net8.0-windows\Scratch.AssemblyInfoInputs.cache
+C:\Users\Antonio Esposito\Desktop\tictactoe10\_scratch\obj\Debug\net8.0-windows\Scratch.AssemblyInfo.cs
+C:\Users\Antonio Esposito\Desktop\tictactoe10\_scratch\obj\Debug\net8.0-windows\Scratch.csproj.CoreCompileInputs.cache
+C:\Users\Antonio Esposito\Desktop\tictactoe10\_scratch\bin\Debug\net8.0-windows\Scratch.deps.json
+C:\Users\Antonio Esposito\Desktop\tictactoe10\_scratch\bin\Debug\net8.0-windows\Scratch.dll
+C:\Users\Antonio Esposito\Desktop\tictactoe10\_scratch\bin\Debug\net8.0-windows\Scratch.pdb
+C:\Users\Antonio Esposito\Desktop\tictactoe10\_scratch\obj\Debug\net8.0-windows\Scratch.dll
+C:\Users\Antonio Esposito\Desktop\tictactoe10\_scratch\obj\Debug\net8.0-windows\refint\Scratch.dll
+C:\Users\Antonio Esposito\Desktop\tictactoe10\_scratch\obj\Debug\net8.0-windows\Scratch.pdb
+C:\Users\Antonio Esposito\Desktop\tictactoe10\_scratch\obj\Debug\net8.0-windows\ref\Scratch.dll

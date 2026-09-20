@@ -77,7 +77,7 @@ src/
 | `tictactoe7`  | GPT-6-Astra                                    |
 | `tictactoe8`  | Fable-5.1                                      |
 | `tictactoe9`  | Bonsai 27B (basato su Qwen 3.6) — orchestrato da GPT-5.6-Sol in Goose |
-| `tictactoe10` | Qwen-3.8-27B — orchestrato da GPT-5.6-Sol in scenario multi-agentico |
+| `tictactoe10` | Qwen-3.8-27B IQ3 ([ISTA-DASLab/Qwen3.8-27B-GSQ-RCO-GGUF](https://huggingface.co/ISTA-DASLab/Qwen3.8-27B-GSQ-RCO-GGUF)) — orchestrato da GPT-5.6-Sol in scenario multi-agentico |
 
 ## Licenza
 

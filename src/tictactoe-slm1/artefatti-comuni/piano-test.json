@@ -1,0 +1,62 @@
+{
+  "models": [
+    [
+      "granite-4.2-3b",
+      "granite-4.2-3b"
+    ],
+    [
+      "lfm2.5-2.6b",
+      "lfm2.5-2.6b"
+    ],
+    [
+      "minicpm5-2b",
+      "minicpm5-2b"
+    ],
+    [
+      "ministral-3-3b",
+      "mistralai/ministral-3-3b"
+    ],
+    [
+      "qwen3.5-4b",
+      "qwen3.5-4b"
+    ]
+  ],
+  "taskDefs": [
+    [
+      "01-tris-web",
+      "Scrivi tris HTML CSS JS vanilla single-page, stile Minecraft blocchi grandi 2D, umano X, PC O logica base, reset e risultato. Crea file index.html style.css script.js, verifica condizioni vittoria e pareggio."
+    ],
+    [
+      "02-tris-wpf",
+      "Scrivi progetto WPF net10.0-windows compilabile con csproj, App.xaml, MainWindow.xaml e codebehind: tris umano X PC O, reset, grafica Minecraft 2D a blocchi."
+    ],
+    [
+      "03-tesina-milano",
+      "Scrivi tesina italiana su Milano: storia, geografia, economia, cultura, monumenti, criticità. Salva tesina-milano-1.md."
+    ],
+    [
+      "04-tesina-obama",
+      "Scrivi tesina italiana accurata su Barack Obama: biografia, presidenza 2009–2017, sanità, economia, politica estera, luci e critiche. Salva tesina-obama-1.md."
+    ],
+    [
+      "05-copy-milano",
+      "Scrivi 3 copy ITALIANI concreti e diversi per YouTube Shorts 60 secondi sulla tesina su MILANO; hook 0–3s, fatti verificabili, CTA ritorno al canale; niente placeholder. Salva copy-milano-1.md."
+    ],
+    [
+      "06-traduzione-marketing",
+      "Traduci in italiano professionale il testo da artefatti-comuni/prompt-traduzione.md; se impossibile leggere il file, dichiaralo e non inventare. Salva traduzione-marketing-1.md."
+    ],
+    [
+      "07-multimodale",
+      "Esamina davvero artefatti-comuni/toni.wav (5 suoni in 2s) e 5 PNG colore-*.png, riporta frequenze stimate nell’ordine e colore RGB di ciascuno; non confondere nome del file con visione. Se impossibile, dichiaralo e FERMA il test al tentativo 1. Salva risposta-multimodale-1.md."
+    ],
+    [
+      "08-documenti",
+      "Genera due file REALI validi DOCX e PDF con breve checklist colloquio di lavoro; non solo markdown. Salva risposta-documenti-1.md con metodo e verifica file."
+    ],
+    [
+      "09-vendite",
+      "Leggi realmente artefatti-comuni/vendite.xlsx; calcola fatturato, unità, fatturato canali/categorie, top prodotto unità, AOV ordine, quota fatturato Ads. Se XLSX non accessibile, dichiaralo: darò CSV identico. Salva analisi-vendite-1.md."
+    ]
+  ]
+}

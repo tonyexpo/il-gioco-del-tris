@@ -1,0 +1,1 @@
+Analizza vendite.xlsx senza modificare i dati: fatturato totale, unità totali, fatturato per canale e categoria, prodotto con più unità, AOV per ordine, percentuale fatturato Ads. Spiega metodo e limiti; se non riesci a leggere XLSX dillo: ti sarà dato CSV identico.

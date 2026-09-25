@@ -1,0 +1,20 @@
+{
+  "version": 2,
+  "dgSpecHash": "pbFaovSnkxA=",
+  "success": false,
+  "projectFilePath": "C:\\Users\\Antonio Esposito\\Desktop\\tictactoe-slm1\\granite-4.2-3b\\02-tris-wpf\\WPFApp.csproj",
+  "expectedPackageFiles": [],
+  "logs": [
+    {
+      "code": "NU1101",
+      "level": "Error",
+      "message": "Il pacchetto System.Windows non è stato trovato. Non esistono pacchetti con questo ID nelle origini: Microsoft Visual Studio Offline Packages, nuget.org",
+      "projectPath": "C:\\Users\\Antonio Esposito\\Desktop\\tictactoe-slm1\\granite-4.2-3b\\02-tris-wpf\\WPFApp.csproj",
+      "filePath": "C:\\Users\\Antonio Esposito\\Desktop\\tictactoe-slm1\\granite-4.2-3b\\02-tris-wpf\\WPFApp.csproj",
+      "libraryId": "System.Windows",
+      "targetGraphs": [
+        "net10.0-windows"
+      ]
+    }
+  ]
+}

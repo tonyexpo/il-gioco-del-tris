@@ -1,0 +1,9 @@
+id,data,canale,categoria,prodotto,unita,prezzo_unitario
+A01,2026-01-03,Ads,Casa,Lampada,2,30
+A02,2026-01-04,Organico,Tech,Mouse,1,25
+A03,2026-01-05,Ads,Tech,Mouse,3,25
+A04,2026-01-06,Email,Casa,Tazza,4,10
+A05,2026-01-07,Organico,Casa,Lampada,1,30
+A06,2026-01-08,Ads,Casa,Tazza,5,10
+A07,2026-01-09,Email,Tech,Mouse,2,25
+A08,2026-01-10,Organico,Tech,Tastiera,1,80

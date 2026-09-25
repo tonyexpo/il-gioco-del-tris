@@ -1,0 +1,47 @@
+<Window x:Class="TicTacToe.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Tris (Human vs PC) - WPF 10" Height="700" Width="900"
+        Background="#1a1a2e">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <TextBlock x:Name="TitleBar"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center"
+                   FontSize="32"
+                   FontWeight="Bold"
+                   Foreground="#0d9488"
+                   Margin="0,0,0,20"/>
+
+        <!-- Game Board (3x3) -->
+        <Grid x:Name="GameBoard" RowDefinitions="Auto,Auto,Auto">
+            <Button x:Name="Cell1" Content="X" Width="80" Height="80" TapAction="OnClick"
+                    Background="#0d9488" Foreground="#1a1a2e"/>
+            <Button x:Name="Cell2" Content="O" Width="80" Height="80" TapAction="OnClick"
+                    Background="#0d9488" Foreground="#1a1a2e"/>
+            <Button x:Name="Cell3" Content="X" Width="80" Height="80" TapAction="OnClick"
+                    Background="#0d9488" Foreground="#1a1a2e"/>
+
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+        </Grid>
+
+        <!-- Status Bar -->
+        <StackPanel x:Name="StatusBar"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Bottom"
+                    Margin="0,20,0,0">
+            <TextBlock Text="Waiting for your move..."/>
+            <TextBox x:Name="ScoreDisplay" Width="150" Height="30"/>
+        </StackPanel>
+    </Grid>
+</Window>

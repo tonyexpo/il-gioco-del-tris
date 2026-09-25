@@ -1,0 +1,1 @@
+﻿Analizza il file vendite.xlsx senza modificare i dati. Calcola: fatturato totale, unita totali, fatturato per canale, fatturato per categoria, prodotto con piu unita, AOV per ordine e percentuale fatturato da Ads. Indica metodo e eventuali limiti. Se non riesci a leggere xlsx, dillo esplicitamente: ti sara fornito il CSV identico.

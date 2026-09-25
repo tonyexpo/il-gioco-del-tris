@@ -1,0 +1,7 @@
+Milano, culla storica dei Visconti e poi degli Sforza, è un esempio straordinario di città che ha saputo coniugare tradizione e innovazione. I Visconti, nel XIV secolo, trasformarono Milano in una delle più potenti capitali del Nord Italia, fondando il Ducato di Milano e costruendo la base per l’egemonia culturale e politica della Lombardia. La Pianura Padana, fertile e strategica, divenne il cuore economico dell’epoca, con un’agricoltura avanzata che alimentava una città sempre più popolosa.
+
+L’economia milanese si sviluppò intorno al commercio, alla manifattura e all’artigianato: i mercati come quello di Brera, ancora oggi simbolo di creatività, nascono proprio in questo contesto. Tuttavia, anche la città affrontò sfide come lo smog, legato all’industrializzazione precoce e alle emissioni dei fumi delle fabbriche che si insediarono lungo i Navigli, canali che divennero vie vitali per il trasporto ma anche fonti di inquinamento.
+
+Il Duomo di Milano, simbolo indiscusso della città, è un capolavoro gotico che riflette l’orgoglio architettonico e religioso del periodo. Oggi, Milano continua a bilanciare il suo passato glorioso con sfide moderne: affitti elevati, pressione ambientale e la necessità di preservare un patrimonio storico unico tra le grandi metropoli italiane.
+
+(~200 parole)

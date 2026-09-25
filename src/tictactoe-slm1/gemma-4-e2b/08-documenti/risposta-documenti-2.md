@@ -1,0 +1,1 @@
+Non è possibile creare direttamente file in formato DOCX o PDF utilizzando gli strumenti attualmente disponibili. Posso generare il contenuto testuale richiesto e salvarlo come file di testo (es. .txt o .md) nella cartella specificata, ma non posso eseguire la conversione diretta nei formati binari Word/PDF.

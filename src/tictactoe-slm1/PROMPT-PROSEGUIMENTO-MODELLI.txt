@@ -1,0 +1,22 @@
+PROMPT DI CONTINUAZIONE - BENCHMARK GOOSE MULTI-MODELLO
+
+Opera in C:\Users\Antonio Esposito\Desktop\tictactoe-slm1. Prima leggi artefatti-comuni/protocollo-QA.md, artefatti-comuni/piano-test.json, prompt e asset comuni, i sei REPORT-QA.md esistenti e REPORT-FINALE-COMPARATIVO.md. Verifica sempre i file reali. I sei modelli già valutati (Gemma, Granite, LFM, MiniCPM, Ministral e Qwen) non vanno rieseguiti né alterati. Se non ti fornisco identificativi ESATTI e ordine dei nuovi modelli, chiedimeli prima di iniziare.
+
+Per ogni nuovo modello, in ordine, completa i nove task standardizzati e il relativo REPORT-QA.md PRIMA di passare al modello successivo. Massimo quattro task simultanei, tutti sul modello corrente. Conserva artefatti e risposte numerate in una nuova cartella del modello; input fissi soltanto in artefatti-comuni. Dopo tutti i nuovi modelli, estendi REPORT-FINALE-COMPARATIVO.md senza cancellare risultati e caveat precedenti.
+
+Task identici per ciascun modello:
+1) Tris umano-PC stile Minecraft in HTML/CSS/JS vanilla, giocabile e con reset.
+2) Tris umano-PC Windows WPF .NET 10 con reset, progetto e sorgenti.
+3) Tesina italiana accurata su Milano.
+4) Tesina italiana accurata su Barack Obama.
+5) Tre script italiani per YouTube Shorts su Milano, circa 60 secondi ciascuno, con hook e invito a tornare sul canale.
+6) Traduzione professionale italiana, con note QA, del testo inglese integrale in artefatti-comuni/prompt-traduzione.md. MER significa Marketing Efficiency Ratio.
+7) Analisi percettiva autentica del WAV comune (2 secondi, cinque toni consecutivi 220/330/440/550/660 Hz) e di cinque PNG comuni (rosso, verde, blu, giallo, magenta). Non dedurre i colori dai nomi. Ferma il task al primo accertamento di modalità indispensabile indisponibile e spiega la prova dello stop.
+8) DOCX e PDF autentici su un argomento quotidiano, non soltanto testo o promesse di creazione.
+9) Analisi dell'XLSX vendite condiviso, con fallback al CSV identico se XLSX non leggibile; dichiara il formato effettivamente letto. Riferimenti QA: ricavi 410 = somma(unità * prezzo unitario), unità 19, Ads 185, Organico 135, Email 90, Casa 180, Tech 230, Tazza 9 unità, AOV 51,25 su 8 ordini, quota Ads 45,12%.
+
+Regole vincolanti: CINQUE opportunità effettive di sviluppo/scrittura/test per ogni task idoneo, anche dopo successo apparente; eccezione per indisponibilità multimodale provata o altro impedimento davvero insormontabile documentato. XLSX non leggibile non è impedimento definitivo se è disponibile il CSV. Un tentativo vuoto, fallito o bloccato conta come opportunità FALLITA, non come risultato valido. Numera e preserva i tentativi. Distingui file realmente presenti, testo inline archiviato verbatim dal QA e dichiarazioni non confermate del modello. Limita ogni comando/sessione sub-agente a 1-3 minuti, interrompi gli sforamenti e registrali onestamente; sorveglia i processi in background.
+
+QA può archiviare output inline verbatim e verificare i sorgenti prodotti dai modelli con node --check, dotnet build e controlli numerici/documentali; NON può scrivere, modificare o riparare il codice dei giochi dei modelli. Il codice originale rimane valutabile anche se il piccolo modello non sa compilare: separa qualità del codice, esito build/runtime e capacità agentica di salvare file. node --check non prova che la UI sia giocabile. Distingui errori fattuali del modello da errori del provider/infrastruttura, senza attribuire riuscite mai osservate.
+
+Assegna 1-10 per ciascuno dei nove task, dando priorità a correttezza fattuale, aritmetica, funzionamento e autenticità dei file rispetto alla presentazione. Completa ogni REPORT-QA.md prima del modello seguente; poi aggiorna la comparativa, riconciliando punteggi, somme, medie, conteggi dei tentativi ed eccezioni. Non sovrascrivere le conclusioni storiche. Se revisioni peggiorano versioni precedenti, motiva quale output hai valutato. Scrivi i report in UTF-8 e verifica l'assenza di caratteri sostitutivi U+FFFD. I precedenti report QA sono stati riparati per encoding; backup in .encoding-backup-20260925. Concludi con percorsi dei report, punteggi e limiti osservati.

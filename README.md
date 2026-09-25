@@ -62,6 +62,7 @@ src/
   tictactoe8/   → output della live/modello 8
   tictactoe9/   → output della live/modello 9
   tictactoe10/  → output della live/modello 10
+  tictactoe-slm1/ → confronto multi-modello SLM, orchestrato da GPT-6-Sol
 ```
 
 ## Abbinamento cartella → modello
@@ -78,6 +79,44 @@ src/
 | `tictactoe8`  | Fable-5.1                                      |
 | `tictactoe9`  | Bonsai 27B (basato su Qwen 3.6) — orchestrato da GPT-5.6-Sol in Goose |
 | `tictactoe10` | Qwen-3.8-27B IQ3 ([ISTA-DASLab/Qwen3.8-27B-GSQ-RCO-GGUF](https://huggingface.co/ISTA-DASLab/Qwen3.8-27B-GSQ-RCO-GGUF)) — orchestrato da GPT-5.6-Sol in scenario multi-agentico |
+
+## tictactoe-slm1 — confronto multi-modello SLM (orchestrato da GPT-6-Sol)
+
+A differenza delle altre cartelle, `tictactoe-slm1/` non è l'output di un
+singolo modello: è un confronto tra più **SLM** (small language model) sullo
+stesso set di nove task standardizzati, orchestrato da **GPT-6-Sol** tramite
+un prompt multi-agentico incluso nella cartella stessa
+(`PROMPT-PROSEGUIMENTO-MODELLI.txt`).
+
+Sotto-struttura:
+
+```
+tictactoe-slm1/
+  artefatti-comuni/                → asset condivisi tra i test (immagini, audio,
+                                      dataset, protocollo QA, piano di test)
+  PROMPT-PROSEGUIMENTO-MODELLI.txt → prompt multi-agentico con orchestratore
+  REPORT-FINALE-COMPARATIVO.md     → report di confronto tra i modelli
+  <nome-modello>/
+    01-tris-web/                   → tris in HTML/JS
+    02-tris-wpf/                   → tris in WPF (stesso task delle altre cartelle del repo)
+    03-tesina-milano/
+    04-tesina-obama/
+    05-copy-milano/
+    06-traduzione-marketing/
+    07-multimodale/
+    08-documenti/
+    09-vendite/
+    REPORT-QA.md                  → verifica qualità per il singolo modello
+```
+
+Modelli SLM testati in questo batch:
+
+- `gemma-4-e2b`
+- `granite-4.2-3b`
+- `lfm2.5-2.6b`
+- `minicpm5-2b`
+- `ministral-3-3b`
+- `qwen3.5-4b`
 
 ## Licenza
 

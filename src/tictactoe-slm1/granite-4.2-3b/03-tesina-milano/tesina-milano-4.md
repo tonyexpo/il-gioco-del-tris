@@ -1,0 +1,14 @@
+Tesina: Mediolanum Visconti/Sforza, storia di Milano  
+Milano nel periodo Viscontino (1369–1402) e Sforzino (1402–1519) fu un centro politico, economico e culturale di riferimento in Nord Italia. Dopo la caduta del Capitano Gualtieri e la successione viscontea, Milano si consolidò come capitale della dinastia dei Visconti, che trasformò Mediolanum in una città strategica attraverso la costruzione di mura esterne, il ristrutturazione del centro storico e l'espansione delle infrastrutture commerciali lungo le rotte del Mediterraneo e del fiume Po.  
+
+Geograficamente, Milano si situava tra le Alpi e i campi agricoli del Pian di Sordo, favorendo la produzione di grano e il commercio locale; le posizioni su diverse sponde strategiche (come quella sulle valli della Valle del Ticino) garantiscevano controlli militari sui percorsi di trasporto lungo l'Appennino. L'economia viscontina si basava sulla produzione tessile, sul commercio di mercantili e sul controllo delle rotte commerciali transalpine, con un crescente ruolo della nobiltà locale e dei monaci benedettini nelle attività agricole e manifatturiere.  
+
+L'arte viscontea rifletteva una sintesi tra tradizioni romaniche e influenze locali: la cattedrale di Sant'Ambrogio, le opere del maestro Ambrogino e gli affreschi dei palazzi reali evidenziavano un’attenzione alla liturgia e alla decorazione architettonica. Con l'arrivo dei Sforza (1402–1519), Milano passò da capitale regia a centro di governo più decentralizzato, ma mantiene il suo ruolo culturale. Durante questo periodo, la città si sviluppò ulteriormente con la costruzione del Castello Vittoriano, l’espansione della via Navigli e l’intensificazione del mercato artigianale di tessuti e metalli. L'economia visconte-sforzina fu supportata da un sistema di tasse progressive e da contratti con altre città del Nord, ma presentò tensioni tra la nobiltà locale, i cittadini mercantili e le potenze esterne (es. Francia, Venezia).  
+
+I problemi principali affrontati erano:  
+- La resistenza dei contadini e delle classi popolari contro le tasse e le pressioni feudali;  
+- Le rivalità tra i nobili locali e il potere centrale che portarono a divisioni politiche e a momentanei instabilità;  
+- L’impatto della crisi economica del XV secolo, aggravata dalla caduta dei conti di Bergamo e dalle tensioni con Venezia sul commercio lungo il Po;  
+- La necessità di bilanciare la crescita culturale e artistica con le esigenze militari e amministrative della corte.  
+
+Queste dinamiche plasmarono l’identità di Milano come città ibrida tra potenza regia, centro commerciale e hub culturale del Nord Italia durante il periodo Mediolanum Visconti/Sforza.

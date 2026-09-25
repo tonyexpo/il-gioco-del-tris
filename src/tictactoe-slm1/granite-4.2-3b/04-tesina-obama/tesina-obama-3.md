@@ -1,0 +1,13 @@
+VITA E CARATTERE BARACK OBAMA  
+Barack Hussein Obama II nasce a Honolulu, Hawai', nel 1961 da una madre libera professionista e un padre keniano. Dopo la formazione presso l'Università di Columbia (B.A.) e l'Oxford (M.A. in Relazioni Internazionali), lavora come avvocato e rappresentante nel Congresso dal 2005 al 2010, prima di essere candidato presidenziale nelle elezioni del 2008. Nel maggio 2009 viene inaugurato il suo primo mandato presidenziale con un discorso intitolato "The World Is Our Workshop" che mette in evidenza l'idea di cooperazione globale e risoluzione pacifica dei conflitti.
+
+MANDATO E POLITICA PUBBLICA (2009-2017)  
+Durante il suo mandato, Obama promuove la legge Affordable Care Act (ACA) nel 2010 che estende l'assicurazione sanitaria a milioni di americani senza copertura, modificando radicalmente il sistema sanitario statunitense e rappresentando un importante passo verso l'equità sanitaria. Implementa anche un piano economico di stimolo post-crisi finanziaria (stimolo economico) che mirava a ripristinare la crescita economica, ridurre lo spazio della disoccupazione e finanziare investimenti nelle infrastrutture e nell'istruzione.
+
+CONFLITTI E NEGOTIATION GLOBALI  
+Negli anni successivi Obama affronta le sfide geopolitiche: nel 2015 negoziati l'accordo sul trattato di Parigi sulla riduzione delle emissioni di gas serra, creando un pilastro per gli accordi climatici internazionali. Nel 2015 gestì la crisi iraniana attraverso pressioni diplomatiche e sanzioni mirate, cercando un equilibrio tra diplomazia e sicurezza nazionale senza scendere in conflitto armato.
+
+CRITICHE E CONTROVERSIE  
+Negli anni successivi al mandato Obama ha ricevuto critiche significative per le politiche relative ai droni militari, soprattutto per l'uso di sistemi di intelligence elettronica che causavano sovra-intervenzioni in paesi esteri, con conseguenze su diritti umani e innocenti. Le operazioni di deportazione contro migranti e rifugiati hanno generato dibattiti ampi, con critiche per l'applicazione eccessiva delle norme migratorie e richieste di riforma più giusta ed etica del sistema di gestione dei flussi migratori.
+
+Questa tesina offre una panoramica coerente e completa della vita reale di Barack Obama durante il suo mandato presidenziale, evidenziando le principali iniziative politiche, i risultati concreti e le criticità che hanno caratterizzato la sua amministrazione.

@@ -1,0 +1,17 @@
+<Application xmlns="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             StartupUri="MainWindow.xaml">
+  <Application.Resources>
+    <ResourceDictionary>
+      <Style x:Key="HighContrastForeground" TargetType="TextBlock">
+        <Setter Property="FontWeight" Value="Bold"/>
+        <Setter Property="Foreground" Value="#1a1a2e"/>
+      </Style>
+      <Style x:Key="AccentColor" TargetType="Button" BasedOn="{StaticResource PrimaryButton}">
+        <Setter Property="Background" Value="#0d9488"/>
+        <Setter Property="Foreground" Value="#ffffff"/>
+        <Setter Property="Cursor" Value="Pointer"/>
+      </Style>
+    </ResourceDictionary>
+  </Application.Resources>
+</Application>

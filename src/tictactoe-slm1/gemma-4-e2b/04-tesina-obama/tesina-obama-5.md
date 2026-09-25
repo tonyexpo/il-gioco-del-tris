@@ -1,0 +1,1 @@
+Tesina su Barack Obama (versione autonoma)

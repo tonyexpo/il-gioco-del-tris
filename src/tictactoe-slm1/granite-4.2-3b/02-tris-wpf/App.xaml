@@ -1,0 +1,14 @@
+<Application x:Class='WpfApp.App'
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             StartupUri="MainWindow.xaml">
+    <Application.Resources>
+        <!-- 2D block graphics resources -->
+        <DataTemplate x:Key="BlockItem">
+            <Border Background="#FFAAAAAA" 
+                    Width="60" 
+                    Height="60" 
+                    Margin="0,0,0,0" />
+        </DataTemplate>
+    </Application.Resources>
+</Application>

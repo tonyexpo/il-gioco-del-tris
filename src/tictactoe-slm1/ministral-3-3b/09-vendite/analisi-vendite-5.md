@@ -1,0 +1,1 @@
+No text content in last message

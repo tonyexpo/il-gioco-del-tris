@@ -1,0 +1,13 @@
+Task: Generate job interview checklist documents (.docx + .pdf)
+Requirements:
+1. Create valid binary .docx file with checklist content
+2. Create valid binary .pdf file with checklist content  
+3. Verify files are readable (check magic bytes)
+4. Focus on production-ready daily files, not text quality
+5. Save summary to response-documenti-1.md in current directory
+6. Do NOT say "success" if files are missing
+
+Current time: 2026-09-25 19:47:00 +02:00
+Working dir: \\?\C:\Users\Antonio Esposito\Desktop\tictactoe-slm1\qwen3.5-4b\08-documenti
+
+Status: IN PROGRESS - Creating binary files...

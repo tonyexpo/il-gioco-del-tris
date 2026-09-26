@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>井字棋 - Tic Tac Toe</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="game-container">
+    <header class="game-header">
+      <h1 class="game-title">井字棋</h1>
+      <p class="game-subtitle">Tic Tac Toe</p>
+      <div class="status-indicator">
+        <span class="status-label" id="statusLabel">X 的回合</span>
+        <span class="status-dot" id="statusDot"></span>
+      </div>
+    </header>
+
+    <main class="game-area">
+      <section class="board-section">
+        <h2 class="section-title">游戏棋盘</h2>
+        <div class="board-container">
+          <div class="board" id="board"></div>
+        </div>
+      </section>
+
+      <section class="controls-section">
+        <div class="player-buttons">
+          <button class="player-btn" data-player="X" title="选择玩家 X">
+            <span class="btn-icon">X</span>
+            <span class="btn-label">X</span>
+          </button>
+          <button class="player-btn" data-player="O" title="选择玩家 O">
+            <span class="btn-icon">O</span>
+            <span class="btn-label">O</span>
+          </button>
+        </div>
+        <button class="restart-btn" id="restartBtn" title="重新开始游戏">
+          <span>重新开始</span>
+        </button>
+      </section>
+    </main>
+
+    <div class="win-modal" id="winModal" style="display: none;">
+      <div class="modal-content">
+        <h2 class="modal-title" id="winTitle">游戏结束</h2>
+        <p class="modal-message" id="winMessage">等待下一回合</p>
+        <button class="restart-btn" id="winRestartBtn" title="再来一局">再来一局</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>

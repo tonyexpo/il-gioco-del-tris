@@ -63,6 +63,9 @@ src/
   tictactoe9/   → output della live/modello 9
   tictactoe10/  → output della live/modello 10
   tictactoe-slm1/ → confronto multi-modello SLM, orchestrato da GPT-6-Sol
+  tictactoe11/  → output della live/modello 11 (JS vanilla, single-page)
+  tictactoe11-b/ → variante/secondo tentativo dello stesso modello (JS vanilla, single-page)
+  tictactoe12/  → output della live/modello 12 (JS vanilla, single-page)
 ```
 
 ## Abbinamento cartella → modello
@@ -79,6 +82,9 @@ src/
 | `tictactoe8`  | Fable-5.1                                      |
 | `tictactoe9`  | Bonsai 27B (basato su Qwen 3.6) — orchestrato da GPT-5.6-Sol in Goose |
 | `tictactoe10` | Qwen-3.8-27B IQ3 ([ISTA-DASLab/Qwen3.8-27B-GSQ-RCO-GGUF](https://huggingface.co/ISTA-DASLab/Qwen3.8-27B-GSQ-RCO-GGUF)) — orchestrato da GPT-5.6-Sol in scenario multi-agentico |
+| `tictactoe11` | Spark-X2.5-1.7B — implementazione in JavaScript vanilla, single-page (modello piccolo) |
+| `tictactoe11-b` | Spark-X2.5-1.7B — variante/secondo tentativo, JavaScript vanilla, single-page |
+| `tictactoe12` | qwen-3.5-4b — implementazione in JavaScript vanilla, single-page (modello piccolo) |
 
 ## tictactoe-slm1 — confronto multi-modello SLM (orchestrato da GPT-6-Sol)
 

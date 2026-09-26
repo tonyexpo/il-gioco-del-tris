@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tic Tac Toe</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+</head>
+<body>
+  <div class="app">
+    <header class="app-header">
+      <h1 class="title">Tic Tac Toe</h1>
+      <p class="subtitle">Human plays X · Computer plays O</p>
+    </header>
+
+    <main class="game-container">
+      <section class="board-section">
+        <h2 class="section-title">Board</h2>
+        <div class="board" id="board">
+          <div class="cell" data-row="0" data-col="0">
+            <div class="cell-tile" data-player="X">X</div>
+          </div>
+          <div class="cell" data-row="0" data-col="1">
+            <div class="cell-tile" data-player="O">O</div>
+          </div>
+          <div class="cell" data-row="0" data-col="2">
+            <div class="cell-tile" data-player="X">X</div>
+          </div>
+          <div class="cell" data-row="1" data-col="0">
+            <div class="cell-tile" data-player="O">O</div>
+          </div>
+          <div class="cell" data-row="1" data-col="1">
+            <div class="cell-tile" data-player="X">X</div>
+          </div>
+          <div class="cell" data-row="1" data-col="2">
+            <div class="cell-tile" data-player="O">O</div>
+          </div>
+          <div class="cell" data-row="2" data-col="0">
+            <div class="cell-tile" data-player="X">X</div>
+          </div>
+          <div class="cell" data-row="2" data-col="1">
+            <div class="cell-tile" data-player="O">O</div>
+          </div>
+          <div class="cell" data-row="2" data-col="2">
+            <div class="cell-tile" data-player="X">X</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="score-section">
+        <h2 class="section-title">Score</h2>
+        <div class="score-grid">
+          <div class="score-item">
+            <span class="score-label">Wins</span>
+            <span class="score-value" id="score-wins">0</span>
+          </div>
+          <div class="score-item">
+            <span class="score-label">Ties</span>
+            <span class="score-value" id="score-ties">0</span>
+          </div>
+          <div class="score-item">
+            <span class="score-label">Losers</span>
+            <span class="score-value" id="score-losers">0</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="controls-section">
+        <button class="btn btn-reset" id="resetBtn" type="button">Reset Game</button>
+      </section>
+    </main>
+
+    <footer class="app-footer">
+      <span>Human (X) vs Computer (O) · Click to place</span>
+    </footer>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>

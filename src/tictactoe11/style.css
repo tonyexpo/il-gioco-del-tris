@@ -1,0 +1,283 @@
+/* ==================== 基础重置与全局样式 ==================== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  background: linear-gradient(135deg, #0f0f23 0%, #1a1a3e 50%, #0d1b2a 100%);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  color: #e0e0e0;
+}
+
+.game-container {
+  width: 100%;
+  max-width: 520px;
+}
+
+/* ==================== 头部标题 ==================== */
+.game-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.game-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 8px;
+}
+
+.game-subtitle {
+  font-size: 0.9rem;
+  color: #8888aa;
+  letter-spacing: 3px;
+}
+
+.status-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 10px 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 20px;
+  margin-top: 12px;
+}
+
+.status-label {
+  font-size: 0.9rem;
+  color: #ccc;
+  transition: color 0.3s;
+}
+
+.status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #6366f1;
+  transition: background 0.3s;
+}
+
+/* ==================== 游戏区域 ==================== */
+.game-area {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.section-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 16px;
+}
+
+.board-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* ==================== 棋盘 ==================== */
+.board {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  width: 100%;
+  max-width: 360px;
+  aspect-ratio: 1;
+  background: rgba(255, 255, 255, 0.03);
+  border: 2px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 12px;
+  position: relative;
+  backdrop-filter: blur(10px);
+}
+
+.board-cell {
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  font-weight: 700;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+/* 玩家落子样式 */
+.board-cell.player-cell.X {
+  background: rgba(99, 102, 241, 0.2);
+  border: 2px solid #6366f1;
+  color: #ffffff;
+}
+
+.board-cell.player-cell.O {
+  background: rgba(34, 197, 94, 0.2);
+  border: 2px solid #22c55e;
+  color: #ffffff;
+}
+
+/* 获胜高亮 */
+.board-cell.win-cell {
+  animation: winPulse 0.5s ease;
+}
+
+@keyframes winPulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+/* ==================== 玩家按钮 ==================== */
+.player-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+}
+
+.player-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 16px 32px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  color: #e0e0e0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 80px;
+}
+
+.player-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+}
+
+.player-btn:active {
+  transform: translateY(0);
+}
+
+.btn-icon {
+  font-size: 1.8rem;
+  font-weight: 700;
+}
+
+/* ==================== 重新开始按钮 ==================== */
+.restart-btn {
+  display: block;
+  width: 100%;
+  padding: 14px 32px;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  border: none;
+  border-radius: 12px;
+  color: #ffffff;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: 12px;
+}
+
+.restart-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3);
+}
+
+/* ==================== 胜利弹窗 ==================== */
+.win-modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.win-modal.show {
+  display: flex;
+}
+
+.modal-content {
+  background: linear-gradient(135deg, #1a1a3e, #16213e);
+  border: 2px solid rgba(99, 102, 241, 0.3);
+  border-radius: 20px;
+  padding: 40px 30px;
+  text-align: center;
+  max-width: 360px;
+  width: 100%;
+}
+
+.modal-title {
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin-bottom: 16px;
+}
+
+.modal-title.win {
+  background: linear-gradient(135deg, #22c55e, #84cc16);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.modal-title.draw {
+  background: linear-gradient(135deg, #f59e0b, #ef4444);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.modal-message {
+  font-size: 1.1rem;
+  color: #ccc;
+  margin-bottom: 24px;
+}
+
+/* ==================== 响应式布局 ==================== */
+@media (max-width: 480px) {
+  .game-title {
+    font-size: 2rem;
+  }
+
+  .board {
+    gap: 8px;
+    padding: 8px;
+  }
+
+  .board-cell {
+    font-size: 1.5rem;
+    border-radius: 10px;
+  }
+
+  .player-btn {
+    padding: 12px 24px;
+    font-size: 1.2rem;
+  }
+
+  .status-indicator {
+    padding: 8px 16px;
+  }
+}

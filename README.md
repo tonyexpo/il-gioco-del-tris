@@ -21,6 +21,16 @@ desktop: il gioco del tris (tic-tac-toe).
 Ogni cartella dentro `src/` corrisponde a una registrazione/modello diverso:
 è l'output ottenuto in quella specifica live, così com'è uscito dal modello.
 
+## Ambiente di test
+
+- **Modelli locali:** eseguiti sempre tramite **LM Studio**.
+- **Orchestrazione agentica/multi-agentica:** sempre **Goose**, con un'unica
+  eccezione — nei test di `tictactoe11`, `tictactoe11-b` e `tictactoe12` è
+  stata provata una strada diversa, **Cline (CLI)**, per semplificare
+  l'accesso ai tool da parte di questi modelli piccoli. L'esperimento si è
+  rivelato poco produttivo e non è (per ora) la norma per il resto della
+  serie.
+
 ## Il prompt
 
 Il prompt usato è sempre lo stesso, per garantire un confronto equo tra i

@@ -24,12 +24,12 @@ Ogni cartella dentro `src/` corrisponde a una registrazione/modello diverso:
 ## Ambiente di test
 
 - **Modelli locali:** eseguiti sempre tramite **LM Studio**.
-- **Orchestrazione agentica/multi-agentica:** sempre **Goose**, con un'unica
-  eccezione — nei test di `tictactoe11`, `tictactoe11-b` e `tictactoe12` è
-  stata provata una strada diversa, **Cline (CLI)**, per semplificare
-  l'accesso ai tool da parte di questi modelli piccoli. L'esperimento si è
-  rivelato poco produttivo e non è (per ora) la norma per il resto della
-  serie.
+- **Orchestrazione agentica/multi-agentica:** sempre **Goose**, con
+  un'eccezione nei test con modelli piccoli, dove per semplificare l'accesso
+  ai tool si sono provate strade diverse — finora entrambe poco produttive e
+  non adottate come norma per il resto della serie:
+  - `tictactoe11`, `tictactoe11-b`, `tictactoe12` → **Cline (CLI)**
+  - `tictactoe11-c` → **OpenCode CLI**
 
 ## Il prompt
 
@@ -75,6 +75,7 @@ src/
   tictactoe-slm1/ → confronto multi-modello SLM, orchestrato da GPT-6-Sol
   tictactoe11/  → output della live/modello 11 (JS vanilla, single-page)
   tictactoe11-b/ → variante/secondo tentativo dello stesso modello (JS vanilla, single-page)
+  tictactoe11-c/ → terzo tentativo dello stesso modello, via OpenCode CLI (JS vanilla, single-page)
   tictactoe12/  → output della live/modello 12 (JS vanilla, single-page)
 ```
 
@@ -94,6 +95,7 @@ src/
 | `tictactoe10` | Qwen-3.8-27B IQ3 ([ISTA-DASLab/Qwen3.8-27B-GSQ-RCO-GGUF](https://huggingface.co/ISTA-DASLab/Qwen3.8-27B-GSQ-RCO-GGUF)) — orchestrato da GPT-5.6-Sol in scenario multi-agentico |
 | `tictactoe11` | Spark-X2.5-1.7B — implementazione in JavaScript vanilla, single-page (modello piccolo) |
 | `tictactoe11-b` | Spark-X2.5-1.7B — variante/secondo tentativo, JavaScript vanilla, single-page |
+| `tictactoe11-c` | Spark-X2.5-1.7B — terzo tentativo, JavaScript vanilla, single-page, via **OpenCode CLI** |
 | `tictactoe12` | qwen-3.5-4b — implementazione in JavaScript vanilla, single-page (modello piccolo) |
 
 ## tictactoe-slm1 — confronto multi-modello SLM (orchestrato da GPT-6-Sol)

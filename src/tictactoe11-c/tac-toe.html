@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tic Tac Toe</title>
+  <style>
+    :root {
+      --bg-gradient: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      --card-bg: rgba(255, 255, 255, 0.08);
+      --card-border: rgba(255, 255, 255, 0.12);
+      --text: #ffffff;
+      --x-color: #e74c3c;
+      --o-color: #3498db;
+      --accent: #00d9ff;
+      --highlight: rgba(255, 255, 255, 0.2);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--bg-gradient);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      color: var(--text);
+    }
+
+    .container {
+      width: 100%;
+      max-width: 480px;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .header h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      background: linear-gradient(90deg, var(--accent), var(--o-color));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .status {
+      margin-top: 15px;
+      text-align: center;
+      font-size: 1.2rem;
+      color: var(--accent);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .status.show { opacity: 1; }
+
+    .board {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 25px;
+    }
+
+    .cell {
+      aspect-ratio: 1;
+      background: var(--card-bg);
+      border: 2px solid var(--card-border);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      font-weight: 600;
+      transition: all 0.2s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .cell.x {
+      background: rgba(231, 76, 60, 0.18);
+      border-color: var(--x-color);
+    }
+
+    .cell.o {
+      background: rgba(52, 152, 219, 0.18);
+      border-color: var(--o-color);
+    }
+
+    .cell.last {
+      border-color: var(--accent);
+      box-shadow: 0 0 15px var(--highlight);
+    }
+
+    .cell.win {
+      background: rgba(231, 76, 60, 0.35);
+      border-color: var(--x-color);
+      animation: winGlow 0.6s ease;
+    }
+
+    @keyframes winGlow {
+      0% { box-shadow: 0 0 0 rgba(231, 76, 60, 0.4); }
+      100% { box-shadow: 0 0 25px rgba(231, 76, 60, 0.6); }
+    }
+
+    .controls {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+    }
+
+    button {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-reset {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      color: var(--text);
+    }
+
+    .btn-reset:hover {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: var(--accent);
+    }
+
+    .btn-new {
+      background: var(--accent);
+      color: #1a1a2e;
+    }
+
+    .btn-new:hover {
+      background: #00b8d4;
+      transform: translateY(-2px);
+      box-shadow: 0 5px 20px var(--highlight);
+    }
+
+    .footer {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 0.9rem;
+      color: rgba(255, 255, 255, 0.5);
+    }
+
+    /* Win Overlay */
+    .win-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+    }
+
+    .win-overlay.show {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .win-card {
+      background: var(--card-bg);
+      border: 2px solid var(--accent);
+      border-radius: 20px;
+      padding: 40px 30px;
+      text-align: center;
+      animation: pop 0.4s ease;
+    }
+
+    @keyframes pop {
+      0% { transform: scale(0.8); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    .win-card h2 {
+      font-size: 2rem;
+      margin-bottom: 15px;
+      background: linear-gradient(90deg, var(--accent), #fff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .win-card .win-text {
+      font-size: 1.3rem;
+      margin-bottom: 25px;
+    }
+
+    .win-card .win-moves {
+      font-size: 1.1rem;
+      color: var(--accent);
+      margin-bottom: 25px;
+    }
+
+    .win-card .win-actions {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Tic Tac Toe</h1>
+    </div>
+
+    <div class="status" id="status">
+      <!-- Initial state set by JS -->
+    </div>
+
+    <div class="board" id="board">
+      <!-- Cells rendered by JS -->
+    </div>
+
+    <div class="controls">
+      <button class="btn-reset" id="resetBtn">Reset</button>
+      <button class="btn-new" id="newBtn">New Game</button>
+    </div>
+
+    <div class="footer">
+      Human = X · Computer = O
+    </div>
+  </div>
+
+  <!-- Win Overlay -->
+  <div class="win-overlay" id="winOverlay">
+    <div class="win-card">
+      <h2 id="winTitle">X wins!</h2>
+      <p class="win-text" id="winText">X has completed three in a row.</p>
+      <p class="win-moves" id="winMoves">Moves: 9</p>
+      <div class="win-actions">
+        <button class="btn-new" id="winResetBtn">Play Again</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      const BOARD_SIZE = 3;
+
+      // State
+      let board = [];           // 3x3 grid
+      let currentPlayer = 'X';  // 'X' or 'O'
+      let gameOver = false;     // true when game is over
+      let moves = 0;            // total moves made
+
+      // DOM Elements
+      const boardEl = document.getElementById('board');
+      const statusEl = document.getElementById('status');
+      const resetBtn = document.getElementById('resetBtn');
+      const newBtn = document.getElementById('newBtn');
+      const winOverlay = document.getElementById('winOverlay');
+      const winTitle = document.getElementById('winTitle');
+      const winText = document.getElementById('winText');
+      const winMoves = document.getElementById('winMoves');
+      const winResetBtn = document.getElementById('winResetBtn');
+
+      // ---------- Initialization ----------
+      function init() {
+        board = Array(BOARD_SIZE)
+          .fill()
+          .map(() => Array(BOARD_SIZE).fill(null));
+        gameOver = false;
+        currentPlayer = 'X';
+        moves = 0;
+        renderBoard();
+        updateStatus();
+      }
+
+      // ---------- Board Rendering ----------
+      function renderBoard() {
+        boardEl.innerHTML = '';
+        for (let r = 0; r < BOARD_SIZE; r++) {
+          for (let c = 0; c < BOARD_SIZE; c++) {
+            const cell = document.createElement('div');
+            cell.className = 'cell';
+            cell.textContent = board[r][c] || '';
+            if (board[r][c]) {
+              cell.classList.add(board[r][c]);
+              cell.classList.add('last');
+            }
+            boardEl.appendChild(cell);
+          }
+        }
+      }
+
+      // ---------- Status / Turn ----------
+      function updateStatus() {
+        if (gameOver) {
+          statusEl.textContent =
+            currentPlayer === 'X' ? 'Game over' : 'Computer O wins';
+          statusEl.classList.add('show');
+        } else {
+          statusEl.textContent =
+            currentPlayer === 'X' ? 'X\'s turn' : 'O\'s turn';
+          statusEl.classList.add('show');
+        }
+      }
+
+      // ---------- Win Detection ----------
+      // Returns the winning player, or null if no winner.
+      function checkWin(row, col) {
+        // Check all 8 lines: 3 rows, 3 cols, 2 diagonals
+        const lines = [
+          [0, 0], [0, 1], [0, 2],
+          [1, 0], [1, 1], [1, 2],
+          [2, 0], [2, 1], [2, 2]
+        ];
+
+        for (const [r, c] of lines) {
+          if (board[r][c] === currentPlayer) {
+            const winner = checkLine(r, c);
+            if (winner) {
+              gameOver = true;
+              showWin(winner);
+              return;
+            }
+          }
+        }
+      }
+
+      function checkLine(row, col) {
+        // Check horizontal line
+        for (let c = 0; c < BOARD_SIZE; c++) {
+          if (board[row][c] === currentPlayer) {
+            const winner = checkColumn(row, c);
+            if (winner) return winner;
+          }
+        }
+        // Check vertical line
+        for (let r = 0; r < BOARD_SIZE; r++) {
+          if (board[r][col] === currentPlayer) {
+            const winner = checkRow(r, col);
+            if (winner) return winner;
+          }
+        }
+        // Check main diagonal
+        if (row >= 0 && row < BOARD_SIZE && col >= 0 && col < BOARD_SIZE) {
+          if (board[row][col] === currentPlayer) {
+            const winner = checkDiagonal(row, col);
+            if (winner) return winner;
+          }
+        }
+        // Check anti-diagonal
+        if (row >= 0 && row < BOARD_SIZE && col >= 0 && col < BOARD_SIZE) {
+          if (board[row][col] === currentPlayer) {
+            const winner = checkDiagonal(row, col);
+            if (winner) return winner;
+          }
+        }
+        return null;
+      }
+
+      function checkRow(row, col) {
+        // Check column
+        for (let c = 0; c < BOARD_SIZE; c++) {
+          if (board[row][c] === currentPlayer) {
+            const winner = checkColumn(row, c);
+            if (winner) return winner;
+          }
+        }
+        return null;
+      }
+
+      function checkColumn(row, col) {
+        // Check row
+        for (let r = 0; r < BOARD_SIZE; r++) {
+          if (board[r][col] === currentPlayer) {
+            const winner = checkRow(r, col);
+            if (winner) return winner;
+          }
+        }
+        return null;
+      }
+
+      function checkDiagonal(row, col) {
+        // Check diagonal
+        if (row < 0 || row >= BOARD_SIZE || col < 0 || col >= BOARD_SIZE) {
+          return null;
+        }
+        if (board[row][col] === currentPlayer) {
+          const winner = checkDiagonal(row - 1, col - 1);
+          if (winner) return winner;
+        }
+        return null;
+      }
+
+      // ---------- Place Mark ----------
+      function placeMark(row, col) {
+        if (gameOver || board[row][col] !== null) return false;
+        board[row][col] = currentPlayer;
+        moves++;
+        renderBoard();
+        checkWin(row, col);
+        return true;
+      }
+
+      // ---------- Win Overlay ----------
+      function showWin(winner) {
+        if (winner === 'X') {
+          winTitle.textContent = 'X wins!';
+          winText.textContent = 'X has completed three in a row.';
+        } else {
+          winTitle.textContent = 'O wins!';
+          winText.textContent = 'Computer O has completed three in a row.';
+        }
+        winMoves.textContent = `Moves: ${moves}`;
+        winOverlay.classList.add('show');
+        updateStatus();
+      }
+
+      // ---------- Reset ----------
+      function reset() {
+        winOverlay.classList.remove('show');
+        init();
+      }
+
+      // ---------- New Game ----------
+      function newGame() {
+        winOverlay.classList.remove('show');
+        init();
+      }
+
+      // ---------- Event Wiring ----------
+      resetBtn.addEventListener('click', reset);
+      newBtn.addEventListener('click', newGame);
+      winResetBtn.addEventListener('click', newGame);
+
+      // Start the game
+      init();
+    })();
+  </script>
+</body>
+</html>

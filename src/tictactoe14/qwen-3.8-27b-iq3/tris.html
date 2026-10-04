@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tris · X (tu) vs O (PC)</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎯</text></svg>" />
+  <style>
+    :root {
+      --bg: #0b1220;
+      --panel: #16213a;
+      --line: #2c3e5f;
+      --text: #e8eef7;
+      --muted: #9fb0c9;
+      --x: #38d6ff;
+      --o: #ffa94d;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+
+    body {
+      margin: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(1100px 700px at 50% -20%, #182342, var(--bg));
+      color: var(--text);
+      font-family: ui-sans-serif, system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      padding: 24px;
+    }
+
+    .game { width: min(460px, 100%); }
+
+    /* ---------- Intestazione ---------- */
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 1.7rem;
+      letter-spacing: .35em;
+      text-transform: uppercase;
+      background: linear-gradient(90deg, var(--x), #8b5cf6);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .controls { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+
+    label { font-size: .85rem; color: var(--muted); display: flex; gap: 6px; align-items: center; }
+
+    select, button {
+      background: var(--panel);
+      color: var(--text);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 8px 12px;
+      font-size: .9rem;
+      cursor: pointer;
+      transition: border-color .15s ease, transform .1s ease;
+    }
+
+    select:hover, button:hover { border-color: #4a608c; }
+    button:active { transform: scale(.97); }
+    button.primary { background: linear-gradient(135deg, #2563eb, #7c3aed); border-color: transparent; font-weight: 600; }
+
+    /* ---------- Punteggio ---------- */
+    .scoreboard {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .score {
+      flex: 1;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 8px 10px;
+      text-align: center;
+      font-size: .8rem;
+      color: var(--muted);
+    }
+
+    .score b { display: block; font-size: 1.35rem; margin-top: 2px; }
+    .score.x b { color: var(--x); }
+    .score.o b { color: var(--o); }
+    .score.d b { color: var(--muted); }
+
+    /* ---------- Stato ---------- */
+    .status {
+      min-height: 1.6em;
+      margin: 0 0 14px;
+      text-align: center;
+      font-size: 1rem;
+      color: var(--text);
+    }
+
+    .status.thinking::after {
+      content: "…";
+      animation: blink 1s ease-in-out infinite;
+    }
+
+    @keyframes blink { 50% { opacity: .25; } }
+
+    /* ---------- Scacchiera ---------- */
+    .board {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      aspect-ratio: 1;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .cell {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      font-size: clamp(42px, 13vw, 68px);
+      font-weight: 800;
+      color: var(--text);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform .12s ease, border-color .15s ease, background .2s ease;
+    }
+
+    .cell:hover:not(.filled) {
+      transform: translateY(-3px);
+      border-color: #4a608c;
+      background: #1b2947;
+    }
+
+    .cell.x { color: var(--x); text-shadow: 0 0 18px rgba(56, 214, 255, .45); }
+    .cell.o { color: var(--o); text-shadow: 0 0 18px rgba(255, 169, 77, .45); }
+
+    .cell.filled { animation: pop .22s ease-out; cursor: default; }
+    @keyframes pop { from { transform: scale(.35); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+    .cell.win {
+      background: #1d3a5f;
+      border-color: #67e8f9;
+      animation: pulse 1s ease-in-out infinite alternate;
+    }
+
+    @keyframes pulse { to { box-shadow: 0 0 22px rgba(103, 232, 249, .55); transform: scale(1.03); } }
+
+    /* ---------- Azioni ---------- */
+    .actions { display: flex; gap: 10px; margin-top: 16px; justify-content: center; }
+    .hint { text-align: center; color: var(--muted); font-size: .8rem; margin-top: 14px; }
+  </style>
+</head>
+<body>
+<main class="game">
+  <header class="topbar">
+    <h1>Tris</h1>
+    <div class="controls">
+      <label for="difficulty">Difficoltà
+        <select id="difficulty">
+          <option value="easy">Facile</option>
+          <option value="medium" selected>Media</option>
+          <option value="hard">Difficile (imbeatabile)</option>
+        </select>
+      </label>
+      <button id="soundBtn" type="button">🔊 Suoni: ON</button>
+    </div>
+  </header>
+
+  <section class="scoreboard" aria-label="Punteggio">
+    <div class="score x"><span>Tu (X)</span><b id="scoreX">0</b></div>
+    <div class="score d"><span>Pareggi</span><b id="scoreD">0</b></div>
+    <div class="score o"><span>PC (O)</span><b id="scoreO">0</b></div>
+  </section>
+
+  <p id="status" class="status" role="status"></p>
+
+  <div id="board" class="board" aria-label="Griglia del tris"></div>
+
+  <footer class="actions">
+    <button id="nextBtn" type="button" class="primary">Nuova mano</button>
+    <button id="resetBtn" type="button">Azzera punteggio</button>
+  </footer>
+
+  <p class="hint">Sei sempre X e muovi per primo · il PC è O</p>
+</main>
+
+<script>
+(() => {
+  'use strict';
+
+  /* ================= Costanti e stato ================= */
+  const LINES = [
+    [0, 1, 2], [3, 4, 5], [6, 7, 8],   // righe
+    [0, 3, 6], [1, 4, 7], [2, 5, 8],   // colonne
+    [0, 4, 8], [2, 4, 6]               // diagonali
+  ];
+
+  const boardEl = document.getElementById('board');
+  const statusEl = document.getElementById('status');
+  const scoreXEl = document.getElementById('scoreX');
+  const scoreDEl = document.getElementById('scoreD');
+  const scoreOEl = document.getElementById('scoreO');
+  const diffSel = document.getElementById('difficulty');
+  const soundBtn = document.getElementById('soundBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  const resetBtn = document.getElementById('resetBtn');
+
+  let board, gameOver, busy;
+  let scores = { X: 0, D: 0, O: 0 };
+  let cells = [];
+
+  /* ================= Audio sintetizzato (Web Audio API) ================= */
+  const AudioFX = {
+    ctx: null,
+    enabled: true,
+
+    ensure() {
+      if (!this.ctx) {
+        const AC = window.AudioContext || window.webkitAudioContext;
+        if (AC) this.ctx = new AC();
+      }
+      if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
+      return this.ctx;
+    },
+
+    // Genera un tono con inviluppo d'attacco/decadimento.
+    tone(freq, { type = 'sine', dur = 0.15, vol = 0.2, delay = 0, slide = null } = {}) {
+      const ctx = this.ensure();
+      if (!ctx || !this.enabled) return;
+      const t = ctx.currentTime + delay;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, t);
+      if (slide !== null) osc.frequency.exponentialRampToValueAtTime(Math.max(1, slide), t + dur);
+      gain.gain.setValueAtTime(0.0001, t);
+      gain.gain.exponentialRampToValueAtTime(vol, t + 0.012);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      osc.connect(gain).connect(ctx.destination);
+      osc.start(t);
+      osc.stop(t + dur + 0.05);
+    },
+
+    placeX() { this.tone(523.25, { type: 'sine', dur: .16, vol: .28 }); this.tone(784, { type: 'triangle', dur: .10, vol: .10, delay: .03 }); },
+    placeO() { this.tone(392, { type: 'square', dur: .14, vol: .16 }); this.tone(523.25, { type: 'sine', dur: .10, vol: .08, delay: .03 }); },
+    denied() { this.tone(110, { type: 'sawtooth', dur: .12, vol: .12, slide: 70 }); },
+    click() { this.tone(880, { type: 'triangle', dur: .05, vol: .08 }); },
+
+    win() { // arpeggio ascendente C-E-G-C + nota alta
+      [523.25, 659.25, 784, 1046.5].forEach((f, i) => this.tone(f, { type: 'sine', dur: .22, vol: .22, delay: i * .11 }));
+      this.tone(1318.5, { type: 'triangle', dur: .35, vol: .18, delay: 4 * .11 });
+    },
+
+    lose() { // discesa malinconica
+      [440, 349.23, 261.63].forEach((f, i) => this.tone(f, { type: 'sawtooth', dur: .25, vol: .14, delay: i * .14 }));
+      this.tone(196, { type: 'sine', dur: .5, vol: .18, delay: 3 * .14 });
+    },
+
+    draw() { // due note neutre
+      this.tone(440, { type: 'triangle', dur: .2, vol: .15 });
+      this.tone(440, { type: 'triangle', dur: .2, vol: .12, delay: .22 });
+    }
+  };
+
+  /* ================= Logica di gioco ================= */
+  function winnerOf(b) {
+    for (const line of LINES) {
+      const [a, c, d] = line;
+      if (b[a] && b[a] === b[c] && b[a] === b[d]) return { player: b[a], line };
+    }
+    return null;
+  }
+
+  function emptyCells(b) {
+    return b.map((v, i) => (v ? null : i)).filter(v => v !== null);
+  }
+
+  function randomOf(arr) {
+    return arr[Math.floor(Math.random() * arr.length)];
+  }
+
+  // Minimax con potatura alpha-beta. Punteggio dal punto di vista del PC (O):
+  // +10-depth se O vince, depth-10 se X vince, 0 pareggio.
+  function minimax(b, maximizing, depth, alpha, beta) {
+    const w = winnerOf(b);
+    if (w) return w.player === 'O' ? 10 - depth : depth - 10;
+    const empties = emptyCells(b);
+    if (!empties.length) return 0;
+
+    let best;
+    if (maximizing) {
+      best = -Infinity;
+      for (const i of empties) {
+        b[i] = 'O';
+        const s = minimax(b, false, depth + 1, alpha, beta);
+        b[i] = '';
+        if (s > best) best = s;
+        if (best > alpha) alpha = best;
+        if (beta <= alpha) break;
+      }
+    } else {
+      best = Infinity;
+      for (const i of empties) {
+        b[i] = 'X';
+        const s = minimax(b, true, depth + 1, alpha, beta);
+        b[i] = '';
+        if (s < best) best = s;
+        if (best < beta) beta = best;
+        if (beta <= alpha) break;
+      }
+    }
+    return best;
+  }
+
+  function aiMove(b, difficulty) {
+    const empties = emptyCells(b);
+
+    // Facile: mossa casuale.
+    if (difficulty === 'easy') return randomOf(empties);
+
+    // Media: vinco subito → blocco X → centro → angoli → resto.
+    if (difficulty === 'medium') {
+      for (const i of empties) { b[i] = 'O'; const w = winnerOf(b); b[i] = ''; if (w) return i; }
+      for (const i of empties) { b[i] = 'X'; const w = winnerOf(b); b[i] = ''; if (w && w.player === 'X') return i; }
+      if (!b[4]) return 4;
+      const corners = [0, 2, 6, 8].filter(i => !b[i]);
+      if (corners.length) return randomOf(corners);
+      return randomOf(empties);
+    }
+
+    // Difficile: minimax completo (gioco perfetto → al massimo un pareggio).
+    let bestScore = -Infinity;
+    let bestMoves = [];
+    for (const i of empties) {
+      b[i] = 'O';
+      const s = minimax(b, false, 1, -Infinity, Infinity);
+      b[i] = '';
+      if (s > bestScore) { bestScore = s; bestMoves = [i]; }
+      else if (s === bestScore) bestMoves.push(i);
+    }
+    return randomOf(bestMoves);
+  }
+
+  /* ================= UI ================= */
+  function buildBoard() {
+    boardEl.innerHTML = '';
+    cells = [];
+    for (let i = 0; i < 9; i++) {
+      const btn = document.createElement('button');
+      btn.className = 'cell';
+      btn.dataset.i = i;
+      btn.setAttribute('aria-label', 'Casa ' + (i + 1));
+      boardEl.appendChild(btn);
+      cells.push(btn);
+    }
+  }
+
+  function setStatus(text, thinking = false) {
+    statusEl.textContent = text;
+    statusEl.classList.toggle('thinking', thinking);
+  }
+
+  function updateScores() {
+    scoreXEl.textContent = scores.X;
+    scoreDEl.textContent = scores.D;
+    scoreOEl.textContent = scores.O;
+  }
+
+  function place(p, i) {
+    board[i] = p;
+    const c = cells[i];
+    c.textContent = p;
+    c.classList.add('filled', p.toLowerCase());
+    c.setAttribute('aria-label', p + ' in casa ' + (i + 1));
+    if (p === 'X') AudioFX.placeX(); else AudioFX.placeO();
+  }
+
+  function clearBoard() {
+    board = Array(9).fill('');
+    cells.forEach(c => {
+      c.textContent = '';
+      c.className = 'cell';
+      c.setAttribute('aria-label', 'Casa ' + (+c.dataset.i + 1));
+    });
+  }
+
+  function newRound() {
+    clearBoard();
+    gameOver = false;
+    busy = false;
+    setStatus('Tocca a te — sei X');
+  }
+
+  function endRound(winner, result) {
+    gameOver = true;
+    if (winner) winner.line.forEach(i => cells[i].classList.add('win'));
+    const key = result === 'win' ? 'X' : result === 'lose' ? 'O' : 'D';
+    scores[key]++;
+    updateScores();
+
+    if (result === 'win') { setStatus('Hai vinto! 🎉'); AudioFX.win(); }
+    else if (result === 'lose') { setStatus('Ha vinto il PC 😬'); AudioFX.lose(); }
+    else { setStatus('Pareggio — nessuno dei due ha ceduto.'); AudioFX.draw(); }
+  }
+
+  function onCellClick(i) {
+    if (gameOver || busy) return;
+    if (board[i]) { AudioFX.denied(); return; }
+
+    place('X', i);
+    const w = winnerOf(board);
+    if (w) return endRound(w, 'win');
+    if (!emptyCells(board).length) return endRound(null, 'draw');
+
+    busy = true;
+    setStatus('Il PC sta pensando', true);
+    setTimeout(() => {
+      const m = aiMove(board, diffSel.value);
+      place('O', m);
+      busy = false;
+
+      const w2 = winnerOf(board);
+      if (w2) return endRound(w2, 'lose');
+      if (!emptyCells(board).length) return endRound(null, 'draw');
+      setStatus('Tocca a te — sei X');
+    }, 450 + Math.random() * 350);
+  }
+
+  /* ================= Eventi ================= */
+  boardEl.addEventListener('click', e => {
+    const btn = e.target.closest('.cell');
+    if (btn) onCellClick(+btn.dataset.i);
+  });
+
+  diffSel.addEventListener('change', () => AudioFX.click());
+
+  soundBtn.addEventListener('click', () => {
+    AudioFX.enabled = !AudioFX.enabled;
+    soundBtn.textContent = AudioFX.enabled ? '🔊 Suoni: ON' : '🔇 Suoni: OFF';
+    if (AudioFX.enabled) AudioFX.click();
+  });
+
+  nextBtn.addEventListener('click', () => { AudioFX.click(); newRound(); });
+
+  resetBtn.addEventListener('click', () => {
+    scores = { X: 0, D: 0, O: 0 };
+    updateScores();
+    AudioFX.click();
+    newRound();
+  });
+
+  buildBoard();
+  newRound();
+})();
+</script>
+</body>
+</html>

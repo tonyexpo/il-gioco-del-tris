@@ -78,6 +78,7 @@ src/
   tictactoe11-c/ → terzo tentativo dello stesso modello, via OpenCode CLI (JS vanilla, single-page)
   tictactoe12/  → output della live/modello 12 (JS vanilla, single-page)
   tictactoe13/  → confronto multi-modello, tris 3D stile Minecraft (JS vanilla + three.js)
+  tictactoe14/  → confronto quantizzazioni Qwen-3.8-27B (IQ3 vs Q8_0), JS vanilla
 ```
 
 ## Abbinamento cartella → modello
@@ -166,6 +167,30 @@ Modelli testati in questo batch:
 - `glm-53-flash` — GLM-5.3-Flash
 - `qwen-38-flash` — Qwen-3.8-Flash
 - `sonnet-55` — Claude Sonnet 5.5
+
+## tictactoe14 — confronto quantizzazioni (Qwen-3.8-27B)
+
+Come le altre cartelle multi-modello, `tictactoe14/` confronta non modelli
+diversi ma due **quantizzazioni** dello stesso modello, **Qwen-3.8-27B**, sullo
+stesso prompt: `IQ3` contro `Q8_0` (molto meno aggressiva, più vicina alla
+precisione originale).
+
+Il prompt usato (`prompt.txt`, incluso nella cartella):
+
+> Sviluppa un gioco del tris in javascript, vanilla, single page in
+> tris.html, giocatore umano sempre X, PC sempre O, logica e UX a piacere,
+> aggiungi dei suoni sintetizzati.
+
+Sotto-struttura:
+
+```
+tictactoe14/
+  prompt.txt              → prompt usato (vedi sopra)
+  qwen-3.8-27b-iq3/
+    tris.html              → output alla quantizzazione IQ3
+  qwen-3.8-27b-q8_0/
+    tris.html              → output alla quantizzazione Q8_0
+```
 
 ## Licenza
 

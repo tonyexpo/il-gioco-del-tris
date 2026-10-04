@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tris — Tu (X) vs PC (O)</title>
+<style>
+  :root {
+    --bg1: #0f172a;
+    --bg2: #1e293b;
+    --card: rgba(255, 255, 255, 0.06);
+    --card-border: rgba(255, 255, 255, 0.12);
+    --text: #e2e8f0;
+    --muted: #94a3b8;
+    --x: #38bdf8;
+    --o: #fb7185;
+    --win: #34d399;
+    --cell-bg: rgba(255, 255, 255, 0.04);
+    --cell-hover: rgba(255, 255, 255, 0.10);
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+    color: var(--text);
+    background: radial-gradient(1200px 800px at 20% 10%, #1e293b 0%, var(--bg1) 55%) fixed, var(--bg1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  .wrap {
+    width: min(92vw, 420px);
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+  h1 {
+    margin: 0;
+    font-size: 1.6rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    text-align: center;
+    color: #f8fafc;
+  }
+  h1 .x { color: var(--x); }
+  h1 .o { color: var(--o); }
+  .scoreboard {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 10px;
+  }
+  .score {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 10px 8px;
+    text-align: center;
+  }
+  .score .label { font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
+  .score .value { font-size: 1.5rem; font-weight: 700; margin-top: 2px; }
+  .score.x .value { color: var(--x); }
+  .score.o .value { color: var(--o); }
+  .score.t .value { color: var(--muted); }
+  .status {
+    text-align: center;
+    font-size: 1.05rem;
+    min-height: 1.6em;
+    color: var(--text);
+    transition: color 0.2s;
+  }
+  .status.thinking { color: var(--muted); }
+  .status.good { color: var(--win); }
+  .status.bad { color: var(--o); }
+  .board {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    width: 100%;
+    aspect-ratio: 1;
+  }
+  .cell {
+    appearance: none;
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    background: var(--cell-bg);
+    color: inherit;
+    font-size: clamp(2.6rem, 14vw, 4rem);
+    font-weight: 800;
+    font-family: inherit;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s, transform 0.1s, box-shadow 0.15s;
+    user-select: none;
+  }
+  .cell:not(.filled):hover { background: var(--cell-hover); }
+  .cell:not(.filled):hover::after {
+    content: attr(data-preview);
+    opacity: 0.25;
+  }
+  .cell:active { transform: scale(0.96); }
+  .cell:focus-visible { outline: 2px solid var(--x); outline-offset: 2px; }
+  .cell.filled { cursor: default; }
+  .cell.x { color: var(--x); text-shadow: 0 0 18px rgba(56, 189, 248, 0.45); }
+  .cell.o { color: var(--o); text-shadow: 0 0 18px rgba(251, 113, 133, 0.45); }
+  .cell.pop { animation: pop 0.18s ease-out; }
+  @keyframes pop {
+    0% { transform: scale(0.4); opacity: 0; }
+    70% { transform: scale(1.12); }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  .cell.win {
+    background: rgba(52, 211, 153, 0.15);
+    border-color: var(--win);
+    box-shadow: 0 0 16px rgba(52, 211, 153, 0.35);
+  }
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    justify-content: center;
+  }
+  .controls label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    color: var(--muted);
+  }
+  select, button {
+    font-family: inherit;
+    font-size: 0.9rem;
+    color: var(--text);
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 10px;
+    padding: 8px 12px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  select:hover, button:hover { background: var(--cell-hover); }
+  button:focus-visible, select:focus-visible { outline: 2px solid var(--x); outline-offset: 2px; }
+  button.primary {
+    background: rgba(56, 189, 248, 0.18);
+    border-color: rgba(56, 189, 248, 0.4);
+    font-weight: 600;
+  }
+  .small { font-size: 0.8rem; padding: 8px 10px; color: var(--muted); }
+  .foot {
+    text-align: center;
+    font-size: 0.75rem;
+    color: var(--muted);
+  }
+</style>
+</head>
+<body>
+<main class="wrap">
+  <h1>Tris <span class="x">X</span> vs <span class="o">O</span></h1>
+
+  <div class="scoreboard" aria-live="polite">
+    <div class="score x"><div class="label">Tu (X)</div><div class="value" id="scoreX">0</div></div>
+    <div class="score t"><div class="label">Pareggi</div><div class="value" id="scoreT">0</div></div>
+    <div class="score o"><div class="label">PC (O)</div><div class="value" id="scoreO">0</div></div>
+  </div>
+
+  <div class="status" id="status" aria-live="assertive">Tocca a te — vai di X</div>
+
+  <div class="board" id="board" role="grid" aria-label="Tabellone del tris"></div>
+
+  <div class="controls">
+    <label>Difficoltà
+      <select id="difficulty">
+        <option value="easy">Facile</option>
+        <option value="normal" selected>Normale</option>
+        <option value="hard">Impossibile</option>
+      </select>
+    </label>
+    <button class="primary" id="newGame">Nuova partita</button>
+    <button class="small" id="resetScore">Azzera punti</button>
+    <button class="small" id="mute" aria-pressed="false" title="Attiva/disattiva suoni">🔊 Suoni</button>
+  </div>
+
+  <p class="foot">Tu sei sempre X e muovi per primo · PC è sempre O</p>
+</main>
+
+<script>
+"use strict";
+
+/* ---------- Costanti e stato ---------- */
+const X = "X", O = "O", TIE = "T";
+const LINES = [
+  [0, 1, 2], [3, 4, 5], [6, 7, 8], // righe
+  [0, 3, 6], [1, 4, 7], [2, 5, 8], // colonne
+  [0, 4, 8], [2, 4, 6]             // diagonali
+];
+
+let board = Array(9).fill(null);
+let gameOver = false;
+let aiThinking = false;
+let muted = false;
+let scores = { X: 0, O: 0, T: 0 };
+
+const boardEl = document.getElementById("board");
+const statusEl = document.getElementById("status");
+const scoreXEl = document.getElementById("scoreX");
+const scoreOEl = document.getElementById("scoreO");
+const scoreTEl = document.getElementById("scoreT");
+const difficultyEl = document.getElementById("difficulty");
+const muteBtn = document.getElementById("mute");
+
+/* ---------- Costruzione tabellone ---------- */
+const cells = [];
+for (let i = 0; i < 9; i++) {
+  const btn = document.createElement("button");
+  btn.className = "cell";
+  btn.dataset.index = i;
+  btn.dataset.preview = X; // anteprima del tuo simbolo al passaggio del mouse
+  btn.setAttribute("role", "gridcell");
+  btn.setAttribute("aria-label", "Casella " + (i + 1));
+  btn.addEventListener("click", () => onCellClick(i));
+  boardEl.appendChild(btn);
+  cells.push(btn);
+}
+
+/* ---------- Audio sintetizzato (Web Audio API) ---------- */
+let actx = null;
+function audio() {
+  if (!actx) actx = new (window.AudioContext || window.webkitAudioContext)();
+  if (actx.state === "suspended") actx.resume();
+  return actx;
+}
+
+function tone(freq, dur, opts = {}) {
+  if (muted) return;
+  try {
+    const ac = audio();
+    const t0 = ac.currentTime + (opts.when || 0);
+    const osc = ac.createOscillator();
+    const gain = ac.createGain();
+    osc.type = opts.type || "sine";
+    osc.frequency.setValueAtTime(freq, t0);
+    if (opts.slideTo) osc.frequency.exponentialRampToValueAtTime(opts.slideTo, t0 + dur);
+    const vol = opts.vol || 0.18;
+    gain.gain.setValueAtTime(0.0001, t0);
+    gain.gain.exponentialRampToValueAtTime(vol, t0 + 0.015);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    osc.connect(gain).connect(ac.destination);
+    osc.start(t0);
+    osc.stop(t0 + dur + 0.05);
+  } catch (e) { /* audio non disponibile: si gioca in silenzio */ }
+}
+
+const sfx = {
+  x:   () => tone(520, 0.12, { type: "square",   vol: 0.14, slideTo: 784 }),
+  o:   () => tone(330, 0.14, { type: "sine",     vol: 0.22, slideTo: 208 }),
+  win: () => [523, 659, 784, 1047].forEach((f, i) => tone(f, 0.18, { type: "triangle", when: i * 0.09, vol: 0.25 })),
+  lose:() => [392, 330, 262, 196].forEach((f, i) => tone(f, 0.20, { type: "sawtooth", when: i * 0.12, vol: 0.10 })),
+  tie: () => { tone(330, 0.14, { type: "triangle", vol: 0.2 });
+               tone(330, 0.14, { type: "triangle", when: 0.18, vol: 0.2 }); },
+  click: () => tone(880, 0.05, { type: "square", vol: 0.07 })
+};
+
+/* ---------- Logica di gioco ---------- */
+function winnerOf(b) {
+  for (const [a, c, d] of LINES) {
+    if (b[a] && b[a] === b[c] && b[a] === b[d]) return { player: b[a], line: [a, c, d] };
+  }
+  if (b.every(v => v)) return { player: TIE, line: [] };
+  return null;
+}
+
+function emptyCells(b) {
+  const out = [];
+  for (let i = 0; i < 9; i++) if (!b[i]) out.push(i);
+  return out;
+}
+
+// Trova la mossa che vince subito per p, se esiste.
+function findWinMove(b, p) {
+  for (const i of emptyCells(b)) {
+    b[i] = p;
+    const w = winnerOf(b);
+    b[i] = null;
+    if (w && w.player === p) return i;
+  }
+  return -1;
+}
+
+// Minimax con penalità di profondità (vince prima / perde più tardi), perfetto per la modalità Impossibile.
+function minimax(b, isMax, depth) {
+  const w = winnerOf(b);
+  if (w) return w.player === O ? 10 - depth : w.player === TIE ? 0 : depth - 10;
+  let best = isMax ? -Infinity : Infinity;
+  for (const i of emptyCells(b)) {
+    b[i] = isMax ? O : X;
+    const s = minimax(b, !isMax, depth + 1);
+    b[i] = null;
+    best = isMax ? Math.max(best, s) : Math.min(best, s);
+  }
+  return best;
+}
+
+function bestMove(b) {
+  let best = -Infinity;
+  let moves = [];
+  for (const i of emptyCells(b)) {
+    b[i] = O;
+    const s = minimax(b, false, 1);
+    b[i] = null;
+    if (s > best) { best = s; moves = [i]; }
+    else if (s === best) moves.push(i);
+  }
+  return moves[Math.floor(Math.random() * moves.length)]; // varietà tra le mosse ottimali
+}
+
+function normalMove(b) {
+  let m = findWinMove(b, O);            // 1. vince se può
+  if (m >= 0) return m;
+  m = findWinMove(b, X);                // 2. blocca
+  if (m >= 0) return m;
+  if (b[4] === null) return 4;          // 3. centro
+  const opposite = { 0: 8, 2: 6, 6: 2, 8: 0 };
+  for (const c of [0, 2, 6, 8]) {       // 4. diagonale opposta al angolo di X
+    if (b[c] === X && b[opposite[c]] === null) return opposite[c];
+  }
+  const corners = [0, 2, 6, 8].filter(i => b[i] === null);
+  if (corners.length) return corners[Math.floor(Math.random() * corners.length)];
+  const edges = [1, 3, 5, 7].filter(i => b[i] === null);
+  return edges[Math.floor(Math.random() * edges.length)];
+}
+
+function easyMove(b) {
+  const e = emptyCells(b);
+  return e[Math.floor(Math.random() * e.length)];
+}
+
+/* ---------- Flusso di partita ---------- */
+function place(i, p) {
+  board[i] = p;
+  const cell = cells[i];
+  cell.textContent = p;
+  cell.classList.add("filled", p.toLowerCase(), "pop");
+  cell.setAttribute("aria-label", "Casella " + (i + 1) + ", " + p);
+  cell.removeAttribute("data-preview");
+  setTimeout(() => cell.classList.remove("pop"), 250);
+  if (p === X) sfx.x(); else sfx.o();
+}
+
+function setStatus(text, cls = "") {
+  statusEl.textContent = text;
+  statusEl.className = "status" + (cls ? " " + cls : "");
+}
+
+function renderScores() {
+  scoreXEl.textContent = scores.X;
+  scoreOEl.textContent = scores.O;
+  scoreTEl.textContent = scores.T;
+}
+
+function finish() {
+  const w = winnerOf(board);
+  if (!w) return false;
+  gameOver = true;
+  if (w.player === TIE) {
+    scores.T++;
+    sfx.tie();
+    setStatus("Pareggio! Neutro assoluto.");
+  } else if (w.player === X) {
+    scores.X++;
+    sfx.win();
+    setStatus("Hai vinto! 🎉", "good");
+  } else {
+    scores.O++;
+    sfx.lose();
+    setStatus("Ha vinto il PC. Revincita?", "bad");
+  }
+  w.line.forEach(i => cells[i].classList.add("win"));
+  renderScores();
+  return true;
+}
+
+function onCellClick(i) {
+  if (gameOver || aiThinking || board[i]) return;
+  place(i, X);
+  if (finish()) return;
+  aiThinking = true;
+  setStatus("Il PC ci sta pensando…", "thinking");
+  setTimeout(() => {
+    const diff = difficultyEl.value;
+    const view = board.slice();
+    const mv = diff === "hard" ? bestMove(view)
+             : diff === "normal" ? normalMove(view)
+             : easyMove(view);
+    place(mv, O);
+    aiThinking = false;
+    if (finish()) return;
+    setStatus("Tocca a te");
+  }, 420 + Math.random() * 300);
+}
+
+function newGame() {
+  sfx.click();
+  board = Array(9).fill(null);
+  gameOver = false;
+  aiThinking = false;
+  cells.forEach(c => {
+    c.textContent = "";
+    c.className = "cell";
+    c.dataset.preview = X;
+    c.setAttribute("aria-label", "Casella " + (+c.dataset.index + 1));
+  });
+  setStatus("Tocca a te — vai di X");
+}
+
+document.getElementById("newGame").addEventListener("click", newGame);
+
+document.getElementById("resetScore").addEventListener("click", () => {
+  sfx.click();
+  scores = { X: 0, O: 0, T: 0 };
+  renderScores();
+  newGame();
+});
+
+muteBtn.addEventListener("click", () => {
+  muted = !muted;
+  muteBtn.textContent = muted ? "🔇 Silenzio" : "🔊 Suoni";
+  muteBtn.setAttribute("aria-pressed", String(muted));
+  if (!muted) sfx.click();
+});
+
+difficultyEl.addEventListener("change", sfx.click);
+</script>
+</body>
+</html>

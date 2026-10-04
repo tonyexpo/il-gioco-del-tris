@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SNAKE CRAFT — Snake in stile Minecraft 3D</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html,body { width:100%; height:100%; overflow:hidden; background:#79c6f2; }
+  #scene { position:fixed; inset:0; display:block; }
+  .ui { position:fixed; font-family:'Press Start 2P', monospace; color:#fff;
+        text-shadow:2px 2px 0 #3f3f3f; user-select:none; z-index:10; }
+  #hud { top:14px; left:50%; transform:translateX(-50%); text-align:center; }
+  #title { font-size:clamp(16px,3vw,26px); letter-spacing:2px;
+           color:#7dff6a; text-shadow:3px 3px 0 #0e4a00, 5px 5px 0 rgba(0,0,0,.35); }
+  #status { margin-top:10px; font-size:clamp(8px,1.5vw,11px); color:#fff;
+            background:rgba(0,0,0,.45); border:3px solid #555; padding:8px 14px;
+            box-shadow:inset -3px -3px 0 rgba(0,0,0,.4), inset 3px 3px 0 rgba(255,255,255,.15); }
+  #score { top:14px; left:14px; font-size:9px; line-height:2; background:rgba(0,0,0,.45);
+           border:3px solid #555; padding:10px 12px; box-shadow:inset -3px -3px 0 rgba(0,0,0,.4), inset 3px 3px 0 rgba(255,255,255,.15); }
+  #score b { color:#7dff6a; }
+  #controls { bottom:16px; left:50%; transform:translateX(-50%); display:flex; gap:10px; }
+  button.mc { font-family:'Press Start 2P', monospace; font-size:10px; color:#fff; cursor:pointer;
+              padding:10px 14px; background:#7a7a7a; border:3px solid #000;
+              box-shadow:inset -4px -4px 0 #4d4d4d, inset 4px 4px 0 #a6a6a6; }
+  button.mc:hover { background:#6a9c74; }
+  button.mc:active { box-shadow:inset 4px 4px 0 #4d4d4d, inset -4px -4px 0 #a6a6a6; }
+  #hint { bottom:18px; right:16px; font-size:7px; color:#e8f4ff; opacity:.85; text-align:right; line-height:2; }
+  #muteWrap { top:14px; right:14px; }
+  #toast { top:40%; left:50%; transform:translate(-50%,-50%) scale(0); font-size:clamp(18px,4vw,34px);
+           color:#ff5252; text-shadow:4px 4px 0 #4a0000, 7px 7px 0 rgba(0,0,0,.4); transition:transform .25s; }
+  #toast.show { transform:translate(-50%,-50%) scale(1) rotate(-3deg); }
+  #toast.gold { color:#ffe14d; text-shadow:4px 4px 0 #6b4a00, 7px 7px 0 rgba(0,0,0,.4); }
+</style>
+</head>
+<body>
+<canvas id="scene"></canvas>
+
+<div class="ui" id="hud">
+  <div id="title">🐍 SNAKE CRAFT 🐍</div>
+  <div id="status">PREMI INVIO o una FRECCIA per iniziare!</div>
+</div>
+<div class="ui" id="score">
+  <div>🍎 PUNTI: <b id="sP">0</b></div>
+  <div>🏆 RECORD: <b id="sR">0</b></div>
+</div>
+<div class="ui" id="muteWrap"><button class="mc" id="mute">🔊</button></div>
+<div class="ui" id="toast"></div>
+<div class="ui" id="controls">
+  <button class="mc" id="pause">PAUSA (P)</button>
+  <button class="mc" id="reset">NUOVA PARTITA</button>
+</div>
+<div class="ui" id="hint">Frecce / WASD: muovi<br>P: pausa • Invio: ricomincia<br>Trascina: ruota • Rotella: zoom</div>
+
+<div id="loading" style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:50;background:#79c6f2;font-family:'Press Start 2P',monospace;font-size:12px;color:#fff;text-shadow:2px 2px 0 #3f3f3f;">CARICAMENTO MONDO...</div>
+
+<script>
+  // Overlay errori: qualsiasi problema viene mostrato a schermo invece dello schermo azzurro
+  function showError(msg) {
+    let d = document.getElementById('errbox');
+    if (!d) {
+      d = document.createElement('div'); d.id = 'errbox';
+      d.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:99;background:rgba(80,0,0,.93);color:#ffdada;font:11px/1.8 monospace;padding:14px 18px;border:3px solid #f88;max-width:85vw;white-space:pre-wrap;';
+      document.body.appendChild(d);
+    }
+    d.textContent += (d.textContent ? '\n' : '') + 'ERRORE: ' + msg;
+  }
+  window.addEventListener('error', function(e){ showError(e.message || 'errore sconosciuto'); }, true);
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"
+        onerror="showError('CDN cdnjs non raggiungibile, provo jsdelivr...')"></script>
+<script>
+  if (!window.THREE) document.write('<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"><\/script>');
+</script>
+<script>
+"use strict";
+
+/* ============================================================
+   AUDIO — effetti sintetizzati con Web Audio API
+============================================================ */
+const Sound = (() => {
+  let ctx = null, on = true;
+  const ac = () => ctx || (ctx = new (window.AudioContext || window.webkitAudioContext)());
+  function tone(freq, dur, type='square', vol=.15, slide=0) {
+    if (!on) return;
+    const c = ac(), t = c.currentTime;
+    const o = c.createOscillator(), g = c.createGain();
+    o.type = type; o.frequency.setValueAtTime(freq, t);
+    if (slide) o.frequency.exponentialRampToValueAtTime(Math.max(30, freq+slide), t+dur);
+    g.gain.setValueAtTime(vol, t);
+    g.gain.exponentialRampToValueAtTime(.0001, t+dur);
+    o.connect(g).connect(c.destination); o.start(t); o.stop(t+dur+.02);
+  }
+  function crunch(vol=.3) { // morso croccante
+    if (!on) return;
+    const c = ac(), t = c.currentTime, len = c.sampleRate * .1;
+    const buf = c.createBuffer(1, len, c.sampleRate), d = buf.getChannelData(0);
+    for (let i=0;i<len;i++) d[i] = (Math.random()*2-1) * (1-i/len)**2;
+    const src = c.createBufferSource(); src.buffer = buf;
+    const f = c.createBiquadFilter(); f.type='bandpass'; f.frequency.value=1400;
+    const g = c.createGain(); g.gain.setValueAtTime(vol, t);
+    g.gain.exponentialRampToValueAtTime(.0001, t+.12);
+    src.connect(f).connect(g).connect(c.destination); src.start(t);
+  }
+  return {
+    toggle(){ on=!on; return on; },
+    resume(){ ac().resume && ac().resume(); },
+    start(){ [392,523,659].forEach((f,i)=>setTimeout(()=>tone(f,.1,'square',.12),i*90)); },
+    eat(p){ crunch(.3); tone(440 + p*24, .1, 'square', .14, 200); }, // pitch che sale coi punti
+    die(){ [330,262,196,147,98].forEach((f,i)=>setTimeout(()=>tone(f,.16,'sawtooth',.12),i*110)); },
+    record(){ [523,659,784,1047,1319].forEach((f,i)=>setTimeout(()=>tone(f,.15,'square',.15),i*100)); },
+    pop(){ tone(880,.06,'square',.08); },
+    pause(){ tone(300,.08,'triangle',.1); }
+  };
+})();
+
+/* ============================================================
+   TEXTURE — pixel-art procedurali stile Minecraft (canvas)
+============================================================ */
+function pixelTexture(base, speckle, size=16) {
+  const cv = document.createElement('canvas'); cv.width = cv.height = size;
+  const g = cv.getContext('2d');
+  for (let y=0;y<size;y++) for (let x=0;x<size;x++) {
+    const s = (Math.random()-.5) * speckle;
+    g.fillStyle = `rgb(${(base[0]+s)|0},${(base[1]+s)|0},${(base[2]+s)|0})`;
+    g.fillRect(x,y,1,1);
+  }
+  const t = new THREE.CanvasTexture(cv);
+  t.magFilter = THREE.NearestFilter; t.minFilter = THREE.NearestFilter;
+  return t;
+}
+function woodTexture(base) {
+  const cv = document.createElement('canvas'); cv.width = cv.height = 16;
+  const g = cv.getContext('2d');
+  for (let y=0;y<16;y++) for (let x=0;x<16;x++) {
+    const band = (Math.sin(y*1.3)+1)/2 > .5 ? 12 : -10;
+    const s = (Math.random()-.5)*10;
+    g.fillStyle = `rgb(${(base[0]+band+s)|0},${(base[1]+band+s)|0},${(base[2]+band+s)|0})`;
+    g.fillRect(x,y,1,1);
+  }
+  const t = new THREE.CanvasTexture(cv);
+  t.magFilter = THREE.NearestFilter; t.minFilter = THREE.NearestFilter;
+  return t;
+}
+// Faccia da creeper per la testa del serpente
+function faceTexture() {
+  const cv = document.createElement('canvas'); cv.width = cv.height = 16;
+  const g = cv.getContext('2d');
+  for (let y=0;y<16;y++) for (let x=0;x<16;x++) {
+    const s = (Math.random()-.5)*50;
+    g.fillStyle = `rgb(${(88+s)|0},${(180+s)|0},${(70+s)|0})`;
+    g.fillRect(x,y,1,1);
+  }
+  g.fillStyle = '#101010';
+  g.fillRect(3,4,3,3); g.fillRect(10,4,3,3);       // occhi
+  g.fillRect(6,7,4,4);                              // naso
+  g.fillRect(5,10,2,3); g.fillRect(9,10,2,3);       // bocca
+  const t = new THREE.CanvasTexture(cv);
+  t.magFilter = THREE.NearestFilter; t.minFilter = THREE.NearestFilter;
+  return t;
+}
+const TEX = {
+  grass : pixelTexture([96,168,62], 46),
+  dirt  : pixelTexture([134,96,67], 40),
+  stone : pixelTexture([128,128,128], 36),
+  cobble: pixelTexture([96,96,100], 52),
+  plank : woodTexture([178,134,86]),
+  log   : woodTexture([104,78,48]),
+  leaf  : pixelTexture([58,132,54], 55),
+  water : pixelTexture([54,110,200], 22),
+  snake : pixelTexture([70,178,58], 40),
+  head  : pixelTexture([56,150,46], 40),
+  face  : faceTexture(),
+  apple : pixelTexture([214,48,44], 42),
+  cloud : pixelTexture([245,250,255], 10),
+  sand  : pixelTexture([216,200,150], 26),
+};
+
+/* ============================================================
+   SCENA
+============================================================ */
+const canvas = document.getElementById('scene');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias:true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setSize(innerWidth, innerHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x8fd3f7);
+scene.fog = new THREE.Fog(0x9fd9fa, 42, 85);
+
+const camera = new THREE.PerspectiveCamera(55, innerWidth/innerHeight, .1, 200);
+
+const sun = new THREE.DirectionalLight(0xfff3d6, 1.05);
+sun.position.set(24, 32, 14);
+sun.castShadow = true;
+sun.shadow.mapSize.set(2048, 2048);
+sun.shadow.camera.left = sun.shadow.camera.bottom = -30;
+sun.shadow.camera.right = sun.shadow.camera.top = 30;
+sun.shadow.camera.far = 90;
+scene.add(sun);
+scene.add(new THREE.HemisphereLight(0xbfe3ff, 0x6b8f4e, .5));
+scene.add(new THREE.AmbientLight(0xffffff, .18));
+
+const sunCube = new THREE.Mesh(new THREE.BoxGeometry(3.4,3.4,.3),
+  new THREE.MeshBasicMaterial({ color:0xffe97a }));
+sunCube.position.set(48, 48, -70);
+sunCube.lookAt(0,0,0);
+scene.add(sunCube);
+
+/* ============================================================
+   MONDO — terreno con rumore, alberi, acqua, nuvole
+============================================================ */
+const WORLD_R = 24, SEA = -0.9;
+const seedRand = (() => { let s = 1337; return () => (s = (s*16807) % 2147483647) / 2147483647; })();
+const grid = 24, gvals = [];
+for (let i=0;i<grid*grid;i++) gvals.push(seedRand());
+function vnoise(x, z) {
+  const xi = ((x % grid)+grid)%grid, zi = ((z % grid)+grid)%grid;
+  const x0 = Math.floor(xi), z0 = Math.floor(zi);
+  const fx = xi-x0, fz = zi-z0;
+  const sm = t => t*t*(3-2*t);
+  const g = (a,b) => gvals[(b%grid)*grid + (a%grid)];
+  const gx = sm(fx), gz = sm(fz);
+  return (g(x0,z0)*(1-gx)+g(x0+1,z0)*gx)*(1-gz) + (g(x0,z0+1)*(1-gx)+g(x0+1,z0+1)*gx)*gz;
+}
+function heightAt(x, z) {
+  let h = vnoise(x*.11, z*.11)*4.6 + vnoise(x*.29, z*.29)*1.6;
+  const d = Math.hypot(x, z);
+  const flat = THREE.MathUtils.smoothstep(d, 15, 21); // pianoro largo sotto il tabellone
+  return THREE.MathUtils.lerp(0.2, h - 0.4, flat) - (d>WORLD_R-3 ? (d-(WORLD_R-3))*.8 : 0);
+}
+
+const grassMat  = new THREE.MeshLambertMaterial({ map:TEX.grass });
+const dirtMat   = new THREE.MeshLambertMaterial({ map:TEX.dirt });
+const stoneMat  = new THREE.MeshLambertMaterial({ map:TEX.stone });
+const sandMat   = new THREE.MeshLambertMaterial({ map:TEX.sand });
+const waterMat  = new THREE.MeshLambertMaterial({ map:TEX.water, transparent:true, opacity:.75 });
+const leafMat   = new THREE.MeshLambertMaterial({ map:TEX.leaf });
+const logMat    = new THREE.MeshLambertMaterial({ map:TEX.log });
+const blockGeo  = new THREE.BoxGeometry(1,1,1);
+
+const cols = [];
+for (let x=-WORLD_R; x<=WORLD_R; x++)
+  for (let z=-WORLD_R; z<=WORLD_R; z++)
+    if (Math.hypot(x,z) <= WORLD_R) cols.push({ x, z, h: Math.floor(heightAt(x,z)) });
+
+function instanced(mat, transforms, scale) {
+  scale = scale || [1,1,1];
+  const m = new THREE.InstancedMesh(blockGeo, mat, transforms.length);
+  const M = new THREE.Matrix4(), Q = new THREE.Quaternion(), S = new THREE.Vector3(...scale);
+  transforms.forEach((t,i) => { M.compose(new THREE.Vector3(t[0], t[1], t[2]), Q, S); m.setMatrixAt(i, M); });
+  m.castShadow = m.receiveShadow = true;
+  scene.add(m); return m;
+}
+const grassT = [], dirtT = [], stoneT = [], sandT = [];
+for (const c of cols) {
+  const topY = c.h;
+  let under = topY;
+  for (const n of [[c.x+1,c.z],[c.x-1,c.z],[c.x,c.z+1],[c.x,c.z-1]]) {
+    const nh = Math.floor(heightAt(n[0], n[1]));
+    under = Math.min(under, nh);
+  }
+  const isBeach = topY <= SEA+1;
+  for (let y = under; y <= topY; y++) {
+    if (y === topY) {
+      if (isBeach) sandT.push([c.x+.5, y+.5, c.z+.5]);
+      else if (y <= 1) stoneT.push([c.x+.5, y+.5, c.z+.5]);
+      else grassT.push([c.x+.5, y+.5, c.z+.5]);
+    } else dirtT.push([c.x+.5, y+.5, c.z+.5]);
+  }
+  if (topY < SEA) {
+    for (let y = topY+1; y <= SEA; y++) sandT.push([c.x+.5, y+.5, c.z+.5]);
+  }
+}
+instanced(grassMat, grassT); instanced(dirtMat, dirtT);
+instanced(stoneMat, stoneT); instanced(sandMat, sandT);
+
+const waters = [];
+for (const c of cols) if (c.h < SEA) {
+  const w = new THREE.Mesh(new THREE.BoxGeometry(1,.35,1), waterMat);
+  w.position.set(c.x+.5, SEA+.82, c.z+.5);
+  scene.add(w); waters.push({ m:w, ph:Math.random()*6.28 });
+}
+
+// Alberi (fuori dall'area del tabellone)
+const leafT = [], logT = [];
+function tree(x, z) {
+  const y0 = Math.floor(heightAt(x,z)) + 1;
+  const th = 4 + Math.floor(seedRand()*2);
+  for (let i=0;i<th;i++) logT.push([x+.5, y0+i+.5, z+.5]);
+  for (let dx=-2;dx<=2;dx++) for (let dy=0;dy<=2;dy++) for (let dz=-2;dz<=2;dz++) {
+    const r = Math.abs(dx)+Math.abs(dz)+(dy===2?1:0);
+    if (r > 3 || (dy===0 && Math.abs(dx)===2 && Math.abs(dz)===2)) continue;
+    if (dx===0 && dz===0 && dy<th-1) continue;
+    leafT.push([x+.5+dx, y0+th-2+dy+.5, z+.5+dz]);
+  }
+}
+const BOARD_HALF = 8.5*1.7 + 4; // margine del tabellone
+for (const c of cols) {
+  if (c.h <= SEA+1 || Math.abs(c.x) < BOARD_HALF || Math.abs(c.z) < BOARD_HALF) continue;
+  if (Math.hypot(c.x,c.z) > WORLD_R-4) continue;
+  if (seedRand() < .03) tree(c.x, c.z);
+}
+instanced(leafMat, leafT); instanced(logMat, logT);
+
+const cloudMat = new THREE.MeshLambertMaterial({ map:TEX.cloud, transparent:true, opacity:.92 });
+const clouds = [];
+for (let i=0;i<14;i++) {
+  const g = new THREE.Group();
+  const n = 2 + Math.floor(seedRand()*3);
+  for (let j=0;j<n;j++) {
+    const b = new THREE.Mesh(new THREE.BoxGeometry(2+seedRand()*3, .8, 2+seedRand()*2), cloudMat);
+    b.position.set((seedRand()-.5)*5, 0, (seedRand()-.5)*3);
+    g.add(b);
+  }
+  g.position.set((seedRand()-.5)*90, 18+seedRand()*7, (seedRand()-.5)*90);
+  scene.add(g); clouds.push(g);
+}
+
+/* ============================================================
+   TABELLONE GxG rialzato sul pianoro
+============================================================ */
+const G = 17, CS = 1.7, BY = 1.0;
+const half = (G-1)/2;
+function cellPos(r, c) { return new THREE.Vector3((c-half)*CS, BY+1.02, (r-half)*CS); } // y = centro dei cubi sopra il pavimento
+
+// Celle del pavimento (assi) su fondo scuro: griglia leggibile
+const cellT = [];
+for (let r=0;r<G;r++) for (let c=0;c<G;c++)
+  cellT.push([(c-half)*CS, .3 + BY, (r-half)*CS]);
+instanced(new THREE.MeshLambertMaterial({ map:TEX.plank, color:0xb9b9b9 }), cellT, [CS*.9, .6, CS*.9]);
+
+const gridBase = new THREE.Mesh(new THREE.BoxGeometry(G*CS+.6, .55, G*CS+.6),
+  new THREE.MeshLambertMaterial({ color:0x242428 }));
+gridBase.position.y = .28 + BY;
+gridBase.receiveShadow = true;
+scene.add(gridBase);
+
+// Muro di pietra spaccata tutto intorno (letale!)
+const wallT = [];
+for (let i=0;i<G;i++) { wallT.push([(i-half)*CS, .75+BY, -half*CS-CS]); wallT.push([(i-half)*CS, .75+BY, (half+1)*CS]); }
+for (let r=0;r<G;r++) { wallT.push([-half*CS-CS, .75+BY, (r-half)*CS]); wallT.push([(half+1)*CS, .75+BY, (r-half)*CS]); }
+instanced(new THREE.MeshLambertMaterial({ map:TEX.cobble }), wallT, [CS, 1.5, CS]);
+// sopra il muro: cornice di tronchi
+const capT = wallT.map((t,i) => i % 2 === 0 ? [t[0], t[1]+1.35, t[2]] : [t[0], t[1]+1.35, t[2]]);
+instanced(logMat, capT, [CS*.55, .45, CS*.55]);
+
+// Base di pietra sotto il tabellone
+const base = new THREE.Mesh(new THREE.BoxGeometry(G*CS+CS*2.6, .7, G*CS+CS*2.6), stoneMat);
+base.position.y = BY - .32;
+base.receiveShadow = true;
+scene.add(base);
+
+/* ============================================================
+   SERPENTE + MELE
+============================================================ */
+const snakeBodyMat = new THREE.MeshLambertMaterial({ map:TEX.snake });
+const headMats = []; // faccia creeper sopra
+const sideHeadMat = new THREE.MeshLambertMaterial({ map:TEX.head });
+headMats.push(sideHeadMat, sideHeadMat, new THREE.MeshLambertMaterial({ map:TEX.face }), sideHeadMat, sideHeadMat, sideHeadMat);
+const segGeo = new THREE.BoxGeometry(CS*.82, CS*.82, CS*.82);
+const headGeo = new THREE.BoxGeometry(CS*.95, CS*.95, CS*.95);
+
+const deadHeadMat = new THREE.MeshLambertMaterial({ color:0xb03030 });
+const appleMat = new THREE.MeshLambertMaterial({ map:TEX.apple });
+const appleGeo = new THREE.BoxGeometry(CS*.58, CS*.58, CS*.58);
+const stemMat  = new THREE.MeshLambertMaterial({ color:0x5b3a1e });
+const leafA    = new THREE.MeshLambertMaterial({ color:0x3f9a3a });
+
+let snake = [], segMeshes = [], dir = {r:0,c:1}, nextDirs = [];
+let food = null, foodGroup = null, eaten = 0, state = 'idle';
+let stepT = 0, shake = 0;
+let best = 0;
+try { best = parseInt(localStorage.getItem('snakecraft_hs') || '0', 10) || 0; } catch(e) {}
+const statusEl = document.getElementById('status');
+const toastEl  = document.getElementById('toast');
+
+function addSegMesh(pos, isHead) {
+  const m = new THREE.Mesh(isHead ? headGeo : segGeo, isHead ? headMats : snakeBodyMat);
+  m.castShadow = m.receiveShadow = true;
+  m.position.copy(pos);
+  m.userData.target = pos.clone();
+  scene.add(m); segMeshes.push(m);
+  return m;
+}
+function spawnFood() {
+  const free = [];
+  for (let r=0;r<G;r++) for (let c=0;c<G;c++)
+    if (!snake.some(s => s.r===r && s.c===c)) free.push({r,c});
+  if (!free.length) { food = null; return; }
+  food = free[Math.floor(Math.random()*free.length)];
+  if (!foodGroup) {
+    foodGroup = new THREE.Group();
+    const a = new THREE.Mesh(appleGeo, appleMat); a.castShadow = true;
+    const st = new THREE.Mesh(new THREE.BoxGeometry(.18,.32,.18), stemMat); st.position.y = .45;
+    const lf = new THREE.Mesh(new THREE.BoxGeometry(.34,.12,.22), leafA); lf.position.set(.2,.55,0);
+    foodGroup.add(a, st, lf);
+    scene.add(foodGroup);
+  }
+  foodGroup.visible = true;
+  const p = cellPos(food.r, food.c);
+  foodGroup.position.set(p.x, p.y + .8, p.z);
+  foodGroup.scale.set(.01,.01,.01);
+}
+function burst(pos, mat, n) {
+  for (let i=0;i<n;i++) {
+    const b = new THREE.Mesh(new THREE.BoxGeometry(.2,.2,.2), mat);
+    b.position.copy(pos).add(new THREE.Vector3((Math.random()-.5)*.5, .2, (Math.random()-.5)*.5));
+    scene.add(b);
+    particles.push({ m:b, v:new THREE.Vector3((Math.random()-.5)*4, 3+Math.random()*3, (Math.random()-.5)*4), life:.9 });
+  }
+}
+const particles = [];
+
+function startGame() {
+  segMeshes.forEach(m => scene.remove(m));
+  segMeshes = [];
+  const r0 = Math.floor(G/2), c0 = 4;
+  snake = [{r:r0,c:c0},{r:r0,c:c0-1},{r:r0,c:c0-2}];
+  snake.forEach((s,i) => addSegMesh(cellPos(s.r, s.c), i===0));
+  dir = {r:0, c:1}; nextDirs = [];
+  eaten = 0; stepT = 0; stepInt = .17;
+  spawnFood();
+  state = 'play';
+  document.getElementById('sP').textContent = 0;
+  statusEl.textContent = 'MANGIA le mele! Non toccare il muro e te stesso!';
+  Sound.start();
+}
+let stepInt = .17;
+function die() {
+  state = 'over';
+  shake = .5;
+  if (segMeshes.length) segMeshes[0].material = deadHeadMat; // testa "fulminata"
+  Sound.die();
+  const isRecord = eaten > best;
+  if (isRecord) {
+    best = eaten;
+    try { localStorage.setItem('snakecraft_hs', String(best)); } catch(e) {}
+    document.getElementById('sR').textContent = best;
+    toast('NUOVO RECORD! ' + best, true);
+    Sound.record();
+  } else {
+    toast('GAME OVER');
+  }
+  statusEl.textContent = 'Il serpente si è schiantato! 💀 Invio per riprovare.';
+}
+function toast(msg, gold) {
+  toastEl.textContent = msg;
+  toastEl.classList.toggle('gold', !!gold);
+  toastEl.classList.add('show');
+  setTimeout(()=>toastEl.classList.remove('show'), gold ? 2400 : 1800);
+}
+function step() {
+  if (nextDirs.length) dir = nextDirs.shift();
+  const h = snake[0];
+  const nr = h.r + dir.r, nc = h.c + dir.c;
+  if (nr < 0 || nr >= G || nc < 0 || nc >= G) return die();         // muro
+  const willGrow = food && nr === food.r && nc === food.c;
+  const body = willGrow ? snake : snake.slice(0, -1);                // la coda scarta
+  if (body.some(s => s.r === nr && s.c === nc)) return die();        // se stesso
+  snake.unshift({ r:nr, c:nc });
+  if (willGrow) {
+    eaten++;
+    document.getElementById('sP').textContent = eaten;
+    addSegMesh(cellPos(snake[snake.length-1].r, snake[snake.length-1].c), false);
+    burst(cellPos(nr, nc), appleMat, 10);
+    Sound.eat(eaten);
+    stepInt = Math.max(.07, .17 - eaten*.0045); // accelera
+    foodGroup.visible = false;
+    spawnFood();
+  } else snake.pop();
+  for (let i=0;i<segMeshes.length;i++) {
+    const s = snake[i];
+    segMeshes[i].userData.target.copy(cellPos(s.r, s.c));
+  }
+}
+
+/* ============================================================
+   INPUT — tastiera + orbit camera
+============================================================ */
+function queueDir(sr, sc) {
+  Sound.resume();
+  if (state === 'over') return;
+  if (state === 'idle') startGame();
+  if (state === 'pause') togglePause();
+  // Input relativo alla CAMERA: W = via dalla camera, A = sinistra dello schermo, ecc.
+  // Converte la direzione "schermo" in direzione griglia secondo l'angolo della camera.
+  const n = ((Math.round(theta / (Math.PI/2)) % 4) + 4) % 4;
+  let dr = sr, dc = sc;
+  for (let i=0;i<n;i++) { const tmp = dr; dr = -dc; dc = tmp; }
+  const last = nextDirs.length ? nextDirs[nextDirs.length-1] : dir;
+  if (last.r === -dr && last.c === -dc) return;   // inversione vietata
+  if (last.r === dr && last.c === dc) return;
+  if (nextDirs.length < 2) nextDirs.push({ r:dr, c:dc });
+}
+function togglePause() {
+  const btn = document.getElementById('pause');
+  if (state === 'play') { state = 'pause'; btn.textContent = 'RIPRENDI (P)'; statusEl.textContent = 'PAUSA ⏸ — Premi P per riprendere'; Sound.pause(); }
+  else if (state === 'pause') { state = 'play'; btn.textContent = 'PAUSA (P)'; statusEl.textContent = 'MANGIA le mele! Non toccare il muro e te stesso!'; Sound.pop(); }
+}
+addEventListener('keydown', e => {
+  const k = e.key;
+  if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(k)) e.preventDefault();
+  if (k === 'ArrowUp'    || k === 'w' || k === 'W') queueDir(-1, 0);
+  if (k === 'ArrowDown'  || k === 's' || k === 'S') queueDir( 1, 0);
+  if (k === 'ArrowLeft'  || k === 'a' || k === 'A') queueDir( 0,-1);
+  if (k === 'ArrowRight' || k === 'd' || k === 'D') queueDir( 0, 1);
+  if (k === 'Enter' || k === 'r' || k === 'R') { Sound.resume(); Sound.pop(); startGame(); }
+  if (k === 'p' || k === 'P' || k === ' ') togglePause();
+});
+document.getElementById('reset').addEventListener('click', e => { e.currentTarget.blur(); Sound.resume(); Sound.pop(); startGame(); });
+document.getElementById('pause').addEventListener('click', e => { e.currentTarget.blur(); togglePause(); });
+document.getElementById('mute').addEventListener('click', e => {
+  e.currentTarget.blur();
+  e.target.textContent = Sound.toggle() ? '🔊' : '🔇';
+});
+document.getElementById('sR').textContent = best;
+
+// Orbit camera (come nel tris)
+let theta = .55, phi = .95, dist = 30, dragging = false, lastX = 0, lastY = 0, pinch = 0;
+function applyCam() {
+  phi = THREE.MathUtils.clamp(phi, .18, 1.45);
+  dist = THREE.MathUtils.clamp(dist, 10, 55);
+  camera.position.set(
+    Math.sin(theta)*Math.sin(phi)*dist,
+    Math.cos(phi)*dist + BY + 2,
+    Math.cos(theta)*Math.sin(phi)*dist
+  );
+  camera.lookAt(0, BY + 1, 0);
+}
+applyCam();
+canvas.addEventListener('pointerdown', e => { dragging = true; lastX = e.clientX; lastY = e.clientY; pinch = 0; });
+addEventListener('pointerup', () => dragging = false);
+addEventListener('pointermove', e => {
+  if (!dragging) return;
+  theta -= (e.clientX-lastX)*.005;
+  phi   -= (e.clientY-lastY)*.005;
+  lastX = e.clientX; lastY = e.clientY;
+  applyCam();
+});
+canvas.addEventListener('wheel', e => { e.preventDefault(); dist += e.deltaY*.012; applyCam(); }, { passive:false });
+canvas.addEventListener('touchmove', e => {
+  if (e.touches.length === 2) {
+    const d = Math.hypot(e.touches[0].clientX-e.touches[1].clientX, e.touches[0].clientY-e.touches[1].clientY);
+    if (pinch) dist -= (d-pinch)*.035;
+    pinch = d; applyCam();
+  }
+}, { passive:true });
+addEventListener('resize', () => {
+  camera.aspect = innerWidth/innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+});
+
+/* ============================================================
+   LOOP
+============================================================ */
+const clock = new THREE.Clock();
+let loadingHidden = false;
+function animate() {
+  requestAnimationFrame(animate);
+  if (!loadingHidden) {
+    loadingHidden = true;
+    const l = document.getElementById('loading');
+    if (l) l.remove();
+  }
+  const dt = Math.min(clock.getDelta(), .05), t = clock.elapsedTime;
+
+  // passi del serpente
+  if (state === 'play') {
+    stepT += dt;
+    if (stepT >= stepInt) { stepT = 0; step(); }
+  }
+  // interpolazione morbida dei segmenti
+  const k = Math.min(1, dt*13);
+  segMeshes.forEach(m => m.position.lerp(m.userData.target, k));
+
+  // mela: bob + rotazione + pop-in
+  if (foodGroup && foodGroup.visible) {
+    const p = food ? cellPos(food.r, food.c) : null;
+    if (p) foodGroup.position.y = p.y + .8 + Math.sin(t*3)*.09;
+    foodGroup.rotation.y += dt*1.4;
+    foodGroup.scale.lerp(new THREE.Vector3(1,1,1), .18);
+  }
+  // particelle
+  for (let i=particles.length-1;i>=0;i--) {
+    const p = particles[i];
+    p.life -= dt;
+    p.v.y -= 9.8*dt;
+    p.m.position.addScaledVector(p.v, dt);
+    p.m.rotation.x += dt*6; p.m.rotation.y += dt*5;
+    if (p.life <= 0 || p.m.position.y < BY-1) { scene.remove(p.m); particles.splice(i,1); }
+  }
+  // nuvole + acqua
+  for (const c of clouds) { c.position.x += dt*.55; if (c.position.x > 52) c.position.x = -52; }
+  for (const w of waters) w.m.position.y = SEA+.82 + Math.sin(t*1.4 + w.ph)*.06;
+
+  // camera: orbita dolce solo quando non si gioca (per non spostare i riferimenti dei tasti) + shake alla morte
+  if (!dragging && state !== 'play') { theta += dt*.015; applyCam(); }
+  if (shake > 0) {
+    shake = Math.max(0, shake - dt);
+    camera.position.x += (Math.random()-.5)*shake*.9;
+    camera.position.y += (Math.random()-.5)*shake*.9;
+  }
+  // pulsazione testa in pausa/attesa
+  if (state !== 'play' && segMeshes.length) {
+    const s = 1 + (Math.sin(t*4)+1)*.02;
+    segMeshes[0].scale.setScalar(s);
+  } else if (segMeshes.length) segMeshes[0].scale.setScalar(1);
+
+  renderer.render(scene, camera);
+}
+animate();
+</script>
+</body>
+</html>

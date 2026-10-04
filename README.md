@@ -77,6 +77,7 @@ src/
   tictactoe11-b/ → variante/secondo tentativo dello stesso modello (JS vanilla, single-page)
   tictactoe11-c/ → terzo tentativo dello stesso modello, via OpenCode CLI (JS vanilla, single-page)
   tictactoe12/  → output della live/modello 12 (JS vanilla, single-page)
+  tictactoe13/  → confronto multi-modello, tris 3D stile Minecraft (JS vanilla + three.js)
 ```
 
 ## Abbinamento cartella → modello
@@ -135,6 +136,36 @@ Modelli SLM testati in questo batch:
 - `minicpm5-2b`
 - `ministral-3-3b`
 - `qwen3.5-4b`
+
+## tictactoe13 — tris 3D stile Minecraft (confronto multi-modello)
+
+Come `tictactoe-slm1/`, anche `tictactoe13/` non è l'output di un singolo
+modello: raccoglie il confronto tra più modelli sullo stesso prompt, stavolta
+con un twist grafico — tris in JavaScript vanilla (con three.js via CDN
+come opzione), ambientato in uno stile 3D ispirato a Minecraft.
+
+Il prompt usato (`prompt_tris.txt`, incluso nella cartella):
+
+> Sviluppa un gioco del tris in javascript vanilla + eventualmente three.js
+> (cdn), single page in tris.html, giocatore sempre X, PC sempre O, logica e
+> UX a discrezione, stile minecraft 3D, genera un po di mondo attorno che
+> sia bello da guardare, effetti sonori sintetizzati.
+
+Sotto-struttura:
+
+```
+tictactoe13/
+  prompt_tris.txt      → prompt usato per tris.html (vedi sopra)
+  <nome-modello>/
+    tris.html           → il task richiesto dal prompt
+    snake.html           → secondo task (snake), incluso così com'è prodotto
+```
+
+Modelli testati in questo batch:
+
+- `glm-53-flash` — GLM-5.3-Flash
+- `qwen-38-flash` — Qwen-3.8-Flash
+- `sonnet-55` — Claude Sonnet 5.5
 
 ## Licenza
 

@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>SNAKE Craft — Minecraft Snake 3D</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+  :root{ --mc-gray:#c6c6c6; --mc-dark:#555555; }
+  *{ margin:0; padding:0; box-sizing:border-box; }
+  html,body{ width:100%; height:100%; overflow:hidden; background:#8fb7d8;
+    font-family:'Press Start 2P','Courier New',monospace; touch-action:none; }
+  canvas{ display:block; }
+  .mc-btn{
+    font-family:inherit; font-size:11px; color:#f2f2f2; text-shadow:2px 2px 0 #3f3f3f;
+    background:var(--mc-gray); border-style:solid; border-width:3px;
+    border-color:#ffffff #4d4d4d #4d4d4d #ffffff;
+    box-shadow:inset 0 -4px 0 #8d8d8d, inset 0 4px 0 #cfd1d1;
+    padding:10px 14px; cursor:pointer; user-select:none; outline:2px solid #00000066;
+  }
+  .mc-btn:hover{ background:#d9d9d9; color:#ffffa0; }
+  .mc-btn:active{ border-color:#4d4d4d #ffffff #ffffff #4d4d4d; box-shadow:inset 0 3px 0 #8d8d8d; transform:translateY(1px); }
+  .mc-btn.sel{ background:#6ea54f; border-color:#a8d38a #33501f #33501f #a8d38a; color:#fff; }
+  .mc-btn.small{ font-size:9px; padding:8px 10px; }
+  #hud{ position:fixed; top:12px; left:50%; transform:translateX(-50%); z-index:5;
+    background:#000000a8; border:2px solid #ffffff2e; padding:10px 18px; text-align:center;
+    color:#fff; pointer-events:none; min-width:340px; }
+  #scoreLbl{ font-size:12px; line-height:1.7; color:#7ce26a; }
+  #bestLbl{ font-size:9px; margin-top:6px; color:#ffd94d; }
+  #stateLbl{ font-size:9px; margin-top:6px; color:#cfcfcf; }
+  #bar{ position:fixed; bottom:14px; left:50%; transform:translateX(-50%); z-index:5;
+    display:flex; gap:8px; flex-wrap:wrap; justify-content:center; max-width:60vw; }
+  #dpad{ position:fixed; bottom:16px; right:16px; z-index:6; display:grid;
+    grid-template-columns:repeat(3,46px); grid-template-rows:repeat(3,46px); gap:4px; }
+  #dpad .mc-btn{ font-size:16px; padding:0; display:flex; align-items:center; justify-content:center; }
+  #dpad .up{ grid-area:1/2; } #dpad .left{ grid-area:2/1; } #dpad .right{ grid-area:2/3; } #dpad .down{ grid-area:3/2; }
+  #startScr,#overScr,#pauseScr{ position:fixed; inset:0; z-index:20; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; gap:18px;
+    background:radial-gradient(ellipse at center,#00000055 0%,#000000bb 100%); }
+  #overScr,#pauseScr{ display:none; }
+  #pauseScr{ background:#00000066; }
+  .panel{ background:#000000c8; border:3px solid #ffffff33; padding:34px 44px; text-align:center; }
+  h1{ font-size:32px; color:#7ce26a; text-shadow:4px 4px 0 #1d4d12, -2px -2px 0 #fff3, 6px 6px 0 #000a; letter-spacing:2px; }
+  h1 span{ color:#ffd94d; text-shadow:4px 4px 0 #8a5a00; }
+  .sub{ font-size:10px; color:#dcdcdc; line-height:2; margin:14px 0; }
+  .hint{ font-size:8px; color:#9f9f9f; line-height:2; }
+  #ovTitle{ font-size:24px; color:#fff; text-shadow:3px 3px 0 #3f3f3f; }
+  #ovTitle.rec{ color:#ffd94d; } #ovTitle.dead{ color:#ff7a5c; } #ovTitle.win{ color:#7ce26a; }
+  #ovSub{ font-size:9px; color:#cfcfcf; margin:14px 0 4px; line-height:1.9; }
+  .blink{ animation:bl 1.1s steps(2) infinite; } @keyframes bl{ 50%{ opacity:.35; } }
+  #flash{ position:fixed; inset:0; z-index:15; background:#ff2200; opacity:0; pointer-events:none; transition:opacity .4s; }
+  #loaderr{ display:none; position:fixed; top:40%; left:50%; transform:translateX(-50%); z-index:99;
+    background:#8a1f1fee; color:#fff; font-size:10px; padding:20px 24px; line-height:2; text-align:center; }
+</style>
+</head>
+<body>
+
+<div id="hud">
+  <div id="scoreLbl">PUNTI 0</div>
+  <div id="bestLbl">RECORD 0</div>
+  <div id="stateLbl">LUNGHEZZA 3 · VELOCITÀ ·</div>
+</div>
+
+<div id="bar">
+  <button class="mc-btn small" id="diffSlow">LENTA</button>
+  <button class="mc-btn small sel" id="diffMed">NORMALE</button>
+  <button class="mc-btn small" id="diffFast">VELOCE</button>
+  <button class="mc-btn small" id="btnRound">RICOMINCIA</button>
+  <button class="mc-btn small" id="btnWorld">NUOVO MONDO</button>
+  <button class="mc-btn small" id="btnAudio">AUDIO: ON</button>
+</div>
+
+<div id="dpad">
+  <button class="mc-btn up"    data-dir="up">▲</button>
+  <button class="mc-btn left"  data-dir="left">◀</button>
+  <button class="mc-btn right" data-dir="right">▶</button>
+  <button class="mc-btn down"  data-dir="down">▼</button>
+</div>
+
+<div id="startScr">
+  <div class="panel">
+    <h1>SNAKE <span>CRAFT</span></h1>
+    <div class="sub">Guida il serpente di <b style="color:#7ce26a">SLIME</b> e mangia le <b style="color:#ff6b5e">MELI</b>³<br>
+    Ogni mela ti fa crescere — e crescere più veloce</div>
+    <div class="hint">Frecce / WASD · D-pad o swipe su touch — <b>seguono la visuale della camera</b> · P per pausa · R per ricominciare<br>
+    Trascina per ruotare il mondo · Rotella per zoom · Se ti scontri contro il muro… game over</div>
+    <br><button class="mc-btn" id="btnStart" style="font-size:14px;">INIZIA PARTITA</button>
+  </div>
+</div>
+
+<div id="overScr">
+  <div class="panel">
+    <div id="ovTitle">GAME OVER</div>
+    <div id="ovSub"></div>
+    <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
+      <button class="mc-btn" id="btnAgain">RIPROVA</button>
+      <button class="mc-btn" id="btnClose2">AMMIRA IL MONDO</button>
+    </div>
+  </div>
+</div>
+
+<div id="pauseScr"><div class="panel"><div style="font-size:22px;color:#ffd94d;text-shadow:3px 3px 0 #3f3f3f;">PAUSA</div><div class="hint blink">Premi P per continuare</div></div></div>
+<div id="flash"></div>
+<div id="loaderr">Impossibile caricare three.js dal CDN.<br>Controlla la connessione e ricarica la pagina.</div>
+
+<script>
+  window.addEventListener('error', function(){ if(!window.__SNAKE_OK) document.getElementById('loaderr').style.display='block'; });
+</script>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+/* ============================================================
+   UTILITÀ
+   ============================================================ */
+function mulberry32(a){ return function(){ a|=0; a=a+0x6D2B79F5|0;
+  let t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t;
+  return ((t^t>>>14)>>>0)/4294967296; }; }
+function hash2(x, z, seed){
+  let n = Math.imul(x|0,374761393) ^ Math.imul(z|0,668265263) ^ seed;
+  n = Math.imul(n ^ (n>>>13), 1274126177) ^ n;
+  return ((n ^ (n>>>16)) >>> 0) / 4294967296;
+}
+function smooth(t){ return t*t*(3-2*t); }
+function makeNoise(seed){
+  return function(x, z){
+    const xi=Math.floor(x), zi=Math.floor(z), xf=x-xi, zf=z-zi;
+    const a=hash2(xi,zi,seed),     b=hash2(xi+1,zi,seed),
+          c=hash2(xi,zi+1,seed),   d=hash2(xi+1,zi+1,seed);
+    const u=smooth(xf), v=smooth(zf);
+    return a+(b-a)*u+(c-a)*v+(a-b-c+d)*u*v;
+  };
+}
+const $ = id => document.getElementById(id);
+const rndPick = arr => arr[(Math.random()*arr.length)|0];
+
+/* ============================================================
+   TEXTURE PROCEDURALI 16x16 (stile Minecraft)
+   ============================================================ */
+function tex(fn){
+  const c = document.createElement('canvas'); c.width = c.height = 16;
+  const g = c.getContext('2d');
+  fn((x,y,col)=>{ g.fillStyle = col; g.fillRect(x,y,1,1); });
+  const t = new THREE.CanvasTexture(c);
+  t.magFilter = t.minFilter = THREE.NearestFilter;
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
+const rgb = (r,g,b) => `rgb(${r|0},${g|0},${b|0})`;
+function noisy(base, amp, r){
+  return rgb(base[0]+(r()*2-1)*amp, base[1]+(r()*2-1)*amp, base[2]+(r()*2-1)*amp);
+}
+const TEX = {
+  grassTop: tex(p=>{ const r=mulberry32(7);
+    for(let y=0;y<16;y++)for(let x=0;x<16;x++) p(x,y,noisy([106,158,62],18,r)); }),
+  dirt: tex(p=>{ const r=mulberry32(21);
+    for(let y=0;y<16;y++)for(let x=0;x<16;x++) p(x,y, r()<0.07 ? rgb(96,66,44) : noisy([134,96,67],14,r)); }),
+  grassSide: tex(p=>{ const r=mulberry32(33);
+    for(let y=0;y<16;y++)for(let x=0;x<16;x++){
+      const edge = (y<3) || (y<5 && r()<0.5);
+      p(x,y, edge ? noisy([106,158,62],16,r) : noisy([134,96,67],13,r)); } }),
+  stone: tex(p=>{ const r=mulberry32(44);
+    for(let y=0;y<16;y++)for(let x=0;x<16;x++){
+      const mort = (y%4===0) || ((x + (Math.floor(y/4)%2)*4) % 8 === 0);
+      p(x,y, mort ? rgb(78,78,80) : noisy([124,124,128],10,r)); } }),
+  plank: tex(p=>{ const r=mulberry32(55);
+    for(let y=0;y<16;y++)for(let x=0;x<16;x++){
+      const dark = (y%4===0) || (y%8===1 && x===((y*7)%16));
+      p(x,y, dark ? rgb(72,50,30) : noisy([152,111,68],11,r)); } }),
+  log: tex(p=>{ const r=mulberry32(66);
+    for(let y=0;y<16;y++)for(let x=0;x<16;x++){
+      const streak = (x*5+((x*x)%7)) % 8 < 2;
+      p(x,y, streak ? rgb(74,56,33) : noisy([109,84,52],9,r)); } }),
+  logTop: tex(p=>{ const r=mulberry32(77);
+    for(let y=0;y<16;y++)for(let x=0;x<16;x++){
+      const d = Math.max(Math.abs(x-7.5),Math.abs(y-7.5));
+      p(x,y, (d%3<1) ? rgb(88,66,40) : noisy([140,108,66],9,r)); } }),
+  leaves: tex(p=>{ const r=mulberry32(88);
+    for(let y=0;y<16;y++)for(let x=0;x<16;x++){
+      const v=r();
+      p(x,y, v<0.14 ? rgb(44,82,32) : v>0.9 ? rgb(128,176,84) : noisy([76,126,52],16,r)); } }),
+  apple: tex(p=>{ const r=mulberry32(141);
+    for(let y=0;y<16;y++)for(let x=0;x<16;x++){
+      const v=r();
+      p(x,y, v<0.10 ? rgb(150,30,28) : v>0.93 ? rgb(255,120,105) : noisy([212,48,42],14,r)); } }),
+  slime: tex(p=>{ const r=mulberry32(152);
+    for(let y=0;y<16;y++)for(let x=0;x<16;x++){
+      const v=r();
+      p(x,y, v<0.09 ? rgb(52,150,50) : v>0.93 ? rgb(168,246,140) : noisy([98,206,88],14,r)); } }),
+  cloud: tex(p=>{ const r=mulberry32(123);
+    for(let y=0;y<16;y++)for(let x=0;x<16;x++) p(x,y, noisy([248,250,252],6,r)); }),
+};
+function repeat(t,n){ t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(n,n); return t; }
+
+const M = {
+  dirt:   new THREE.MeshLambertMaterial({map:TEX.dirt}),
+  stone:  new THREE.MeshLambertMaterial({map:TEX.stone}),
+  plank:  new THREE.MeshLambertMaterial({map:TEX.plank, color:0xa89274}),
+  log:    new THREE.MeshLambertMaterial({map:TEX.log}),
+  logTop: new THREE.MeshLambertMaterial({map:TEX.logTop}),
+  leaves: new THREE.MeshLambertMaterial({map:TEX.leaves}),
+  slime:  new THREE.MeshLambertMaterial({map:TEX.slime}),
+  head:   new THREE.MeshLambertMaterial({map:TEX.slime, color:0xd6ffd0}),
+  eye:    new THREE.MeshBasicMaterial({color:0x182018}),
+  apple:  new THREE.MeshLambertMaterial({map:TEX.apple}),
+  leafSm: new THREE.MeshLambertMaterial({color:0x4c8a2f}),
+  cloud:  new THREE.MeshLambertMaterial({map:TEX.cloud, transparent:true, opacity:.94}),
+  flame:  new THREE.MeshBasicMaterial({color:0xffb14d}),
+  flame2: new THREE.MeshBasicMaterial({color:0xffe08a}),
+};
+const grassMats = [0,1,4,5].map(()=> new THREE.MeshLambertMaterial({map:TEX.grassSide}));
+grassMats.splice(2,0,new THREE.MeshLambertMaterial({map:TEX.grassTop}), M.dirt);
+const logMats = [M.log,M.log,M.logTop,M.logTop,M.log,M.log];
+
+/* ============================================================
+   SCENA
+   ============================================================ */
+const scene = new THREE.Scene();
+const FOG_COL = 0xc9dbe8;
+scene.fog = new THREE.Fog(FOG_COL, 34, 92);
+
+const camera = new THREE.PerspectiveCamera(55, innerWidth/innerHeight, .1, 600);
+camera.position.set(11.5, 12, 13.5);
+
+const renderer = new THREE.WebGLRenderer({antialias:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.setSize(innerWidth, innerHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+document.body.appendChild(renderer.domElement);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.target.set(0, 4.4, 0);
+controls.enableDamping = true; controls.dampingFactor = .08;
+controls.enablePan = false;
+controls.minDistance = 8; controls.maxDistance = 32;
+controls.minPolarAngle = .2; controls.maxPolarAngle = 1.42;
+
+const sky = new THREE.Mesh(
+  new THREE.SphereGeometry(300, 20, 14),
+  new THREE.ShaderMaterial({
+    side: THREE.BackSide, depthWrite:false, fog:false,
+    uniforms:{ top:{value:new THREE.Color(0x5584c8)}, hor:{value:new THREE.Color(FOG_COL)} },
+    vertexShader:`varying vec3 vP; void main(){ vP=position; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.); }`,
+    fragmentShader:`varying vec3 vP; uniform vec3 top,hor;
+      void main(){ float t=clamp(normalize(vP).y,0.,1.);
+        gl_FragColor=vec4(mix(hor,top,smoothstep(0.02,0.55,t)),1.); }`
+  }));
+scene.add(sky);
+
+scene.add(new THREE.HemisphereLight(0xbfd8ff, 0x6c8a4c, .95));
+const sun = new THREE.DirectionalLight(0xfff1c9, 1.15);
+sun.position.set(30, 46, 20);
+sun.castShadow = true;
+sun.shadow.mapSize.set(2048,2048);
+sun.shadow.camera.left=-40; sun.shadow.camera.right=40;
+sun.shadow.camera.top=40;  sun.shadow.camera.bottom=-40;
+sun.shadow.camera.near=1;  sun.shadow.camera.far=160;
+sun.shadow.normalBias = .06;
+scene.add(sun);
+scene.add(new THREE.AmbientLight(0xffffff, .18));
+
+/* ============================================================
+   MONDO (rigenerabile)
+   ============================================================ */
+let worldGroup = null;
+let clouds = [];
+const dummy = new THREE.Object3D();
+
+function buildWorld(seed){
+  const nz  = makeNoise(seed);
+  const nz2 = makeNoise(seed ^ 0x9e3779b9);
+  const r   = mulberry32(seed);
+
+  const hAt = (x,z) => {
+    const d = Math.max(Math.abs(x), Math.abs(z));
+    if (d <= 13) return 3;
+    let h = 2 + Math.floor(nz(x*.09, z*.09)*3 + nz2(x*.24+9, z*.24-4)*1.7);
+    if (d > 20) h += Math.floor((d-20) * .34 * (0.5 + nz(x*.13, z*.13)));
+    return Math.max(1, Math.min(12, h));
+  };
+  const EXT = 40;
+
+  /* facce di terra (merged con culling) */
+  const pos=[], nor=[], uv=[], idx=[]; let vi=0;
+  function quad(a,b,c,d,n){
+    for (const v of [a,b,c,d]) pos.push(v[0],v[1],v[2]);
+    for (let i=0;i<4;i++) nor.push(n[0],n[1],n[2]);
+    uv.push(0,0, 1,0, 1,1, 0,1);
+    idx.push(vi,vi+1,vi+2, vi,vi+2,vi+3); vi+=4;
+  }
+  for (let x=-EXT; x<EXT; x++) for (let z=-EXT; z<EXT; z++){
+    const h = hAt(x,z);
+    if (h <= 1) continue;
+    for (const [dx,dz] of [[1,0],[-1,0],[0,1],[0,-1]]){
+      const nh = hAt(x+dx, z+dz);
+      for (let y = nh; y <= h-2; y++){
+        const x0=x-.5, x1=x+.5, z0=z-.5, z1=z+.5, y0=y, y1=y+1;
+        if (dx=== 1) quad([x1,y0,z0],[x1,y0,z1],[x1,y1,z1],[x1,y1,z0],[1,0,0]);
+        if (dx===-1) quad([x0,y0,z1],[x0,y0,z0],[x0,y1,z0],[x0,y1,z1],[-1,0,0]);
+        if (dz=== 1) quad([x1,y0,z1],[x0,y0,z1],[x0,y1,z1],[x1,y1,z1],[0,0,1]);
+        if (dz===-1) quad([x0,y0,z0],[x1,y0,z0],[x1,y1,z0],[x0,y1,z0],[0,0,-1]);
+      }
+    }
+  }
+  const dirtGeo = new THREE.BufferGeometry();
+  dirtGeo.setAttribute('position', new THREE.Float32BufferAttribute(pos,3));
+  dirtGeo.setAttribute('normal',   new THREE.Float32BufferAttribute(nor,3));
+  dirtGeo.setAttribute('uv',       new THREE.Float32BufferAttribute(uv,2));
+  dirtGeo.setIndex(idx);
+  const dirtMesh = new THREE.Mesh(dirtGeo, M.dirt);
+  dirtMesh.receiveShadow = true;
+
+  const tops=[];
+  for (let x=-EXT; x<EXT; x++) for (let z=-EXT; z<EXT; z++){
+    const h = hAt(x,z); if (h>1) tops.push([x,h,z]);
+  }
+  const grassMesh = new THREE.InstancedMesh(new THREE.BoxGeometry(1,1,1), grassMats, tops.length);
+  tops.forEach(([x,h,z],i)=>{
+    dummy.position.set(x, h-.5, z); dummy.scale.setScalar(1); dummy.rotation.set(0,0,0);
+    dummy.updateMatrix(); grassMesh.setMatrixAt(i, dummy.matrix);
+    const b = .88 + hash2(x,z,seed)*.24;
+    grassMesh.setColorAt(i, new THREE.Color(b,b,b));
+  });
+  grassMesh.receiveShadow = true;
+
+  /* alberi */
+  const logs=[], leaves=[], taken=[];
+  let tries=0;
+  while (logs.length < 46 && tries < 700){
+    tries++;
+    const x = Math.floor(r()*72-36), z = Math.floor(r()*72-36);
+    const d = Math.hypot(x,z);
+    if (d < 18 || d > 34) continue;
+    if (taken.some(t2=>Math.hypot(t2[0]-x,t2[1]-z) < 5)) continue;
+    const h = hAt(x,z);
+    const th = 4 + Math.floor(r()*3);
+    for (let y=1;y<=th;y++) logs.push([x, h+y, z]);
+    const top = h+th;
+    for (let dy=0; dy<3; dy++){
+      const rad = dy<2 ? 2 : 1;
+      for (let dx=-rad; dx<=rad; dx++) for (let dz=-rad; dz<=rad; dz++){
+        if (dy<2 && Math.abs(dx)===2 && Math.abs(dz)===2 && r()<.75) continue;
+        if (dy===2 && r()<.35) continue;
+        if (dx===0 && dz===0 && dy===0) continue;
+        leaves.push([x+dx, top-1+dy, z+dz]);
+      }
+    }
+    taken.push([x,z]);
+  }
+  const trunkMesh = new THREE.InstancedMesh(new THREE.BoxGeometry(1,1,1), logMats, logs.length);
+  logs.forEach(([x,y,z],i)=>{
+    dummy.position.set(x,y,z); dummy.scale.setScalar(1); dummy.rotation.set(0,0,0);
+    dummy.updateMatrix(); trunkMesh.setMatrixAt(i, dummy.matrix);
+  });
+  trunkMesh.castShadow = true;
+  const leafMesh = new THREE.InstancedMesh(new THREE.BoxGeometry(1,1,1), M.leaves, leaves.length);
+  leaves.forEach(([x,y,z],i)=>{
+    dummy.position.set(x,y,z); dummy.scale.setScalar(1); dummy.rotation.set(0,0,0);
+    dummy.updateMatrix(); leafMesh.setMatrixAt(i, dummy.matrix);
+    const b = .8 + hash2(x*3+7,z*5-2,seed)*.4;
+    leafMesh.setColorAt(i, new THREE.Color(b*.9,b,b*.85));
+  });
+  leafMesh.castShadow = true; leafMesh.receiveShadow = true;
+
+  /* fiori */
+  const flowers=[]; let ft=0;
+  while (flowers.length < 55 && ft++ < 500){
+    const x = Math.floor(r()*76-38), z = Math.floor(r()*76-38);
+    const d = Math.hypot(x,z);
+    if (d < 15 || d > 36) continue;
+    flowers.push([x, hAt(x,z), z, r()]);
+  }
+  const stemMesh = new THREE.InstancedMesh(new THREE.BoxGeometry(.12,.55,.12), M.leafSm, flowers.length);
+  const headMesh = new THREE.InstancedMesh(new THREE.BoxGeometry(.34,.28,.34), new THREE.MeshLambertMaterial({color:0xffffff}), flowers.length);
+  const pal = [0xff5d5d, 0xffd94d, 0xffffff, 0xff8ad9, 0xa0c4ff];
+  flowers.forEach(([x,h,z,pr],i)=>{
+    dummy.position.set(x, h+.27, z); dummy.scale.setScalar(1); dummy.rotation.set(0,0,0);
+    dummy.updateMatrix(); stemMesh.setMatrixAt(i, dummy.matrix);
+    dummy.position.set(x, h+.62, z); dummy.rotation.y = pr*6.28;
+    dummy.updateMatrix(); headMesh.setMatrixAt(i, dummy.matrix);
+    headMesh.setColorAt(i, new THREE.Color(pal[(pr*pal.length)|0]));
+  });
+
+  /* nuvole */
+  clouds = [];
+  const nCloud = 32;
+  const clMesh = new THREE.InstancedMesh(new THREE.BoxGeometry(1,.35,1), M.cloud, nCloud);
+  for (let i=0;i<nCloud;i++) clouds.push({
+    x: r()*170-85, y: 26 + r()*6, z: r()*170-85,
+    sx: 3+r()*6, sz: 2+r()*4, v: .4 + r()*.5
+  });
+  clMesh.frustumCulled = false;
+  function updateClouds(dt){
+    for (let i=0;i<clouds.length;i++){
+      const c = clouds[i];
+      c.x += c.v*dt; if (c.x > 95) c.x = -95;
+      dummy.position.set(c.x, c.y, c.z); dummy.scale.set(c.sx,1,c.sz); dummy.rotation.set(0,0,0);
+      dummy.updateMatrix(); clMesh.setMatrixAt(i, dummy.matrix);
+    }
+    clMesh.instanceMatrix.needsUpdate = true;
+  }
+  updateClouds(0);
+
+  const g = new THREE.Group();
+  g.add(dirtMesh, grassMesh, trunkMesh, leafMesh, stemMesh, headMesh, clMesh);
+  g.userData.updateClouds = updateClouds;
+  return g;
+}
+function disposeGroup(g){ g.traverse(o => { if (o.isMesh && o.geometry) o.geometry.dispose(); }); }
+function regenerateWorld(){
+  if (worldGroup){ scene.remove(worldGroup); disposeGroup(worldGroup); }
+  worldGroup = buildWorld((Math.random()*1e9)|0);
+  scene.add(worldGroup);
+}
+
+/* ============================================================
+   ARENA DI GIOCO (persistente) — scacchiera 13x13 + muri + torce
+   ============================================================ */
+const N = 13, HALF = (N-1)/2;            // celle da -6..6
+const PLAT_TOP = 4.0, SNAKE_Y = PLAT_TOP + .42;
+const arena = new THREE.Group(); scene.add(arena);
+const torches = [];
+
+{
+  const stoneTex = TEX.stone.clone(); repeat(stoneTex, 6);
+  const platMat = new THREE.MeshLambertMaterial({map:stoneTex});
+  const base = new THREE.Mesh(new THREE.BoxGeometry(17.4, 1.4, 17.4), platMat);
+  base.position.y = 2.35; base.receiveShadow = true; base.castShadow = true;
+  const plat = new THREE.Mesh(new THREE.BoxGeometry(15.6, 1.0, 15.6), platMat);
+  plat.position.y = 3.5; plat.receiveShadow = true; plat.castShadow = true;
+  arena.add(base, plat);
+
+  /* scacchiera di gioco */
+  const cellMesh = new THREE.InstancedMesh(new THREE.BoxGeometry(1,.14,1),
+    new THREE.MeshLambertMaterial({map:TEX.plank}), N*N);
+  let ci=0;
+  for (let x=-HALF; x<=HALF; x++) for (let z=-HALF; z<=HALF; z++){
+    dummy.position.set(x, PLAT_TOP-.07, z); dummy.scale.setScalar(1); dummy.rotation.set(0,0,0);
+    dummy.updateMatrix(); cellMesh.setMatrixAt(ci, dummy.matrix);
+    const light = ((x+z)%2+2)%2===0;
+    cellMesh.setColorAt(ci, new THREE.Color(light ? 0xa89274 : 0x6f5c44));
+    ci++;
+  }
+  cellMesh.receiveShadow = true;
+  arena.add(cellMesh);
+
+  /* muro perimetrale */
+  const wallPos=[];
+  for (let i=-7; i<=7; i++){
+    wallPos.push([i,4.5,-7],[i,4.5,7]);
+    if (i!==-7 && i!==7) wallPos.push([-7,4.5,i],[7,4.5,i]);
+  }
+  const wallMesh = new THREE.InstancedMesh(new THREE.BoxGeometry(1,1,1), M.stone, wallPos.length);
+  wallPos.forEach(([x,y,z],i)=>{
+    dummy.position.set(x,y,z); dummy.scale.setScalar(1); dummy.rotation.set(0,0,0);
+    dummy.updateMatrix(); wallMesh.setMatrixAt(i, dummy.matrix);
+    const b = .9 + hash2(x*3,z*7,5)*.2;
+    wallMesh.setColorAt(i, new THREE.Color(b,b,b));
+  });
+  wallMesh.castShadow = true; wallMesh.receiveShadow = true;
+  arena.add(wallMesh);
+
+  /* pilastri + torce agli angoli */
+  for (const cx of [-7,7]) for (const cz of [-7,7]){
+    const pillar = new THREE.Mesh(new THREE.BoxGeometry(1,2,1), M.stone);
+    pillar.position.set(cx, 5.5, cz); pillar.castShadow = true;
+    const stick = new THREE.Mesh(new THREE.BoxGeometry(.16,.6,.16), M.log);
+    stick.position.set(cx, 7.05, cz);
+    const flame = new THREE.Mesh(new THREE.BoxGeometry(.3,.32,.3), M.flame);
+    flame.position.set(cx, 7.5, cz);
+    const flame2 = new THREE.Mesh(new THREE.BoxGeometry(.16,.18,.16), M.flame2);
+    flame2.position.set(cx, 7.56, cz);
+    const light = new THREE.PointLight(0xffa64d, 1.0, 15, 2);
+    light.position.set(cx, 7.7, cz);
+    arena.add(pillar, stick, flame, flame2, light);
+    torches.push({light, flame, flame2, ph: Math.random()*100});
+  }
+}
+
+/* ============================================================
+   SERPENTE + MELE
+   ============================================================ */
+const bodyGeo = new THREE.BoxGeometry(.86,.86,.86);
+const headGeo = new THREE.BoxGeometry(.92,.92,.92);
+const foodGeo = new THREE.BoxGeometry(.5,.5,.5);
+
+const snake = {
+  cells: [], prev: [], dir: {x:1,z:0}, queue: [],
+  meshes: [], headMesh: null,
+};
+const foodMesh = new THREE.Group();
+{
+  const body = new THREE.Mesh(foodGeo, M.apple);
+  const leaf = new THREE.Mesh(new THREE.BoxGeometry(.16,.18,.16), M.leafSm);
+  leaf.position.set(.12, .35, 0);
+  foodMesh.add(body, leaf);
+  scene.add(foodMesh);
+}
+
+let score = 0, best = +(localStorage.getItem('snakecraft_best')||0);
+let state = 'menu';           // menu | play | pause | dead | win
+let stepDur = .27, acc = 0, newRecord = false;
+const SPEEDS = { lenta:[.36,.19,5], med:[.27,.14,6], veloce:[.2,.10,7] };
+let diffKey = 'med';
+
+const cellToWorld = c => ({x: c.x, z: c.z});
+function resetSnake(){
+  snake.cells = [{x:0,z:0},{x:-1,z:0},{x:-2,z:0}];
+  snake.prev = snake.cells.map(c=>({...c}));
+  snake.dir = {x:1,z:0}; snake.queue = [];
+  score = 0; acc = 0; newRecord = false; stepDur = SPEEDS[diffKey][0];
+  /* la testa è nuova a ogni reset; i cubi del corpo restano in scena e si riusano */
+  if (snake.headMesh){ scene.remove(snake.headMesh); }
+  snake.headMesh = new THREE.Mesh(headGeo, M.head);
+  const eyeL = new THREE.Mesh(new THREE.BoxGeometry(.13,.13,.06), M.eye); eyeL.position.set(-.2,.14,.43);
+  const eyeR = new THREE.Mesh(new THREE.BoxGeometry(.13,.13,.06), M.eye); eyeR.position.set( .2,.14,.43);
+  snake.headMesh.add(eyeL, eyeR);
+  snake.headMesh.castShadow = true;
+  scene.add(snake.headMesh);
+  ensureMeshes(40);
+  spawnFood();
+  syncSnakeMeshes(0);
+  updateHud();
+}
+function ensureMeshes(n){
+  while (snake.meshes.length < n){
+    const m = new THREE.Mesh(bodyGeo, M.slime);
+    m.castShadow = true; m.userData.s = .96 + Math.random()*.08;
+    scene.add(m); snake.meshes.push(m);
+  }
+  snake.meshes.forEach((m,i)=> m.visible = i < snake.cells.length-1);
+}
+const food = {x:3,z:-2};
+function spawnFood(){
+  const free = [];
+  for (let x=-HALF; x<=HALF; x++) for (let z=-HALF; z<=HALF; z++)
+    if (!snake.cells.some(c=>c.x===x&&c.z===z)) free.push({x,z});
+  if (!free.length){ winGame(); return; }
+  const c = rndPick(free); food.x = c.x; food.z = c.z;
+  foodMesh.position.set(c.x, PLAT_TOP+.5, c.z);
+  foodMesh.visible = true;
+  sfxFoodSpawn();
+}
+function syncSnakeMeshes(k){
+  for (let i=0;i<snake.cells.length;i++){
+    const from = snake.prev[i], to = snake.cells[i];
+    const px = from.x + (to.x-from.x)*k;
+    const pz = from.z + (to.z-from.z)*k;
+    if (i===0){
+      snake.headMesh.position.set(px, SNAKE_Y, pz);
+    } else {
+      const m = snake.meshes[i-1];
+      m.position.set(px, SNAKE_Y, pz);
+      m.scale.setScalar(m.userData.s);
+      m.visible = true;
+    }
+  }
+  for (let i=snake.cells.length-1;i<snake.meshes.length;i++) snake.meshes[i].visible = false;
+}
+function headAngle(){ return Math.atan2(snake.dir.x, snake.dir.z); }
+
+function queueDir(dx, dz){
+  if (state!=='play') return;
+  const last = snake.queue.length ? snake.queue[snake.queue.length-1] : snake.dir;
+  if (last.x===dx && last.z===dz) return;
+  if (last.x===-dx && last.z===-dz) return;   // inversioni vietate
+  if (snake.queue.length < 2) snake.queue.push({x:dx,z:dz});
+}
+
+function tick(){
+  if (snake.queue.length) snake.dir = snake.queue.shift();
+  const old = snake.cells;
+  const nh = {x: old[0].x + snake.dir.x, z: old[0].z + snake.dir.z};
+  if (Math.abs(nh.x) > HALF || Math.abs(nh.z) > HALF) return die('muro');
+  const willGrow = (nh.x===food.x && nh.z===food.z);
+  const bodyCheck = willGrow ? old : old.slice(0,-1);
+  if (bodyCheck.some(c=>c.x===nh.x && c.z===nh.z)) return die('te stesso');
+  const nc = [nh, ...old];
+  if (!willGrow) nc.pop();
+  /* prev allineato: il segmento i parte da dove si trovava old[i]
+     (la coda nuova, se cresciuta, parte dalla vecchia coda) */
+  snake.prev = old.map(c=>({...c}));
+  if (willGrow) snake.prev.push({...old[old.length-1]});
+  snake.cells = nc;
+  if (willGrow){
+    score++;
+    const [b,mn,ac] = SPEEDS[diffKey];
+    stepDur = Math.max(mn, b - score*ac*.01);         // accelera a ogni mela
+    ensureMeshes(nc.length+10);
+    sfxEat();
+    if (score%5===0) sfxLevel();
+    if (score > best){ best = score; newRecord = true; localStorage.setItem('snakecraft_best', best); }
+    spawnFood();
+  } else sfxSlither();
+  updateHud();
+}
+
+function die(reason){
+  state = 'dead';
+  sfxDie(reason);
+  $('flash').style.opacity = .5;
+  setTimeout(()=> $('flash').style.opacity = 0, 400);
+  /* collasso: i segmenti si sgonfiano in sequenza */
+  const parts = [snake.headMesh, ...snake.meshes.slice(0, snake.cells.length-1)];
+  parts.forEach((m,i)=>{
+    const y0 = m.position.y;
+    animate(m, .3, (o,k)=>{
+      o.scale.setScalar(Math.max(.001, 1-k));
+      o.position.y = y0 - k*.6;
+    }, null, i*.055);
+  });
+  foodMesh.visible = false;
+  const isRec = newRecord;
+  setTimeout(()=>{
+    $('ovTitle').textContent = isRec ? 'NUOVO RECORD!' : 'GAME OVER';
+    $('ovTitle').className = isRec ? 'rec' : 'dead';
+    $('ovSub').innerHTML =
+      `Punti: <b>${score}</b> · Record: <b>${best}</b><br>Lunghezza: ${snake.cells.length} · Cause: ${reason}`;
+    $('overScr').style.display = 'flex';
+    if (isRec) { spawnConfetti(); sfxWin(); }
+    updateHud();
+  }, 1200);
+  updateHud();
+}
+function winGame(){
+  state = 'win';
+  sfxWin(); spawnConfetti();
+  $('ovTitle').textContent = 'HAI VINTO!!';
+  $('ovTitle').className = 'win';
+  $('ovSub').textContent = `Il serpente ha riempito il mondo. Punti: ${score}`;
+  $('overScr').style.display = 'flex';
+  updateHud();
+}
+function restart(){
+  $('overScr').style.display = 'none';
+  state = 'play';
+  resetSnake();
+}
+function togglePause(){
+  if (state==='play'){ state='pause'; $('pauseScr').style.display='flex'; sfxPause(); }
+  else if (state==='pause'){ state='play'; $('pauseScr').style.display='none'; sfxPause(); }
+  updateHud();
+}
+
+/* ============================================================
+   ANIMAZIONI + CONFETTI
+   ============================================================ */
+const anims = [];
+function animate(obj, dur, apply, done, delay=0){ anims.push({obj, t:-delay, dur, apply, done}); }
+function updateAnims(dt){
+  for (let i=anims.length-1;i>=0;i--){
+    const a = anims[i]; a.t += dt;
+    if (a.t < 0) continue;
+    const k = Math.min(a.t/a.dur, 1);
+    a.apply(a.obj, k);
+    if (k>=1){ anims.splice(i,1); a.done && a.done(a.obj); }
+  }
+}
+const easeOutBack = k => { const c1=1.9, c3=c1+1; return 1 + c3*Math.pow(k-1,3) + c1*Math.pow(k-1,2); };
+
+let confetti = null;
+function spawnConfetti(){
+  const Nc = 90;
+  const mat = new THREE.MeshLambertMaterial({color:0xffffff});
+  const im = new THREE.InstancedMesh(new THREE.BoxGeometry(.2,.2,.2), mat, Nc);
+  const cols = [0xff5d5d,0xffd94d,0x7ce26a,0xa0c4ff,0xff8ad9,0xffffff];
+  const data = [];
+  for (let i=0;i<Nc;i++){
+    im.setColorAt(i, new THREE.Color(rndPick(cols)));
+    data.push({
+      p:new THREE.Vector3((Math.random()-.5)*9, 9+Math.random()*4, (Math.random()-.5)*9),
+      v:new THREE.Vector3((Math.random()-.5)*2.5, Math.random()*2, (Math.random()-.5)*2.5),
+      r:new THREE.Euler(Math.random()*6,Math.random()*6,Math.random()*6),
+      rv:new THREE.Vector3((Math.random()-.5)*8,(Math.random()-.5)*8,(Math.random()-.5)*8),
+    });
+  }
+  im.frustumCulled=false;
+  scene.add(im);
+  confetti = {im, data, life:4.5};
+}
+function updateConfetti(dt){
+  if (!confetti) return;
+  confetti.life -= dt;
+  const dead = confetti.life<=0;
+  confetti.data.forEach((c,i)=>{
+    if (dead || c.p.y < 1.2) dummy.scale.setScalar(.0001);
+    else{
+      c.v.y -= 7*dt; c.p.addScaledVector(c.v, dt);
+      c.r.set(c.r.x+c.rv.x*dt, c.r.y+c.rv.y*dt, c.r.z+c.rv.z*dt);
+      dummy.position.copy(c.p); dummy.rotation.copy(c.r); dummy.scale.setScalar(1);
+    }
+    dummy.updateMatrix(); confetti.im.setMatrixAt(i, dummy.matrix);
+  });
+  confetti.im.instanceMatrix.needsUpdate = true;
+  if (dead){ scene.remove(confetti.im); confetti.im.geometry.dispose(); confetti=null; }
+}
+
+/* ============================================================
+   AUDIO SINTETIZZATO (Web Audio)
+   ============================================================ */
+let AC=null, master=null, noiseBuf=null, soundOn=true;
+function audioInit(){
+  if (AC) return;
+  try{ AC = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){ return; }
+  master = AC.createGain(); master.gain.value = .5;
+  const comp = AC.createDynamicsCompressor();
+  master.connect(comp); comp.connect(AC.destination);
+  noiseBuf = AC.createBuffer(1, AC.sampleRate, AC.sampleRate);
+  const ch = noiseBuf.getChannelData(0);
+  for (let i=0;i<ch.length;i++) ch[i] = Math.random()*2-1;
+  const src = AC.createBufferSource(); src.buffer=noiseBuf; src.loop=true;
+  const lp = AC.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=280;
+  const g = AC.createGain(); g.gain.value=.015;
+  const lfo = AC.createOscillator(); lfo.frequency.value=.09;
+  const lfoG = AC.createGain(); lfoG.gain.value=.010;
+  lfo.connect(lfoG); lfoG.connect(g.gain);
+  src.connect(lp); lp.connect(g); g.connect(master);
+  src.start(); lfo.start();
+}
+function tone({f=440,f2=null,type='sine',dur=.15,vol=.3,delay=0}){
+  if (!AC || !soundOn) return;
+  const t0 = AC.currentTime + delay;
+  const o = AC.createOscillator(); o.type=type; o.frequency.setValueAtTime(f,t0);
+  if (f2) o.frequency.exponentialRampToValueAtTime(Math.max(20,f2), t0+dur);
+  const g = AC.createGain();
+  g.gain.setValueAtTime(0,t0);
+  g.gain.linearRampToValueAtTime(vol, t0+.008);
+  g.gain.exponentialRampToValueAtTime(.0001, t0+dur);
+  o.connect(g); g.connect(master);
+  o.start(t0); o.stop(t0+dur+.05);
+}
+function noiseHit({f=1200, type='bandpass', dur=.08, vol=.2, delay=0, q=1}){
+  if (!AC || !soundOn) return;
+  const t0 = AC.currentTime + delay;
+  const s = AC.createBufferSource(); s.buffer = noiseBuf; s.loop = true;
+  const bq = AC.createBiquadFilter(); bq.type=type; bq.frequency.value=f; bq.Q.value=q;
+  const g = AC.createGain();
+  g.gain.setValueAtTime(vol,t0);
+  g.gain.exponentialRampToValueAtTime(.0001, t0+dur);
+  s.connect(bq); bq.connect(g); g.connect(master);
+  s.start(t0); s.stop(t0+dur+.05);
+}
+const sfxClick   = ()=>{ tone({f:600,f2:950,type:'square',dur:.05,vol:.14}); noiseHit({f:2200,type:'highpass',dur:.03,vol:.06}); };
+const sfxEat     = ()=>{ tone({f:500,f2:1000,type:'square',dur:.09,vol:.2}); noiseHit({f:900,type:'bandpass',dur:.09,vol:.25,q:2});
+                         tone({f:1400,type:'triangle',dur:.08,vol:.1,delay:.06}); };
+const sfxSlither = ()=> tone({f:185+Math.random()*20, f2:115, type:'triangle', dur:.06, vol:.045});
+const sfxFoodSpawn = ()=> tone({f:880, f2:1320, type:'sine', dur:.1, vol:.08});
+const sfxLevel   = ()=> [659,784,988].forEach((f,i)=> tone({f,type:'square',dur:.09,vol:.11,delay:i*.07}));
+const sfxDie     = r=>{ const base = r==='muro' ? 340 : 300;
+  [base, base*.78, base*.6, base*.45].forEach((f,i)=> tone({f,type:'sawtooth',dur:.2,vol:.11,delay:i*.13}));
+  tone({f:90,type:'sine',dur:.5,vol:.25,delay:.5}); noiseHit({f:300,type:'lowpass',dur:.2,vol:.3,delay:.5,q:.5}); };
+const sfxWin     = ()=>{ [523,659,784,1047].forEach((f,i)=> tone({f,type:'square',dur:.14,vol:.16,delay:i*.1}));
+  tone({f:1047,type:'triangle',dur:.5,vol:.18,delay:.44}); tone({f:1319,type:'triangle',dur:.5,vol:.14,delay:.44});
+  tone({f:1568,type:'triangle',dur:.55,vol:.14,delay:.44}); noiseHit({f:5200,type:'highpass',dur:.4,vol:.07,delay:.44}); };
+const sfxPause   = ()=> tone({f:300, f2:220, type:'sine', dur:.12, vol:.15});
+const sfxWorld   = ()=>{ noiseHit({f:600,type:'lowpass',dur:.7,vol:.22,q:.8});
+  for(let i=0;i<8;i++) tone({f:200+i*60, type:'triangle', dur:.06, vol:.07, delay:.5+i*.04}); };
+
+/* ============================================================
+   INPUT
+   ============================================================ */
+/* INPUT RELATIVO ALLA CAMERA: "su" = avanti rispetto alla visuale corrente.
+   La direzione dello sguardo viene proiettata sul piano e snapptata
+   sull'asse dominante della griglia; destra/sinistra derivano da lì,
+   così resta tutto coerente anche dopo avere orbitato la camera. */
+function camForwardGrid(){
+  const d = camera.getWorldDirection(new THREE.Vector3());
+  if (Math.abs(d.x) >= Math.abs(d.z)) return { x: d.x < 0 ? -1 : 1, z: 0 };
+  return { x: 0, z: d.z < 0 ? -1 : 1 };
+}
+const ROLE2WORLD = {
+  up:    f => ({ x:  f.x,  z:  f.z }),
+  down:  f => ({ x: -f.x,  z: -f.z }),
+  right: f => ({ x: -f.z,  z:  f.x }),   // +90° attorno a Y (perpendicolarità garantita)
+  left:  f => ({ x:  f.z,  z: -f.x }),
+};
+function inputDir(role){
+  const v = ROLE2WORLD[role](camForwardGrid());
+  queueDir(v.x, v.z);
+}
+const KEYDIR = {
+  ArrowUp:'up', ArrowDown:'down', ArrowLeft:'left', ArrowRight:'right',
+  w:'up', s:'down', a:'left', d:'right',
+  W:'up', S:'down', A:'left', D:'right',
+};
+addEventListener('keydown', e=>{
+  if (KEYDIR[e.key]){ inputDir(KEYDIR[e.key]); e.preventDefault(); return; }
+  if (e.key==='p' || e.key==='P'){ if (state==='play'||state==='pause') { sfxPause(); togglePause(); } return; }
+  if (e.key==='r' || e.key==='R'){ if (state!=='menu'){ sfxClick(); restart(); } return; }
+  if (e.key===' ' && state==='menu'){ $('btnStart').click(); }
+});
+document.querySelectorAll('#dpad .mc-btn').forEach(b=>{
+  b.addEventListener('pointerdown', ()=> inputDir(b.dataset.dir));
+});
+/* swipe sul mondo (non sui bottoni) */
+let tx=0, ty=0, tt=0;
+renderer.domElement.addEventListener('touchstart', e=>{
+  tx = e.touches[0].clientX; ty = e.touches[0].clientY; tt = performance.now();
+}, {passive:true});
+renderer.domElement.addEventListener('touchend', e=>{
+  const dx = e.changedTouches[0].clientX - tx, dy = e.changedTouches[0].clientY - ty;
+  if (performance.now()-tt > 400) return;
+  if (Math.hypot(dx,dy) < 40) return;
+  if (Math.abs(dx) > Math.abs(dy)) inputDir(dx > 0 ? 'right' : 'left');
+  else inputDir(dy > 0 ? 'down' : 'up');
+}, {passive:true});
+document.addEventListener('visibilitychange', ()=>{ if (document.hidden && state==='play') togglePause(); });
+
+/* ============================================================
+   HUD + UI
+   ============================================================ */
+function updateHud(){
+  $('scoreLbl').textContent = 'PUNTI ' + score;
+  $('bestLbl').textContent  = 'RECORD ' + best;
+  const st = {menu:'PREMI INIZIA', play:'LUNGHEZZA '+snake.cells.length,
+              pause:'IN PAUSA…', dead:'SERPENTE FUSO', win:'HAI VINTO!'}[state];
+  $('stateLbl').textContent = st + ' · VEL ' + Math.round(1/stepDur*100)/100 + ' c/s';
+}
+$('btnStart').onclick = ()=>{
+  audioInit(); if (AC && AC.state==='suspended') AC.resume();
+  sfxClick();
+  $('startScr').style.display = 'none';
+  restart();
+};
+$('btnAgain').onclick = ()=>{ sfxClick(); restart(); };
+$('btnClose2').onclick = ()=>{ sfxClick(); $('overScr').style.display='none'; };
+$('btnRound').onclick = ()=>{ audioInit(); sfxClick(); restart(); };
+$('btnWorld').onclick = ()=>{ audioInit(); regenerateWorld(); sfxWorld(); };
+$('btnAudio').onclick = e=>{
+  soundOn = !soundOn;
+  if (master) master.gain.value = soundOn ? .5 : 0;
+  e.target.textContent = 'AUDIO: ' + (soundOn?'ON':'OFF');
+  if (soundOn) sfxClick();
+};
+const diffBtns = { lenta:$('diffSlow'), med:$('diffMed'), veloce:$('diffFast') };
+for (const k in diffBtns) diffBtns[k].onclick = ()=>{
+  audioInit(); sfxClick();
+  diffKey = k;
+  for (const j in diffBtns) diffBtns[j].classList.toggle('sel', j===k);
+};
+
+/* ============================================================
+   LOOP
+   ============================================================ */
+regenerateWorld();
+resetSnake(); state = 'menu'; updateHud();
+let prevAngle = headAngle();
+const clock = new THREE.Clock();
+function loop(){
+  requestAnimationFrame(loop);
+  const dt = Math.min(clock.getDelta(), .05);
+  const t = clock.elapsedTime;
+
+  controls.update();
+  updateAnims(dt);
+  updateConfetti(dt);
+  if (worldGroup) worldGroup.userData.updateClouds(dt);
+
+  if (state==='play'){
+    acc += dt;
+    while (acc >= stepDur && state==='play'){ acc -= stepDur; tick(); }
+    syncSnakeMeshes(Math.min(acc/stepDur, 1));
+  }
+
+  /* testa con rotazione morbida */
+  if (snake.headMesh && state==='play'){
+    const target = headAngle();
+    let d = target - prevAngle;
+    while (d > Math.PI) d -= 2*Math.PI;
+    while (d < -Math.PI) d += 2*Math.PI;
+    prevAngle += d * Math.min(1, dt*14);
+    snake.headMesh.rotation.y = prevAngle;
+  }
+
+  /* mela: dondola e ruota */
+  if (foodMesh.visible){
+    foodMesh.rotation.y = t*1.4;
+    foodMesh.position.y = PLAT_TOP + .5 + Math.sin(t*3)*.07;
+  }
+
+  /* lucciole di fiamma */
+  for (const tc of torches){
+    const f = .8 + .25*Math.sin(t*11 + tc.ph) + .1*Math.sin(t*29 + tc.ph*2);
+    tc.light.intensity = f;
+    tc.flame.scale.setScalar(.9 + .18*Math.sin(t*15 + tc.ph));
+    tc.flame2.scale.setScalar(.85 + .3*Math.sin(t*23 + tc.ph*3));
+  }
+
+  renderer.render(scene, camera);
+}
+loop();
+
+addEventListener('resize', ()=>{
+  camera.aspect = innerWidth/innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+});
+
+window.__SNAKE_OK = true;
+</script>
+</body>
+</html>

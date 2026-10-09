@@ -1,0 +1,1165 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>TRIS 3D · Neon Run</title>
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Rubik:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    height: 100%; overflow: hidden; background: #05000f; color: #fff;
+    font-family: 'Rubik', system-ui, sans-serif;
+    user-select: none; -webkit-user-select: none; touch-action: none;
+  }
+  #stage canvas { display: block; }
+  .hidden { display: none !important; }
+
+  /* ---------- HUD ---------- */
+  #hud { position: fixed; inset: 0; pointer-events: none; z-index: 2; transition: opacity .6s; }
+  #hud.off { opacity: 0; }
+  .top {
+    position: absolute; top: 14px; left: 50%; transform: translateX(-50%);
+    display: flex; flex-direction: column; align-items: center; gap: 10px; width: min(560px, 94vw);
+  }
+  .score { display: flex; gap: 10px; width: 100%; justify-content: center; }
+  .pill {
+    flex: 1; max-width: 170px; display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    padding: 7px 14px; border-radius: 16px; border: 2px solid;
+    background: rgba(15, 4, 35, .62); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+    font-family: 'Bungee', Impact, sans-serif; transition: transform .25s, box-shadow .25s;
+  }
+  .pill .lbl { font-size: 13px; letter-spacing: 1px; opacity: .9; }
+  .pill .val { font-size: 26px; display: inline-block; }
+  .pill.x { border-color: #00e5ff; color: #a5f7ff; box-shadow: 0 0 12px rgba(0,229,255,.3); }
+  .pill.o { border-color: #ff2fa8; color: #ffb0de; box-shadow: 0 0 12px rgba(255,47,168,.3); }
+  .pill.d { border-color: #9d4dff; color: #d6bcff; max-width: 120px; }
+  .pill.x.active { transform: scale(1.07); box-shadow: 0 0 26px rgba(0,229,255,.75), inset 0 0 14px rgba(0,229,255,.35); }
+  .pill.o.active { transform: scale(1.07); box-shadow: 0 0 26px rgba(255,47,168,.75), inset 0 0 14px rgba(255,47,168,.35); }
+  .val.bump { animation: bump .5s cubic-bezier(.2, 1.8, .4, 1); }
+  @keyframes bump { 0% { transform: scale(1.9); } 100% { transform: scale(1); } }
+
+  .status {
+    font-family: 'Bungee', Impact, sans-serif; font-size: clamp(18px, 3.4vw, 28px); letter-spacing: 2px;
+    padding: 4px 18px; white-space: nowrap;
+  }
+  .status.x { color: #00e5ff; text-shadow: 0 0 14px #00e5ff, 0 3px 0 #003a44; }
+  .status.o { color: #ff2fa8; text-shadow: 0 0 14px #ff2fa8, 0 3px 0 #4a0030; }
+  .status.n { color: #ffd400; text-shadow: 0 0 14px #ffb000, 0 3px 0 #4a3000; }
+  .status.pop { animation: pop .38s cubic-bezier(.2, 1.6, .4, 1); }
+  @keyframes pop { 0% { transform: scale(.6); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+
+  .bottom {
+    position: absolute; bottom: 14px; left: 50%; transform: translateX(-50%);
+    display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; align-items: center;
+    pointer-events: auto; width: max-content; max-width: 96vw;
+  }
+  .seg { display: flex; gap: 3px; padding: 3px; border-radius: 14px; border: 2px solid #9d4dff; background: rgba(15,4,35,.7); }
+  .seg button {
+    font-family: 'Bungee', Impact, sans-serif; font-size: 12px; padding: 7px 10px; border: none; border-radius: 10px;
+    background: transparent; color: #cdb8ff; cursor: pointer; transition: background .2s, box-shadow .2s;
+  }
+  .seg button.on { background: #9d4dff; color: #fff; box-shadow: 0 0 14px #9d4dff; }
+  .btn {
+    font-family: 'Bungee', Impact, sans-serif; font-size: 13px; padding: 9px 14px; border-radius: 12px; border: none;
+    cursor: pointer; color: #2a0a40; background: linear-gradient(#ffe94d, #ffb300);
+    box-shadow: 0 4px 0 #b36b00, 0 0 16px rgba(255,200,0,.35); transition: transform .08s, box-shadow .08s;
+  }
+  .btn:active { transform: translateY(3px); box-shadow: 0 1px 0 #b36b00; }
+  .btn.ghost { background: rgba(15,4,35,.7); color: #fff; border: 2px solid #00e5ff; box-shadow: 0 0 12px rgba(0,229,255,.3); }
+  .btn.ghost:active { box-shadow: none; }
+  .btn.ghost.off { border-color: #4a4060; color: #7d7590; box-shadow: none; }
+  .btn.big { font-size: clamp(18px, 3vw, 24px); padding: 14px 30px; border-radius: 16px; box-shadow: 0 6px 0 #b36b00, 0 0 30px rgba(255,200,0,.5); }
+  .btn.big:active { box-shadow: 0 2px 0 #b36b00; }
+
+  /* ---------- Overlay risultato ---------- */
+  #result { position: fixed; inset: 0; z-index: 3; display: flex; align-items: center; justify-content: center; pointer-events: none; }
+  #result .card {
+    pointer-events: auto; text-align: center; padding: 26px 40px 24px; border-radius: 26px;
+    background: rgba(10, 2, 26, .72); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    border: 3px solid currentColor; transform: rotate(-3deg);
+    animation: slam .55s cubic-bezier(.2, 1.5, .35, 1);
+  }
+  @keyframes slam { 0% { transform: rotate(-12deg) scale(2.4); opacity: 0; } 100% { transform: rotate(-3deg) scale(1); opacity: 1; } }
+  #result .rt { font-family: 'Bungee', Impact, sans-serif; font-size: clamp(40px, 9vw, 86px); line-height: 1; -webkit-text-stroke: 2px #1a0533; }
+  #result .rs { font-weight: 700; font-size: clamp(15px, 2.4vw, 20px); margin: 12px 0 20px; color: #fff; opacity: .92; }
+  #result .hint { margin-top: 14px; font-size: 12px; letter-spacing: 1px; opacity: .55; color: #fff; }
+  #result.win  .card { color: #ffd400; box-shadow: 0 0 50px rgba(255,212,0,.45); }
+  #result.win  .rt { color: #ffd400; text-shadow: 5px 5px 0 #ff2fa8, 0 0 40px rgba(255,212,0,.8); }
+  #result.lose .card { color: #ff2a5a; box-shadow: 0 0 50px rgba(255,42,90,.45); }
+  #result.lose .rt { color: #ff2a5a; text-shadow: 5px 5px 0 #3a0060, 0 0 40px rgba(255,42,90,.8); }
+  #result.draw .card { color: #b98aff; box-shadow: 0 0 50px rgba(157,77,255,.45); }
+  #result.draw .rt { color: #c9a4ff; text-shadow: 5px 5px 0 #00a5b8, 0 0 40px rgba(157,77,255,.8); }
+
+  /* ---------- Intro ---------- */
+  #intro {
+    position: fixed; inset: 0; z-index: 4; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px;
+    background: radial-gradient(ellipse at center, rgba(10,0,30,.25) 0%, rgba(5,0,15,.85) 75%);
+    transition: opacity .6s, transform .6s;
+  }
+  #intro.gone { opacity: 0; transform: scale(1.15); pointer-events: none; }
+  .logo { font-family: 'Bungee', Impact, sans-serif; line-height: .9; text-align: center; transform: rotate(-5deg); animation: float 3s ease-in-out infinite; }
+  .logo .t1 {
+    display: block; font-size: clamp(80px, 20vw, 190px); color: #ffd400; -webkit-text-stroke: 4px #1a0533;
+    text-shadow: 8px 8px 0 #ff2fa8, 14px 14px 0 #1a0533, 0 0 60px rgba(255,212,0,.6);
+  }
+  .logo .t2 {
+    display: inline-block; font-size: clamp(36px, 8vw, 72px); color: #00e5ff; -webkit-text-stroke: 3px #1a0533;
+    text-shadow: 5px 5px 0 #9d4dff, 0 0 40px rgba(0,229,255,.7); margin-top: 6px;
+  }
+  @keyframes float { 0%, 100% { transform: rotate(-5deg) translateY(0); } 50% { transform: rotate(-4deg) translateY(-10px); } }
+  .how { text-align: center; font-weight: 500; font-size: clamp(13px, 2vw, 16px); line-height: 1.7; opacity: .85; padding: 0 16px; }
+  .how b { font-family: 'Bungee', Impact, sans-serif; font-weight: normal; }
+  .cx { color: #00e5ff; text-shadow: 0 0 10px #00e5ff; }
+  .co { color: #ff2fa8; text-shadow: 0 0 10px #ff2fa8; }
+  #play { animation: pulse 1.4s ease-in-out infinite; }
+  @keyframes pulse { 0%, 100% { filter: brightness(1); } 50% { filter: brightness(1.25); } }
+
+  #err { position: fixed; inset: 0; z-index: 9; display: flex; align-items: center; justify-content: center; text-align: center; padding: 30px; background: #05000f; font-size: 18px; line-height: 1.6; }
+</style>
+</head>
+<body>
+
+<div id="stage"></div>
+
+<div id="hud" class="off">
+  <div class="top">
+    <div class="score">
+      <div class="pill x" id="pillX"><span class="lbl">TU ✕</span><span class="val" id="scX">0</span></div>
+      <div class="pill d"><span class="lbl">PARI</span><span class="val" id="scD">0</span></div>
+      <div class="pill o" id="pillO"><span class="lbl">CPU ◯</span><span class="val" id="scO">0</span></div>
+    </div>
+    <div class="status" id="status">&nbsp;</div>
+  </div>
+  <div class="bottom">
+    <div class="seg" id="diff">
+      <button data-d="easy">FACILE</button>
+      <button data-d="medium">MEDIO</button>
+      <button data-d="hard" title="Imbattibile">PRO</button>
+    </div>
+    <button class="btn" id="btnNew" title="Nuova partita (N)">↻ NUOVA</button>
+    <button class="btn ghost" id="btnSfx" title="Effetti sonori (S)">🔊 SFX</button>
+    <button class="btn ghost" id="btnMusic" title="Musica (M)">🎵 MUSICA</button>
+    <button class="btn ghost" id="btnReset" title="Azzera il punteggio">AZZERA</button>
+  </div>
+</div>
+
+<div id="result" class="hidden">
+  <div class="card">
+    <div class="rt" id="resTitle"></div>
+    <div class="rs" id="resSub"></div>
+    <button class="btn big" id="btnAgain">RIVINCITA ▶</button>
+    <div class="hint">oppure premi INVIO</div>
+  </div>
+</div>
+
+<div id="intro">
+  <div class="logo"><span class="t1">TRIS</span><span class="t2">3D NEON RUN</span></div>
+  <button class="btn big" id="play">GIOCA ▶</button>
+  <div class="how">
+    Tu sei <b class="cx">✕</b> · la CPU è <b class="co">◯</b> · chi inizia si alterna<br>
+    Clicca una casella · tasti 1-9 (tastierino) · frecce + INVIO
+  </div>
+</div>
+
+<div id="err" class="hidden">Impossibile caricare three.js dalla CDN.<br>Controlla la connessione e ricarica la pagina.</div>
+<script>
+  // Fallback se il modulo (three.js da CDN) non parte
+  setTimeout(() => { if (!window.__trisReady) document.getElementById('err').classList.remove('hidden'); }, 8000);
+</script>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+
+window.__trisReady = true;
+
+/* =========================================================
+   Utility
+   ========================================================= */
+const store = {
+  get(k, d) { try { const v = localStorage.getItem('tris3d_' + k); return v === null ? d : JSON.parse(v); } catch { return d; } },
+  set(k, v) { try { localStorage.setItem('tris3d_' + k, JSON.stringify(v)); } catch {} }
+};
+const rand = (a, b) => a + Math.random() * (b - a);
+const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+const wait = ms => new Promise(r => setTimeout(r, ms));
+const E = {
+  linear: k => k,
+  inQuad: k => k * k,
+  outCubic: k => 1 - Math.pow(1 - k, 3),
+  outBack: k => { const c1 = 1.70158, c3 = c1 + 1; return 1 + c3 * Math.pow(k - 1, 3) + c1 * Math.pow(k - 1, 2); },
+  inBack: k => { const c1 = 1.70158, c3 = c1 + 1; return c3 * k * k * k - c1 * k * k; },
+};
+
+/* =========================================================
+   Audio sintetizzato (Web Audio API)
+   ========================================================= */
+const Sfx = (() => {
+  let ctx = null, master, sfxBus, musicBus, delayIn, noiseBuf;
+  let sfxOn = store.get('sfx', true), musicOn = store.get('music', true);
+  let musicTimer = null, nextNoteTime = 0, step = 0;
+  const BPM = 112, STEP = 60 / BPM / 4, MUSIC_VOL = 0.3;
+
+  function init() {
+    if (ctx) { if (ctx.state === 'suspended') ctx.resume(); return; }
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return;
+    ctx = new AC();
+    const comp = ctx.createDynamicsCompressor();
+    comp.threshold.value = -12; comp.knee.value = 10; comp.ratio.value = 4; comp.attack.value = 0.003; comp.release.value = 0.2;
+    master = ctx.createGain(); master.gain.value = 0.9;
+    master.connect(comp); comp.connect(ctx.destination);
+    sfxBus = ctx.createGain(); sfxBus.gain.value = sfxOn ? 1 : 0; sfxBus.connect(master);
+    musicBus = ctx.createGain(); musicBus.gain.value = musicOn ? MUSIC_VOL : 0; musicBus.connect(master);
+    // eco a tempo per gli effetti (passa dal bus SFX, così il mute lo silenzia)
+    delayIn = ctx.createGain();
+    const dl = ctx.createDelay(1); dl.delayTime.value = STEP * 3;
+    const fb = ctx.createGain(); fb.gain.value = 0.32;
+    const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 3000;
+    delayIn.connect(dl); dl.connect(lp); lp.connect(fb); fb.connect(dl); lp.connect(sfxBus);
+    noiseBuf = ctx.createBuffer(1, ctx.sampleRate, ctx.sampleRate);
+    const d = noiseBuf.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+  }
+
+  function env(g, t0, vol, attack, dur) {
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(vol, t0 + attack);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+  }
+
+  function tone({ at, t = 0, type = 'square', f = 440, f2, slide, dur = 0.15, vol = 0.2, attack = 0.004, lp, q = 1, bus, send = 0, detune = 0 }) {
+    if (!ctx) return;
+    const t0 = at ?? ctx.currentTime + t;
+    const o = ctx.createOscillator(); o.type = type;
+    o.frequency.setValueAtTime(f, t0);
+    if (f2) o.frequency.exponentialRampToValueAtTime(f2, t0 + (slide ?? dur));
+    if (detune) o.detune.value = detune;
+    const g = ctx.createGain(); env(g, t0, vol, attack, dur);
+    let n = o;
+    if (lp) { const fl = ctx.createBiquadFilter(); fl.type = 'lowpass'; fl.frequency.value = lp; fl.Q.value = q; o.connect(fl); n = fl; }
+    n.connect(g); g.connect(bus || sfxBus);
+    if (send) { const s = ctx.createGain(); s.gain.value = send; g.connect(s); s.connect(delayIn); }
+    o.start(t0); o.stop(t0 + dur + 0.05);
+  }
+
+  function noise({ at, t = 0, dur = 0.2, vol = 0.2, type = 'bandpass', f = 1000, f2, q = 1, attack = 0.002, bus, send = 0 }) {
+    if (!ctx) return;
+    const t0 = at ?? ctx.currentTime + t;
+    const s = ctx.createBufferSource(); s.buffer = noiseBuf;
+    const fl = ctx.createBiquadFilter(); fl.type = type; fl.Q.value = q;
+    fl.frequency.setValueAtTime(f, t0);
+    if (f2) fl.frequency.exponentialRampToValueAtTime(f2, t0 + dur);
+    const g = ctx.createGain(); env(g, t0, vol, attack, dur);
+    s.connect(fl); fl.connect(g); g.connect(bus || sfxBus);
+    if (send) { const sg = ctx.createGain(); sg.gain.value = send; g.connect(sg); sg.connect(delayIn); }
+    s.start(t0, Math.random() * 0.5); s.stop(t0 + dur + 0.05);
+  }
+
+  /* ----- Musica: loop hip-hop/synthwave in La minore (Am-F-C-G) ----- */
+  const CHORDS = [
+    { root: 110.00, notes: [440.00, 523.25, 659.25] }, // Am
+    { root: 87.31,  notes: [349.23, 440.00, 523.25] }, // F
+    { root: 130.81, notes: [392.00, 523.25, 659.25] }, // C
+    { root: 98.00,  notes: [392.00, 493.88, 587.33] }, // G
+  ];
+  const BASS = [1,0,0,1, 0,0,1,0, 1,0,1,1, 0,0,1,0];
+  const ARP = [0, 1, 2, 1, 2, 0, 1, 2];
+
+  function scheduleStep(s, t) {
+    const st = s % 16, ch = CHORDS[Math.floor(s / 16) % 4];
+    if (st % 4 === 0) tone({ at: t, type: 'sine', f: 150, f2: 42, slide: 0.12, dur: 0.32, vol: 0.7, bus: musicBus });
+    if (st === 4 || st === 12) {
+      noise({ at: t, dur: 0.16, vol: 0.22, f: 1900, q: 0.8, bus: musicBus });
+      tone({ at: t, type: 'triangle', f: 220, f2: 160, dur: 0.1, vol: 0.12, bus: musicBus });
+    }
+    if (st % 2 === 0) noise({ at: t, dur: 0.04, vol: st % 4 === 2 ? 0.06 : 0.03, type: 'highpass', f: 7500, bus: musicBus });
+    if (BASS[st]) tone({ at: t, type: 'sawtooth', f: ch.root * (st === 10 || st === 14 ? 2 : 1), dur: STEP * 1.6, vol: 0.16, lp: 700, q: 5, bus: musicBus });
+    if (st === 0) ch.notes.forEach((f, i) => tone({ at: t, type: 'sawtooth', f: f / 2, dur: STEP * 16, attack: 0.35, vol: 0.022, lp: 1100, bus: musicBus, detune: (i - 1) * 7 }));
+    if (Math.floor(s / 64) % 2 === 1 && st % 2 === 0)
+      tone({ at: t, type: 'square', f: ch.notes[ARP[(st / 2) % 8]], dur: STEP * 1.2, vol: 0.03, lp: 3200, bus: musicBus });
+  }
+  function scheduler() {
+    if (nextNoteTime < ctx.currentTime - 0.2) nextNoteTime = ctx.currentTime + 0.05; // rientro da tab in background
+    while (nextNoteTime < ctx.currentTime + 0.15) { scheduleStep(step, nextNoteTime); nextNoteTime += STEP; step++; }
+  }
+  function startMusic() { if (!ctx || musicTimer) return; nextNoteTime = ctx.currentTime + 0.08; step = 0; musicTimer = setInterval(scheduler, 30); }
+  function stopMusic() { clearInterval(musicTimer); musicTimer = null; }
+
+  return {
+    init,
+    get sfxOn() { return sfxOn; },
+    get musicOn() { return musicOn; },
+    setSfx(v) { sfxOn = v; store.set('sfx', v); if (ctx) sfxBus.gain.setTargetAtTime(v ? 1 : 0, ctx.currentTime, 0.02); },
+    setMusic(v) {
+      musicOn = v; store.set('music', v);
+      if (!ctx) return;
+      musicBus.gain.setTargetAtTime(v ? MUSIC_VOL : 0, ctx.currentTime, 0.05);
+      v ? startMusic() : stopMusic();
+    },
+    startMusic() { if (musicOn) startMusic(); },
+    duck(sec = 1.6) {
+      if (!ctx || !musicOn) return;
+      const g = musicBus.gain, now = ctx.currentTime;
+      g.cancelScheduledValues(now); g.setTargetAtTime(MUSIC_VOL * 0.25, now, 0.05); g.setTargetAtTime(MUSIC_VOL, now + sec, 0.4);
+    },
+    suspend() { if (ctx) ctx.suspend(); },
+    resume() { if (ctx) ctx.resume(); },
+
+    hover()  { tone({ type: 'triangle', f: 1400, f2: 1800, dur: 0.05, vol: 0.05 }); },
+    tick()   { tone({ type: 'sine', f: 2300, dur: 0.035, vol: 0.035 }); },
+    ui()     { tone({ type: 'square', f: 520, f2: 780, dur: 0.08, vol: 0.08, lp: 2400 }); },
+    placeX() {
+      tone({ type: 'sawtooth', f: 180, f2: 900, slide: 0.14, dur: 0.2, vol: 0.16, lp: 2600, q: 4 });
+      tone({ type: 'square', f: 880, t: 0.08, dur: 0.12, vol: 0.07, send: 0.35 });
+    },
+    placeO() {
+      tone({ type: 'sine', f: 1100, f2: 330, slide: 0.22, dur: 0.28, vol: 0.24 });
+      tone({ type: 'triangle', f: 550, f2: 165, slide: 0.22, dur: 0.28, vol: 0.12, send: 0.3 });
+    },
+    land() {
+      tone({ type: 'sine', f: 140, f2: 50, dur: 0.18, vol: 0.35 });
+      noise({ dur: 0.08, vol: 0.1, type: 'highpass', f: 3000 });
+    },
+    zap() { tone({ type: 'sawtooth', f: 120, f2: 2400, slide: 0.3, dur: 0.35, vol: 0.12, lp: 5000, send: 0.3 }); },
+    win() {
+      [523.25, 659.25, 783.99, 1046.5, 1318.5, 1567.98].forEach((f, i) => {
+        tone({ type: 'square', f, t: i * 0.08, dur: 0.22, vol: 0.11, lp: 4000, send: 0.35 });
+        tone({ type: 'triangle', f: f * 2, t: i * 0.08, dur: 0.15, vol: 0.05 });
+      });
+      [523.25, 659.25, 783.99, 1046.5].forEach((f, i) =>
+        tone({ type: 'sawtooth', f, t: 0.5, dur: 1.0, attack: 0.02, vol: 0.06, lp: 2600, send: 0.4, detune: (i - 1.5) * 6 }));
+      noise({ dur: 0.6, vol: 0.08, f: 400, f2: 6000, q: 2 });
+    },
+    lose() {
+      tone({ type: 'sawtooth', f: 392, f2: 98, slide: 0.9, dur: 1.0, vol: 0.16, lp: 1400, q: 6 });
+      tone({ type: 'square', f: 196, f2: 49, slide: 0.9, dur: 1.0, vol: 0.08, lp: 800 });
+      tone({ type: 'sine', f: 90, f2: 30, dur: 0.5, vol: 0.4 });
+      noise({ dur: 0.5, vol: 0.25, type: 'lowpass', f: 1200, f2: 100 });
+    },
+    draw() {
+      tone({ type: 'triangle', f: 440, dur: 0.18, vol: 0.14 });
+      tone({ type: 'triangle', f: 415.3, t: 0.2, dur: 0.18, vol: 0.14 });
+      tone({ type: 'triangle', f: 392, t: 0.4, dur: 0.4, vol: 0.14, send: 0.3 });
+    },
+    start() {
+      noise({ dur: 0.7, vol: 0.14, f: 200, f2: 5000, q: 3 });
+      [440, 554.37, 659.25, 880].forEach((f, i) => tone({ type: 'square', f, t: 0.15 + i * 0.07, dur: 0.3, vol: 0.08, lp: 3000, send: 0.3 }));
+    },
+    whoosh() { noise({ dur: 0.45, vol: 0.1, f: 600, f2: 3000, q: 1.5 }); },
+  };
+})();
+
+/* =========================================================
+   Renderer, scena, post-processing
+   ========================================================= */
+const C = { x: 0x00e5ff, o: 0xff2fa8, gold: 0xffd400, purple: 0x9d4dff, orange: 0xff7a00, red: 0xff2a3a };
+
+const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 1.75));
+renderer.setSize(innerWidth, innerHeight);
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.1;
+document.getElementById('stage').appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+const FOG_COLOR = 0x2b0845;
+scene.fog = new THREE.Fog(FOG_COLOR, 35, 170);
+
+const camera = new THREE.PerspectiveCamera(55, innerWidth / innerHeight, 0.1, 1500);
+const CAM_BASE = new THREE.Vector3(0, 6.4, 10);
+const CAM_TARGET = new THREE.Vector3(0, 0.3, -3.6);
+const camPos = new THREE.Vector3();
+const introOffset = new THREE.Vector3(0, 5, 9);
+
+const composer = new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene, camera));
+const BLOOM = 0.95;
+const bloom = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), BLOOM, 0.55, 0.18);
+composer.addPass(bloom);
+composer.addPass(new OutputPass());
+
+function layout() {
+  const a = innerWidth / innerHeight;
+  camera.aspect = a;
+  // su schermi stretti (mobile verticale) allontana la camera così la griglia entra tutta
+  const k = Math.max(1, 0.82 / a);
+  camPos.copy(CAM_TARGET).add(CAM_BASE.clone().sub(CAM_TARGET).multiplyScalar(k));
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+  composer.setSize(innerWidth, innerHeight);
+}
+layout();
+addEventListener('resize', layout);
+
+/* ---------- Luci ---------- */
+scene.add(new THREE.HemisphereLight(0x8a5cff, 0x12002a, 0.7));
+const sunLight = new THREE.DirectionalLight(0xffffff, 0.8);
+sunLight.position.set(3, 10, 6);
+scene.add(sunLight);
+const plX = new THREE.PointLight(C.x, 30, 14, 2); plX.position.set(-4.5, 3, 1.5); scene.add(plX);
+const plO = new THREE.PointLight(C.o, 30, 14, 2); plO.position.set(4.5, 3, 1.5); scene.add(plO);
+
+/* =========================================================
+   Ambiente: cielo, sole synthwave, stelle, città, binari
+   ========================================================= */
+function canvasTex(w, h, draw) {
+  const c = document.createElement('canvas'); c.width = w; c.height = h;
+  draw(c.getContext('2d'), w, h);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
+
+// Cielo a gradiente (orizzonte = colore della nebbia → giunzione invisibile)
+scene.add(new THREE.Mesh(
+  new THREE.SphereGeometry(700, 32, 16),
+  new THREE.ShaderMaterial({
+    side: THREE.BackSide, depthWrite: false,
+    uniforms: { top: { value: new THREE.Color(0x05000f) }, mid: { value: new THREE.Color(0x1a0533) }, hor: { value: new THREE.Color(FOG_COLOR) } },
+    vertexShader: `varying vec3 vP; void main(){ vP = normalize(position); gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
+    fragmentShader: `uniform vec3 top, mid, hor; varying vec3 vP;
+      void main(){ float h = vP.y; vec3 c = mix(hor, mid, smoothstep(-0.02, 0.12, h)); c = mix(c, top, smoothstep(0.12, 0.6, h)); gl_FragColor = vec4(c, 1.0); }`
+  })
+));
+
+// Sole a strisce
+const sun = new THREE.Mesh(
+  new THREE.PlaneGeometry(1, 1),
+  new THREE.ShaderMaterial({
+    transparent: true, depthWrite: false,
+    uniforms: { time: { value: 0 } },
+    vertexShader: `varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
+    fragmentShader: `uniform float time; varying vec2 vUv;
+      void main(){
+        vec2 p = vUv - 0.5; float r = length(p);
+        if (r > 0.5) discard;
+        vec3 c = mix(vec3(1.0, 0.1, 0.55), vec3(1.0, 0.82, 0.15), smoothstep(-0.4, 0.45, p.y));
+        if (p.y < 0.1) {
+          float s = fract(p.y * 14.0 + time * 0.5);
+          float w = mix(0.06, 0.6, smoothstep(0.1, -0.45, p.y));
+          if (s < w) discard;
+        }
+        gl_FragColor = vec4(c, smoothstep(0.5, 0.48, r));
+      }`
+  })
+);
+sun.scale.set(160, 160, 1);
+sun.position.set(0, 14, -460);
+scene.add(sun);
+
+// Stelle
+{
+  const n = 500, pos = new Float32Array(n * 3);
+  for (let i = 0; i < n; i++) {
+    const th = Math.random() * Math.PI * 2, ph = rand(0.08, 1.4), r = 600;
+    pos[i * 3] = Math.cos(th) * Math.cos(ph) * r;
+    pos[i * 3 + 1] = Math.sin(ph) * r;
+    pos[i * 3 + 2] = Math.sin(th) * Math.cos(ph) * r;
+  }
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  scene.add(new THREE.Points(g, new THREE.PointsMaterial({ color: 0xffffff, size: 2, sizeAttenuation: false, fog: false, transparent: true, opacity: 0.8 })));
+}
+
+// Terreno + griglia neon che scorre
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(1400, 1400), new THREE.MeshStandardMaterial({ color: 0x06010f, roughness: 0.9 }));
+ground.rotation.x = -Math.PI / 2; ground.position.set(0, -0.62, -300);
+scene.add(ground);
+const grid = new THREE.GridHelper(260, 130, C.o, 0x6a1bb0);
+grid.material.transparent = true; grid.material.opacity = 0.45;
+grid.position.set(0, -0.6, -105);
+scene.add(grid);
+
+// Binari: le 3 corsie coincidono con le 3 colonne del tris
+const LANES = [-2.25, 0, 2.25];
+const TIE_SP = 1.4, TIE_N = 140;
+const tiesGroup = new THREE.Group(); scene.add(tiesGroup);
+{
+  const ties = new THREE.InstancedMesh(
+    new THREE.BoxGeometry(1.9, 0.1, 0.32),
+    new THREE.MeshStandardMaterial({ color: 0x2a1840, roughness: 0.7, metalness: 0.2, emissive: 0x1a0630 }),
+    TIE_N * LANES.length
+  );
+  const m = new THREE.Matrix4(); let k = 0;
+  for (const x of LANES) for (let i = 0; i < TIE_N; i++) { m.makeTranslation(x, -0.5, 14 - i * TIE_SP); ties.setMatrixAt(k++, m); }
+  tiesGroup.add(ties);
+  const railGeo = new THREE.BoxGeometry(0.1, 0.1, 230);
+  const railMat = new THREE.MeshStandardMaterial({ color: 0x331100, emissive: C.orange, emissiveIntensity: 1.4 });
+  for (const x of LANES) for (const s of [-0.7, 0.7]) {
+    const r = new THREE.Mesh(railGeo, railMat); r.position.set(x + s, -0.4, 14 - 115); scene.add(r);
+  }
+}
+
+// Palazzi con finestre neon e spigoli luminosi
+const buildings = [];
+{
+  const palettes = [['#ffd400', '#ff9f00', '#ffffff'], ['#00e5ff', '#9d4dff', '#ffffff'], ['#ff2fa8', '#ffd400', '#00e5ff']];
+  const winTex = palettes.map(pal => {
+    const t = canvasTex(64, 128, (g, w, h) => {
+      g.fillStyle = '#000'; g.fillRect(0, 0, w, h);
+      for (let y = 4; y < h; y += 10) for (let x = 4; x < w; x += 10) {
+        if (Math.random() < 0.45) { g.globalAlpha = rand(0.4, 1); g.fillStyle = pick(pal); g.fillRect(x, y, 5, 6); }
+      }
+    });
+    t.wrapS = t.wrapT = THREE.RepeatWrapping; t.magFilter = THREE.NearestFilter;
+    return t;
+  });
+  const edgeMats = [C.x, C.o, C.purple, C.orange, C.gold].map(c => new THREE.LineBasicMaterial({ color: c }));
+  const unitBox = new THREE.BoxGeometry(1, 1, 1);
+  const unitEdges = new THREE.EdgesGeometry(unitBox);
+  for (const side of [-1, 1]) {
+    let z = 20; const list = [];
+    while (z > -240) {
+      const w = rand(3, 7), h = rand(5, 29), d = rand(5, 12);
+      const tex = pick(winTex).clone(); tex.needsUpdate = true;
+      tex.repeat.set(Math.max(1, Math.round(w / 3)), Math.max(1, Math.round(h / 5)));
+      const mat = new THREE.MeshStandardMaterial({ color: 0x0b0518, roughness: 0.85, metalness: 0.1, emissive: 0xffffff, emissiveMap: tex, emissiveIntensity: 0.85 });
+      const b = new THREE.Group();
+      b.add(new THREE.Mesh(unitBox, mat), new THREE.LineSegments(unitEdges, pick(edgeMats)));
+      b.scale.set(w, h, d);
+      b.position.set(side * (9.5 + w / 2 + rand(0, 2.5)), h / 2 - 0.6, z - d / 2);
+      b.userData.d = d;
+      scene.add(b); list.push(b);
+      z -= d + rand(0.6, 3);
+    }
+    const len = 20 - z;
+    list.forEach(b => { b.userData.len = len; buildings.push(b); });
+  }
+}
+
+// Portali neon sopra i binari
+const ARCH_SP = 38, ARCH_N = 6;
+const arches = [];
+{
+  const pillar = new THREE.BoxGeometry(0.35, 10, 0.35), beamG = new THREE.BoxGeometry(13.15, 0.35, 0.35);
+  const cols = [C.o, C.x, C.gold];
+  for (let i = 0; i < ARCH_N; i++) {
+    const mat = new THREE.MeshStandardMaterial({ color: 0x000000, emissive: cols[i % 3], emissiveIntensity: 2.2 });
+    const g = new THREE.Group();
+    const l = new THREE.Mesh(pillar, mat); l.position.set(-6.4, 4.4, 0);
+    const r = new THREE.Mesh(pillar, mat); r.position.set(6.4, 4.4, 0);
+    const t = new THREE.Mesh(beamG, mat); t.position.set(0, 9.4, 0);
+    g.add(l, r, t); g.position.z = -16 - i * ARCH_SP;
+    scene.add(g); arches.push(g);
+  }
+}
+
+// Monete che arrivano lungo le corsie
+const COIN_N = 24, COIN_SP = 6, COIN_END = -4.6;
+const coins = [];
+{
+  const geo = new THREE.CylinderGeometry(0.38, 0.38, 0.09, 24); geo.rotateX(Math.PI / 2);
+  const mat = new THREE.MeshStandardMaterial({ color: 0xffc400, emissive: 0xffb000, emissiveIntensity: 1.3, metalness: 0.8, roughness: 0.3 });
+  for (let i = 0; i < COIN_N; i++) {
+    const c = new THREE.Mesh(geo, mat);
+    c.position.set(pick(LANES), 0.65, -12 - i * COIN_SP);
+    c.rotation.y = Math.random() * Math.PI;
+    scene.add(c); coins.push(c);
+  }
+}
+
+/* =========================================================
+   Tavola di gioco (hoverboard)
+   ========================================================= */
+const board = new THREE.Group();
+scene.add(board);
+const GAP = 2.25, PIECE_Y = 0.78;
+const cellPos = i => ({ x: (i % 3 - 1) * GAP, z: (Math.floor(i / 3) - 1) * GAP });
+
+// piattaforma
+board.add(new THREE.Mesh(
+  new RoundedBoxGeometry(7.6, 0.45, 7.6, 4, 0.18),
+  new THREE.MeshStandardMaterial({ color: 0x140a2e, metalness: 0.7, roughness: 0.25 })
+));
+// bordo neon (cambia colore in base al turno)
+const trimMat = new THREE.MeshStandardMaterial({ color: 0x000000, emissive: C.purple, emissiveIntensity: 2.2 });
+for (const s of [-1, 1]) {
+  const a = new THREE.Mesh(new THREE.BoxGeometry(7.5, 0.07, 0.07), trimMat); a.position.set(0, 0.2, s * 3.78); board.add(a);
+  const b = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.07, 7.5), trimMat); b.position.set(s * 3.78, 0.2, 0); board.add(b);
+}
+// griglia "#"
+{
+  const m = new THREE.MeshStandardMaterial({ color: 0x000000, emissive: C.purple, emissiveIntensity: 1.6 });
+  for (const s of [-1, 1]) {
+    const a = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.05, 6.7), m); a.position.set(s * GAP / 2, 0.24, 0); board.add(a);
+    const b = new THREE.Mesh(new THREE.BoxGeometry(6.7, 0.05, 0.06), m); b.position.set(0, 0.24, s * GAP / 2); board.add(b);
+  }
+}
+// bagliore sotto la tavola
+const glowMat = new THREE.MeshBasicMaterial({
+  map: canvasTex(128, 128, (g, w, h) => {
+    const gr = g.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, w / 2);
+    gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(0.55, 'rgba(255,255,255,.45)'); gr.addColorStop(1, 'rgba(255,255,255,0)');
+    g.fillStyle = gr; g.fillRect(0, 0, w, h);
+  }),
+  color: C.purple, transparent: true, opacity: 0.55, blending: THREE.AdditiveBlending, depthWrite: false
+});
+const underGlow = new THREE.Mesh(new THREE.PlaneGeometry(12, 12), glowMat);
+underGlow.rotation.x = -Math.PI / 2; underGlow.position.y = -0.42;
+board.add(underGlow);
+
+// caselle
+const BASE_EM = new THREE.Color(0x24083f), HOV_EM = new THREE.Color(0x0b5a70);
+const EDGE_BASE = new THREE.Color(0x7b4dff), EDGE_HOV = new THREE.Color(C.x);
+const tiles = [];
+{
+  const geo = new RoundedBoxGeometry(2.0, 0.2, 2.0, 3, 0.06);
+  const edgeGeo = new THREE.EdgesGeometry(new THREE.BoxGeometry(2.0, 0.2, 2.0));
+  for (let i = 0; i < 9; i++) {
+    const t = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ color: 0x1d1240, metalness: 0.5, roughness: 0.35, emissive: BASE_EM, emissiveIntensity: 0.5 }));
+    const { x, z } = cellPos(i);
+    t.position.set(x, 0.27, z);
+    const edge = new THREE.LineSegments(edgeGeo, new THREE.LineBasicMaterial({ color: EDGE_BASE, transparent: true, opacity: 0.55 }));
+    t.add(edge);
+    t.userData = { index: i, edge, em: BASE_EM.clone(), flash: 0, flashColor: new THREE.Color(), win: false };
+    board.add(t); tiles.push(t);
+  }
+}
+
+// pedine
+const xArmGeo = new RoundedBoxGeometry(1.55, 0.34, 0.34, 2, 0.08);
+const oGeo = new THREE.TorusGeometry(0.58, 0.17, 20, 48);
+const xMat = new THREE.MeshStandardMaterial({ color: C.x, emissive: C.x, emissiveIntensity: 1.8, metalness: 0.3, roughness: 0.3 });
+const oMat = new THREE.MeshStandardMaterial({ color: C.o, emissive: C.o, emissiveIntensity: 1.8, metalness: 0.3, roughness: 0.3 });
+const TILT = -1.2; // inclinate verso la camera per leggibilità
+
+function makeX(mat) {
+  const g = new THREE.Group(), inner = new THREE.Group();
+  const a = new THREE.Mesh(xArmGeo, mat); a.rotation.z = Math.PI / 4;
+  const b = new THREE.Mesh(xArmGeo, mat); b.rotation.z = -Math.PI / 4;
+  inner.add(a, b); inner.rotation.x = TILT; g.add(inner);
+  return g;
+}
+function makeO(mat) {
+  const g = new THREE.Group(), inner = new THREE.Group();
+  inner.add(new THREE.Mesh(oGeo, mat)); inner.rotation.x = TILT; g.add(inner);
+  return g;
+}
+const ghostMatX = new THREE.MeshBasicMaterial({ color: C.x, transparent: true, opacity: 0.3, depthWrite: false });
+const ghostMatO = new THREE.MeshBasicMaterial({ color: C.o, transparent: true, opacity: 0.3, depthWrite: false });
+const ghostX = makeX(ghostMatX); ghostX.visible = false; board.add(ghostX);
+const ghostO = makeO(ghostMatO); ghostO.visible = false; board.add(ghostO);
+
+// raggio della linea vincente
+const beamMat = new THREE.MeshStandardMaterial({ color: C.gold, emissive: C.gold, emissiveIntensity: 3 });
+const beam = new THREE.Mesh(new THREE.BoxGeometry(1, 0.18, 0.18), beamMat);
+beam.visible = false; board.add(beam);
+
+/* =========================================================
+   Particelle
+   ========================================================= */
+const PMAX = 1000;
+const pPos = new Float32Array(PMAX * 3), pCol = new Float32Array(PMAX * 3);
+const pGeo = new THREE.BufferGeometry();
+pGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3));
+pGeo.setAttribute('color', new THREE.BufferAttribute(pCol, 3));
+const points = new THREE.Points(pGeo, new THREE.PointsMaterial({
+  size: 0.24, vertexColors: true, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+  map: canvasTex(64, 64, (g, w, h) => {
+    const gr = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+    gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(0.3, 'rgba(255,255,255,.8)'); gr.addColorStop(1, 'rgba(255,255,255,0)');
+    g.fillStyle = gr; g.fillRect(0, 0, w, h);
+  })
+}));
+points.frustumCulled = false;
+scene.add(points);
+const parts = Array.from({ length: PMAX }, () => ({ life: 0, max: 1, x: 0, y: -999, z: 0, vx: 0, vy: 0, vz: 0, r: 0, g: 0, b: 0 }));
+let pCursor = 0;
+const tmpCol = new THREE.Color();
+
+function burst(pos, colors, n = 36, speed = 4.5, up = 3) {
+  colors = [].concat(colors);
+  for (let k = 0; k < n; k++) {
+    const p = parts[pCursor]; pCursor = (pCursor + 1) % PMAX;
+    tmpCol.set(pick(colors));
+    const a = Math.random() * Math.PI * 2, s = speed * rand(0.3, 1.2);
+    Object.assign(p, {
+      life: rand(0.6, 1.2), x: pos.x, y: pos.y, z: pos.z,
+      vx: Math.cos(a) * s, vz: Math.sin(a) * s, vy: up * rand(0.5, 1.5),
+      r: tmpCol.r, g: tmpCol.g, b: tmpCol.b
+    });
+    p.max = p.life;
+  }
+}
+function updateParticles(dt) {
+  for (let i = 0; i < PMAX; i++) {
+    const p = parts[i], j = i * 3;
+    if (p.life > 0) {
+      p.life -= dt;
+      p.vy -= 9 * dt; p.vx *= 0.985; p.vz *= 0.985;
+      p.x += p.vx * dt; p.y += p.vy * dt; p.z += p.vz * dt;
+      if (p.y < 0.3) { p.y = 0.3; p.vy *= -0.4; }
+      const k = Math.max(0, p.life / p.max);
+      pPos[j] = p.x; pPos[j + 1] = p.y; pPos[j + 2] = p.z;
+      pCol[j] = p.r * k; pCol[j + 1] = p.g * k; pCol[j + 2] = p.b * k;
+    } else {
+      pPos[j + 1] = -999;
+    }
+  }
+  pGeo.attributes.position.needsUpdate = true;
+  pGeo.attributes.color.needsUpdate = true;
+}
+
+/* =========================================================
+   Tween
+   ========================================================= */
+const tweens = [];
+function tween(dur, fn, ease = E.linear, delay = 0) {
+  return new Promise(res => tweens.push({ t: -delay, dur, fn, ease, res }));
+}
+function updateTweens(dt) {
+  for (let i = tweens.length - 1; i >= 0; i--) {
+    const tw = tweens[i]; tw.t += dt;
+    if (tw.t < 0) continue;
+    const k = Math.min(1, tw.t / tw.dur);
+    tw.fn(tw.ease(k));
+    if (k >= 1) { tweens.splice(i, 1); tw.res(); }
+  }
+}
+
+/* =========================================================
+   Logica del tris + IA
+   ========================================================= */
+const LINES = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+function winner(b) {
+  for (const l of LINES) { const [a, c, d] = l; if (b[a] && b[a] === b[c] && b[a] === b[d]) return { p: b[a], line: l }; }
+  return b.every(Boolean) ? { p: 'draw' } : null;
+}
+function minimax(b, player, depth) {
+  const w = winner(b);
+  if (w) return w.p === 'O' ? 10 - depth : w.p === 'X' ? depth - 10 : 0;
+  let best = player === 'O' ? -Infinity : Infinity;
+  for (let i = 0; i < 9; i++) {
+    if (b[i]) continue;
+    b[i] = player;
+    const s = minimax(b, player === 'O' ? 'X' : 'O', depth + 1);
+    b[i] = null;
+    best = player === 'O' ? Math.max(best, s) : Math.min(best, s);
+  }
+  return best;
+}
+function bestMoves(b) {
+  let best = -Infinity, moves = [];
+  for (let i = 0; i < 9; i++) {
+    if (b[i]) continue;
+    b[i] = 'O'; const s = minimax(b, 'X', 1); b[i] = null;
+    if (s > best) { best = s; moves = [i]; } else if (s === best) moves.push(i);
+  }
+  return moves;
+}
+function cpuChoose(b, diff) {
+  const empty = b.map((v, i) => v ? -1 : i).filter(i => i >= 0);
+  const finishing = p => empty.find(i => { b[i] = p; const w = winner(b); b[i] = null; return w && w.p === p; });
+  if (diff === 'easy') {
+    if (Math.random() < 0.5) { const w = finishing('O'); if (w !== undefined) return w; }
+    return pick(empty);
+  }
+  if (diff === 'medium') {
+    const w = finishing('O'); if (w !== undefined) return w;
+    const bl = finishing('X'); if (bl !== undefined && Math.random() < 0.85) return bl;
+    return Math.random() < 0.55 ? pick(bestMoves(b)) : pick(empty);
+  }
+  return pick(bestMoves(b)); // PRO: imbattibile, ma varia tra le mosse equivalenti
+}
+
+/* =========================================================
+   Stato di gioco
+   ========================================================= */
+const state = {
+  board: Array(9).fill(null), turn: 'X', over: false, busy: false, started: false, resultShown: false,
+  round: 0, nextStarter: 'X', streak: 0,
+  diff: store.get('diff', 'medium'),
+  score: store.get('score', { x: 0, o: 0, d: 0 }),
+};
+const pieces = Array(9).fill(null);
+let hoverIndex = -1, thinkIndex = -1;
+let time = 0, dist = 0, speed = 16, shake = 0;
+let speedOverride = null, speedOverrideUntil = 0;
+const BASE_SPEED = 16;
+
+const $ = id => document.getElementById(id);
+const ui = {
+  hud: $('hud'), status: $('status'), pillX: $('pillX'), pillO: $('pillO'),
+  scX: $('scX'), scO: $('scO'), scD: $('scD'),
+  result: $('result'), resTitle: $('resTitle'), resSub: $('resSub'), intro: $('intro'),
+};
+
+function setStatus(text, cls) {
+  ui.status.textContent = text;
+  ui.status.className = 'status ' + cls;
+  void ui.status.offsetWidth;
+  ui.status.classList.add('pop');
+}
+function renderScore(bump) {
+  ui.scX.textContent = state.score.x; ui.scO.textContent = state.score.o; ui.scD.textContent = state.score.d;
+  if (bump) { const el = ui[bump]; el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump'); }
+}
+function renderTurn() {
+  ui.pillX.classList.toggle('active', !state.over && state.turn === 'X');
+  ui.pillO.classList.toggle('active', !state.over && state.turn === 'O');
+}
+const canPlay = () => state.started && !state.over && !state.busy && state.turn === 'X';
+
+function newRound() {
+  state.round++;
+  const token = state.round;
+  ui.result.classList.add('hidden');
+  state.resultShown = false;
+  thinkIndex = -1;
+
+  // via le pedine della partita precedente
+  pieces.forEach((g, i) => {
+    if (!g) return;
+    pieces[i] = null; g.userData.win = false;
+    const s0 = g.scale.x;
+    tween(0.28, k => g.scale.setScalar(Math.max(0.001, s0 * (1 - k))), E.inBack, i * 0.03)
+      .then(() => { board.remove(g); g.userData.mat.dispose(); });
+  });
+  if (beam.visible) tween(0.2, k => { beam.scale.x = Math.max(0.001, beam.userData.len * (1 - k)); }).then(() => { if (state.round === token) beam.visible = false; });
+  tiles.forEach(t => { t.userData.win = false; });
+
+  state.board = Array(9).fill(null);
+  state.over = false; state.busy = false;
+  state.turn = state.nextStarter;
+  state.nextStarter = state.nextStarter === 'X' ? 'O' : 'X';
+  renderTurn();
+  Sfx.whoosh();
+
+  if (state.turn === 'O') { setStatus('INIZIA LA CPU', 'o'); cpuTurn(token, 500); }
+  else setStatus('TOCCA A TE!', 'x');
+}
+
+function place(i, p) {
+  state.board[i] = p;
+  const mat = (p === 'X' ? xMat : oMat).clone();
+  const g = p === 'X' ? makeX(mat) : makeO(mat);
+  g.userData = { mat, landed: false, win: false, phase: Math.random() * 6 };
+  const { x, z } = cellPos(i);
+  g.position.set(x, 3.2, z); g.scale.setScalar(0.01);
+  board.add(g); pieces[i] = g;
+  p === 'X' ? Sfx.placeX() : Sfx.placeO();
+  tween(0.38, k => g.scale.setScalar(Math.max(0.01, k)), E.outBack);
+  tween(0.3, k => { g.position.y = 3.2 + (PIECE_Y - 3.2) * k; }, E.inQuad).then(() => {
+    if (pieces[i] !== g) return;
+    g.userData.landed = true;
+    Sfx.land();
+    burst(board.localToWorld(new THREE.Vector3(x, 0.5, z)), p === 'X' ? C.x : C.o);
+    const t = tiles[i].userData; t.flash = 1; t.flashColor.set(p === 'X' ? C.x : C.o);
+    shake = Math.max(shake, 0.12);
+  });
+}
+
+function playerMove(i) {
+  if (!canPlay() || i < 0 || state.board[i]) return;
+  place(i, 'X');
+  if (checkEnd()) return;
+  state.turn = 'O'; renderTurn();
+  cpuTurn(state.round, 0);
+}
+
+async function cpuTurn(token, extraDelay) {
+  state.busy = true;
+  if (extraDelay) await wait(extraDelay);
+  if (token !== state.round) return;
+  setStatus('LA CPU PENSA…', 'o');
+  // l'O "fantasma" saltella tra le caselle libere mentre la CPU ragiona
+  const iv = setInterval(() => {
+    const empty = state.board.map((v, i) => v ? -1 : i).filter(i => i >= 0 && i !== thinkIndex);
+    if (empty.length) { thinkIndex = pick(empty); Sfx.tick(); }
+  }, 170);
+  await wait(rand(600, 1100));
+  clearInterval(iv);
+  thinkIndex = -1;
+  if (token !== state.round) return;
+  const i = cpuChoose(state.board.slice(), state.diff);
+  place(i, 'O');
+  state.busy = false;
+  if (checkEnd()) return;
+  state.turn = 'X'; renderTurn();
+  setStatus('TOCCA A TE!', 'x');
+}
+
+const LINES_TXT = {
+  win:  ['Corsa perfetta!', 'Sei on fire! 🔥', 'La CPU è rimasta sui binari!', 'Che combo, runner!'],
+  lose: ["Beccato dall'ispettore!", 'La CPU ti ha tagliato la strada', 'Riprova, runner!', 'Schiantato sul vagone!'],
+  draw: ['Nessuno passa!', 'Binari bloccati', 'Testa a testa!', 'Tutto fermo in stazione'],
+};
+
+function checkEnd() {
+  const w = winner(state.board);
+  if (!w) return false;
+  state.over = true; state.busy = false;
+  renderTurn();
+  const token = state.round;
+  let kind;
+  if (w.p === 'X') { kind = 'win'; state.score.x++; state.streak++; }
+  else if (w.p === 'O') { kind = 'lose'; state.score.o++; state.streak = 0; }
+  else { kind = 'draw'; state.score.d++; state.streak = 0; }
+  store.set('score', state.score);
+  setStatus(kind === 'win' ? 'TRIS!' : kind === 'lose' ? 'TRIS DELLA CPU' : 'PAREGGIO', kind === 'win' ? 'n' : kind === 'lose' ? 'o' : 'x');
+
+  setTimeout(() => {
+    if (token !== state.round) return;
+    endFx(kind, w.line);
+    renderScore(kind === 'win' ? 'scX' : kind === 'lose' ? 'scO' : 'scD');
+  }, 420);
+  setTimeout(() => {
+    if (token !== state.round) return;
+    showResult(kind);
+  }, 1300);
+  return true;
+}
+
+function endFx(kind, line) {
+  Sfx.duck(kind === 'draw' ? 1 : 1.8);
+  if (kind === 'draw') {
+    Sfx.draw();
+    tiles.forEach((t, i) => { t.userData.flash = 1; t.userData.flashColor.set(C.purple); });
+    pieces.forEach(g => g && tween(0.5, k => { g.userData.mat.emissiveIntensity = 1.8 - k * 1.1; }));
+    shake = 0.1;
+    return;
+  }
+  const winCol = kind === 'win' ? C.gold : C.red;
+  // raggio sulla linea vincente
+  const a = cellPos(line[0]), c = cellPos(line[2]);
+  const len = Math.hypot(c.x - a.x, c.z - a.z) + 1.9;
+  beamMat.color.set(winCol); beamMat.emissive.set(winCol);
+  beam.position.set((a.x + c.x) / 2, PIECE_Y + 0.25, (a.z + c.z) / 2);
+  beam.rotation.set(0, -Math.atan2(c.z - a.z, c.x - a.x), 0);
+  beam.userData.len = len; beam.scale.set(0.001, 1, 1); beam.visible = true;
+  tween(0.32, k => { beam.scale.x = Math.max(0.001, len * k); }, E.outCubic);
+  Sfx.zap();
+
+  line.forEach(i => { tiles[i].userData.win = true; tiles[i].userData.flashColor.set(winCol); if (pieces[i]) pieces[i].userData.win = true; });
+  pieces.forEach((g, i) => { if (g && !line.includes(i)) tween(0.5, k => { g.userData.mat.emissiveIntensity = 1.8 - k * 1.4; }); });
+
+  if (kind === 'win') {
+    Sfx.win();
+    line.forEach((i, n) => setTimeout(() => {
+      const { x, z } = cellPos(i);
+      burst(board.localToWorld(new THREE.Vector3(x, 0.8, z)), [C.gold, C.x, C.o, 0xffffff], 70, 6, 6);
+    }, n * 110));
+    speedOverride = 55; speedOverrideUntil = time + 1.4;
+    tween(1.2, k => { bloom.strength = BLOOM + Math.sin(k * Math.PI) * 0.8; });
+    shake = 0.18;
+  } else {
+    Sfx.lose();
+    tiles.forEach(t => { if (!t.userData.win) { t.userData.flash = 1; t.userData.flashColor.set(C.red); } });
+    speedOverride = 0.5; speedOverrideUntil = time + 1.6; // "schianto": la corsa si ferma
+    shake = 0.45;
+  }
+}
+
+function showResult(kind) {
+  const titles = { win: 'HAI VINTO!', lose: 'HAI PERSO', draw: 'PAREGGIO' };
+  ui.resTitle.textContent = titles[kind];
+  ui.resSub.textContent = kind === 'win' && state.streak >= 2 ? `Serie di ${state.streak} vittorie! 🔥` : pick(LINES_TXT[kind]);
+  ui.result.className = kind;
+  state.resultShown = true;
+}
+
+/* =========================================================
+   Input
+   ========================================================= */
+const raycaster = new THREE.Raycaster(), ndc = new THREE.Vector2();
+function pickTile(e) {
+  const r = renderer.domElement.getBoundingClientRect();
+  ndc.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
+  raycaster.setFromCamera(ndc, camera);
+  const hit = raycaster.intersectObjects(tiles, false)[0];
+  return hit ? hit.object.userData.index : -1;
+}
+function setHover(i) {
+  if (i === hoverIndex) return;
+  hoverIndex = i;
+  const ok = i >= 0 && canPlay() && !state.board[i];
+  if (ok) Sfx.hover();
+  renderer.domElement.style.cursor = ok ? 'pointer' : 'default';
+}
+function rematch() { if (state.over && state.resultShown) { Sfx.ui(); newRound(); } }
+
+renderer.domElement.addEventListener('pointermove', e => setHover(pickTile(e)));
+renderer.domElement.addEventListener('pointerleave', () => setHover(-1));
+renderer.domElement.addEventListener('pointerdown', e => {
+  if (!state.started) return;
+  if (state.over) { rematch(); return; }
+  const i = pickTile(e); setHover(i); playerMove(i);
+});
+
+const NUMPAD = { '7': 0, '8': 1, '9': 2, '4': 3, '5': 4, '6': 5, '1': 6, '2': 7, '3': 8 };
+addEventListener('keydown', e => {
+  const k = e.key;
+  if (k === ' ' || k.startsWith('Arrow')) e.preventDefault();
+  if (!state.started) { if (k === 'Enter' || k === ' ') startGame(); return; }
+  if (state.over) { if (k === 'Enter' || k === ' ') rematch(); }
+  else if (k in NUMPAD) { setHover(NUMPAD[k]); playerMove(NUMPAD[k]); }
+  else if (k.startsWith('Arrow')) {
+    const cur = hoverIndex < 0 ? 4 : hoverIndex;
+    let r = Math.floor(cur / 3), c = cur % 3;
+    if (k === 'ArrowUp') r = Math.max(0, r - 1);
+    if (k === 'ArrowDown') r = Math.min(2, r + 1);
+    if (k === 'ArrowLeft') c = Math.max(0, c - 1);
+    if (k === 'ArrowRight') c = Math.min(2, c + 1);
+    setHover(r * 3 + c);
+  }
+  else if ((k === 'Enter' || k === ' ') && hoverIndex >= 0) playerMove(hoverIndex);
+  const lk = k.toLowerCase();
+  if (lk === 'n') { Sfx.ui(); newRound(); }
+  if (lk === 'm') toggleMusic();
+  if (lk === 's') toggleSfx();
+});
+
+// pulsanti HUD
+document.querySelectorAll('button').forEach(b => b.addEventListener('click', () => b.blur()));
+function renderDiff() { document.querySelectorAll('#diff button').forEach(b => b.classList.toggle('on', b.dataset.d === state.diff)); }
+document.querySelectorAll('#diff button').forEach(b => b.addEventListener('click', () => {
+  state.diff = b.dataset.d; store.set('diff', state.diff); renderDiff(); Sfx.ui();
+}));
+function renderAudioBtns() {
+  $('btnSfx').classList.toggle('off', !Sfx.sfxOn);
+  $('btnSfx').textContent = (Sfx.sfxOn ? '🔊' : '🔇') + ' SFX';
+  $('btnMusic').classList.toggle('off', !Sfx.musicOn);
+}
+function toggleSfx() { Sfx.setSfx(!Sfx.sfxOn); renderAudioBtns(); Sfx.ui(); }
+function toggleMusic() { Sfx.setMusic(!Sfx.musicOn); renderAudioBtns(); Sfx.ui(); }
+$('btnSfx').addEventListener('click', toggleSfx);
+$('btnMusic').addEventListener('click', toggleMusic);
+$('btnNew').addEventListener('click', () => { Sfx.ui(); newRound(); });
+$('btnAgain').addEventListener('click', rematch);
+$('btnReset').addEventListener('click', () => {
+  state.score = { x: 0, o: 0, d: 0 }; state.streak = 0; store.set('score', state.score); renderScore(); Sfx.ui();
+});
+$('play').addEventListener('click', startGame);
+
+document.addEventListener('visibilitychange', () => document.hidden ? Sfx.suspend() : Sfx.resume());
+
+function startGame() {
+  if (state.started) return;
+  Sfx.init();
+  Sfx.start();
+  Sfx.startMusic();
+  ui.intro.classList.add('gone');
+  ui.hud.classList.remove('off');
+  const from = introOffset.clone();
+  tween(1.5, k => introOffset.copy(from).multiplyScalar(1 - k), E.outCubic);
+  speedOverride = 60; speedOverrideUntil = time + 1.0;
+  state.started = true;
+  setTimeout(() => ui.intro.remove(), 700);
+  newRound();
+}
+
+renderScore(); renderDiff(); renderAudioBtns();
+
+/* =========================================================
+   Loop
+   ========================================================= */
+const clock = new THREE.Clock();
+const trimTarget = new THREE.Color(), glowTarget = new THREE.Color();
+
+function frame() {
+  requestAnimationFrame(frame);
+  const dt = Math.min(clock.getDelta(), 0.05);
+  time += dt;
+  updateTweens(dt);
+
+  // velocità della corsa
+  const target = time < speedOverrideUntil ? speedOverride : BASE_SPEED;
+  speed += (target - speed) * Math.min(1, dt * 2.5);
+  dist += speed * dt;
+
+  tiesGroup.position.z = dist % TIE_SP;
+  grid.position.z = -105 + (dist % 2);
+  for (const b of buildings) {
+    b.position.z += speed * dt;
+    if (b.position.z - b.userData.d / 2 > 22) b.position.z -= b.userData.len;
+  }
+  for (const a of arches) {
+    a.position.z += speed * dt;
+    if (a.position.z > 14) a.position.z -= ARCH_SP * ARCH_N;
+  }
+  for (const c of coins) {
+    c.position.z += speed * dt;
+    c.rotation.y += dt * 4;
+    if (c.position.z > COIN_END) { c.position.z -= COIN_N * COIN_SP; c.position.x = pick(LANES); }
+    c.scale.setScalar(THREE.MathUtils.clamp((COIN_END - c.position.z) / 4, 0.001, 1));
+  }
+  sun.material.uniforms.time.value = time;
+
+  // la tavola galleggia come un hoverboard
+  board.position.y = Math.sin(time * 1.6) * 0.06;
+  board.rotation.z = Math.sin(time * 0.9) * 0.012;
+  board.rotation.x = Math.sin(time * 0.7) * 0.008;
+
+  // colore del bordo = di chi è il turno
+  trimTarget.set(!state.started || state.over ? C.purple : state.turn === 'X' ? C.x : C.o);
+  trimMat.emissive.lerp(trimTarget, Math.min(1, dt * 4));
+  glowTarget.copy(trimMat.emissive);
+  glowMat.color.lerp(glowTarget, Math.min(1, dt * 4));
+  glowMat.opacity = 0.45 + Math.sin(time * 3) * 0.1;
+
+  // caselle: hover, flash, vittoria
+  for (const t of tiles) {
+    const u = t.userData, i = u.index;
+    const hov = i === hoverIndex && canPlay() && !state.board[i];
+    t.position.y += (0.27 + (hov ? 0.12 : 0) - t.position.y) * Math.min(1, dt * 12);
+    u.em.lerp(hov ? HOV_EM : BASE_EM, Math.min(1, dt * 10));
+    u.flash = Math.max(0, u.flash - dt * 1.6);
+    if (u.win) u.flash = Math.max(u.flash, 0.55 + Math.sin(time * 9) * 0.45);
+    t.material.emissive.copy(u.em).lerp(u.flashColor, Math.min(1, u.flash));
+    t.material.emissiveIntensity = 0.5 + u.flash * 1.6;
+    u.edge.material.color.lerp(hov ? EDGE_HOV : u.flash > 0.05 ? u.flashColor : EDGE_BASE, Math.min(1, dt * 10));
+    u.edge.material.opacity = hov ? 1 : 0.55 + u.flash * 0.45;
+  }
+
+  // pedine: oscillazione + pulsazione della tris vincente
+  pieces.forEach(g => {
+    if (!g || !g.userData.landed) return;
+    const u = g.userData;
+    g.children[0].position.y = Math.sin(time * 2.2 + u.phase) * 0.06;
+    g.rotation.y = Math.sin(time * 1.4 + u.phase) * 0.18;
+    if (u.win) { g.scale.setScalar(1 + Math.sin(time * 9) * 0.12); u.mat.emissiveIntensity = 2.4 + Math.sin(time * 9) * 0.8; }
+  });
+
+  // fantasmi: anteprima della tua mossa / "pensiero" della CPU
+  const showX = hoverIndex >= 0 && canPlay() && !state.board[hoverIndex];
+  ghostX.visible = showX;
+  if (showX) { const { x, z } = cellPos(hoverIndex); ghostX.position.set(x, PIECE_Y + 0.12 + Math.sin(time * 4) * 0.05, z); }
+  ghostO.visible = thinkIndex >= 0;
+  if (thinkIndex >= 0) { const { x, z } = cellPos(thinkIndex); ghostO.position.set(x, PIECE_Y + Math.sin(time * 6) * 0.06, z); }
+  ghostMatX.opacity = 0.28 + Math.sin(time * 6) * 0.08;
+  ghostMatO.opacity = 0.25 + Math.sin(time * 8) * 0.08;
+
+  updateParticles(dt);
+
+  // camera: oscillazione, tremolio, FOV legato alla velocità
+  shake = Math.max(0, shake - dt * 1.4);
+  camera.position.copy(camPos).add(introOffset);
+  camera.position.x += Math.sin(time * 0.5) * 0.18;
+  camera.position.y += Math.sin(time * 0.8) * 0.06;
+  if (shake > 0) camera.position.add(new THREE.Vector3(rand(-1, 1), rand(-1, 1), rand(-1, 1)).multiplyScalar(shake * 0.5));
+  camera.lookAt(CAM_TARGET);
+  const fov = 55 + THREE.MathUtils.clamp((speed - BASE_SPEED) * 0.2, -3, 9);
+  if (Math.abs(camera.fov - fov) > 0.01) { camera.fov = fov; camera.updateProjectionMatrix(); }
+
+  composer.render();
+}
+frame();
+</script>
+</body>
+</html>

@@ -1,0 +1,1 @@
+ciao, sviluppa un gioco del tris con grafica 3D neon ispirata a Subway Surfers, giocatore sempre X, pc sempre O, UX e logica a tua discrezione, sviluppalo nel file tris3d.html (single page) usando javascript vanilla ed eventualmente three.js (da cdn), aggiungi suoni sintetizzati

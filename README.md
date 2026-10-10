@@ -81,6 +81,7 @@ src/
   tictactoe14/  → confronto quantizzazioni Qwen-3.8-27B (IQ3 vs Q8_0), JS vanilla
   tictactoe15/  → output della live/modello 15 (tris 3D neon, JS vanilla + three.js)
   tictactoe16/  → output della live/modello 16 (tris 3D neon, JS vanilla + three.js)
+  tictactoe17/  → output della live/modello 17 (tris 3D neon, JS vanilla + three.js)
 ```
 
 ## Abbinamento cartella → modello
@@ -103,6 +104,7 @@ src/
 | `tictactoe12` | qwen-3.5-4b — implementazione in JavaScript vanilla, single-page (modello piccolo) |
 | `tictactoe15` | DeepSeek V4.1 Flash (max) — tris 3D neon stile Subway Surfers (JS vanilla + three.js) |
 | `tictactoe16` | Claude Opus 5.5 (high) — tris 3D neon stile Subway Surfers (JS vanilla + three.js) |
+| `tictactoe17` | Mistral Large 4 (appena rilasciato) — tris 3D neon stile Subway Surfers (JS vanilla + three.js) |
 
 ## tictactoe-slm1 — confronto multi-modello SLM (orchestrato da GPT-6-Sol)
 
@@ -196,19 +198,20 @@ tictactoe14/
     tris.html              → output alla quantizzazione Q8_0
 ```
 
-## tictactoe15 / tictactoe16 — tris 3D neon stile Subway Surfers
+## tictactoe15 / tictactoe16 / tictactoe17 — tris 3D neon stile Subway Surfers
 
-A differenza di `tictactoe13`/`tictactoe14`, qui `tictactoe15` e `tictactoe16`
-sono due cartelle singole (un modello ciascuna), non container multi-modello
-— ma condividono lo stesso prompt, incluso in entrambe come `prompt.txt`:
+A differenza di `tictactoe13`/`tictactoe14`, qui `tictactoe15`, `tictactoe16`
+e `tictactoe17` sono cartelle singole (un modello ciascuna), non container
+multi-modello — ma condividono lo stesso prompt, incluso in ciascuna come
+`prompt.txt`:
 
 > Ciao, sviluppa un gioco del tris con grafica 3D neon ispirata a Subway
 > Surfers, giocatore sempre X, pc sempre O, UX e logica a tua discrezione,
 > sviluppalo nel file tris3d.html (single page) usando javascript vanilla ed
 > eventualmente three.js (da cdn), aggiungi suoni sintetizzati.
 
-Entrambe le cartelle includono anche un `snake3d.html` bonus, come già visto
-in `tictactoe13`.
+Tutte e tre le cartelle includono anche un `snake3d.html` bonus, come già
+visto in `tictactoe13`.
 
 ## Licenza
 

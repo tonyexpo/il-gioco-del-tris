@@ -82,6 +82,7 @@ src/
   tictactoe15/  → output della live/modello 15 (tris 3D neon, JS vanilla + three.js)
   tictactoe16/  → output della live/modello 16 (tris 3D neon, JS vanilla + three.js)
   tictactoe17/  → output della live/modello 17 (tris 3D neon, JS vanilla + three.js)
+  tictactoe18/  → tentativo fallito/modello 18 (nessun gioco prodotto, vedi nota)
 ```
 
 ## Abbinamento cartella → modello
@@ -105,6 +106,7 @@ src/
 | `tictactoe15` | DeepSeek V4.1 Flash (max) — tris 3D neon stile Subway Surfers (JS vanilla + three.js) |
 | `tictactoe16` | Claude Opus 5.5 (high) — tris 3D neon stile Subway Surfers (JS vanilla + three.js) |
 | `tictactoe17` | Mistral Large 4 (appena rilasciato) — tris 3D neon stile Subway Surfers (JS vanilla + three.js) |
+| `tictactoe18` | Qwen 3.8 27B IQ1 (Unsloth) — tentativo fallito, nessun gioco prodotto |
 
 ## tictactoe-slm1 — confronto multi-modello SLM (orchestrato da GPT-6-Sol)
 
@@ -212,6 +214,18 @@ multi-modello — ma condividono lo stesso prompt, incluso in ciascuna come
 
 Tutte e tre le cartelle includono anche un `snake3d.html` bonus, come già
 visto in `tictactoe13`.
+
+## tictactoe18 — tentativo fallito
+
+A differenza di tutte le altre cartelle, `tictactoe18/` non contiene un gioco:
+**Qwen 3.8 27B IQ1 (Unsloth)** è entrato in loop continuo e non ha mai
+prodotto un tris funzionante, né con il prompt 3D neon né tornando al
+prompt base in JS vanilla usato per i tentativi precedenti. Provato sia con
+**Cline (CLI)** che con **OpenCode CLI**, stesso risultato. L'unico file
+rimasto, `test.html`, è uno stub diagnostico ("Ciao, mondo!") usato solo per
+verificare che il tool di scrittura funzionasse — non è un tentativo di
+gioco. Conservato così com'è, per la stessa filosofia "copia fedele" del
+resto del repo: anche un fallimento totale fa parte della registrazione.
 
 ## Licenza
 

@@ -227,6 +227,15 @@ verificare che il tool di scrittura funzionasse — non è un tentativo di
 gioco. Conservato così com'è, per la stessa filosofia "copia fedele" del
 resto del repo: anche un fallimento totale fa parte della registrazione.
 
+## Altre demo
+
+Non tutto qui dentro è tris: in [`demo/`](demo/) finiscono demo estemporanee
+per il canale che non giustificano una repo a parte.
+
+| Cartella | Di cosa si tratta |
+|---|---|
+| [`demo/jev-test/`](demo/jev-test/docs/architettura-demo.md) | Modelli decisionali vs LLM generativo per classificare email (OpenRouter) |
+
 ## Licenza
 
 Distribuito con licenza [Apache 2.0](LICENSE).

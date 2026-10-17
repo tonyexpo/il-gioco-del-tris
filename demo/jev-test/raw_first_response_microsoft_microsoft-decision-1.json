@@ -1,0 +1,31 @@
+{
+  "model": "microsoft/microsoft-decision-1-20261009",
+  "answers": {
+    "categoria": {
+      "type": "choice",
+      "choice": "proposta_commerciale",
+      "probabilities": {
+        "newsletter": 5.140530285484e-05,
+        "notifica_automatica": 5.140530285484e-05,
+        "personale": 9.603774924913392e-05,
+        "phishing": 0.00017942213679558388,
+        "professionale": 0.000123314910997372,
+        "proposta_commerciale": 0.9992312500902734,
+        "pubblicita": 0.00010882502699767587,
+        "spam": 0.00015833947997721234
+      },
+      "confidence": 0.9991214286745981
+    },
+    "urgente": {
+      "type": "noul",
+      "noul": 0.004070144930940166
+    }
+  },
+  "usage": {
+    "input_tokens": 395,
+    "output_tokens": 2,
+    "cost": 1.659e-05
+  },
+  "id": "gen-dec-1792251378-dAyHd85UjW93PbQv4Uqg",
+  "provider": "Azure"
+}

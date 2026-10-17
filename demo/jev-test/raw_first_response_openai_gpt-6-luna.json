@@ -1,0 +1,61 @@
+{
+  "id": "gen-1792251409-QjaXtcYRcgCLzhAi85AM",
+  "object": "chat.completion",
+  "created": 1792251409,
+  "model": "openai/gpt-6-luna",
+  "provider": "OpenAI",
+  "system_fingerprint": null,
+  "service_tier": "default",
+  "choices": [
+    {
+      "index": 0,
+      "logprobs": null,
+      "finish_reason": "stop",
+      "native_finish_reason": "completed",
+      "message": {
+        "role": "assistant",
+        "content": "{\"categoria\":\"proposta_commerciale\",\"urgente\":false}",
+        "refusal": null,
+        "reasoning": "**Classifying Italian output**\n\nI need to classify the Italian output, specifically looking at the B2B targeted offer and the commercial proposal. I think it’s important to label it as urgent, but maybe it's actually false. I should ensure the structure is in JSON format and exact. It's crucial to get this right to avoid any confusion. Well, I just want to make sure everything is organized and in the right format for clarity!",
+        "reasoning_details": [
+          {
+            "type": "reasoning.summary",
+            "summary": "**Classifying Italian output**\n\nI need to classify the Italian output, specifically looking at the B2B targeted offer and the commercial proposal. I think it’s important to label it as urgent, but maybe it's actually false. I should ensure the structure is in JSON format and exact. It's crucial to get this right to avoid any confusion. Well, I just want to make sure everything is organized and in the right format for clarity!",
+            "format": "openai-responses-v1",
+            "index": 0
+          },
+          {
+            "type": "reasoning.encrypted",
+            "data": "gAAAAABq05YTfFylnbkY5jSufKrpa9O2SjYrO3cZBXFRCYx9B8i2BW5xrX8GSQyx9ZD9jiyyoaNV1RopG8XpJjUpaC8-_H9t1jPxGoTVUefExVhl293UqX1Qte7nNIE5hzS_qGz2ER0Qi3A-3i-ANXK7elabovrz1yHSaPNpqAdNrxLbYSTChDdrffOycIlgCrs0DMSTezK12P3vxqNhiJqK0YlDrRf42GeumFyLooSf3OVK39dxP2LAkndK9EQJXvtRTa4hhDKogD4Pv9ODPurwboRt1AD56Wf4QgOLjmNz3kRMxXSmS7-5xBwCesshhsdOdUEGI6w6eydgxSXIxkkU8_Cn8tmCQg0XaqS8neBv2Szjuneg1KFLJJnDA_HXvrqpdreCBmEHAcuAwOHiLraDPCRi4qpsk5ats-5VDMfGmZlGjIQjHuM2gyRSvxy0j1KMyZil52qreJ73ljcHo_PZj93byU8xF6hG3KXTdC1bHMPNy95pemnsFoTSVoCE4cLvwF9e261QZ41lXTVzFMe7chTZd0GDqZBPwovJ8Bfd9SbFd5N-xepxtaDKqgd2ptfTMA04DbBBnWra0Crxkg3vMvmBeYjj3x5qLs2l9S1i8z7Oj5fl02BXdBgvj1nKMoegd4svZKiUqiIhmVSym-HLNkxWw6-FEkD-v1wdXm8qOBj1VpqUaeeq9Rc-1aDG83wY7Bcrq1hhHqa5zjkZKxSMZEAKjdwBjJ2TZMkPi6jzYQ3ajiko413OgwPnJAkMT3vFDOsdWATdl-DJNQZILepbjGKoN1REByTPf03fcrMpKNJejiGwHbqywvXQ7oaD1pa6h23RSEFDIz9VSL8Kvdr_MxqBOAC16_xuCp9tqsCr5u_oIm0SJus8RV9GT92STVUoEFP8TwZsNNSTF4r2B47ANozVCaj2xGtxNXvmjg__M9gWZ92k37raLb3aKYw7sdnII33A5sElnRMrLWj6phCEHTjdU9u69epWFbWOIHMaRdThL5-yBQnS5s6hqGrB9V6JPET_437CRKvgv9umgbcG-pzJ0vV1fpnr_qLxupUkgfuZhmA2YtZ9jfVrRyvkKxog1bIpnPW9pWd5iu3tdTEE4Vlb3l7vAzH19B76TqhFuALJw1gc5whvEExCAtS14NU7oN-HAemuQf6YeV2XkbqbhHZmbgVaAQf377dIZGysaqLmHVBGmdwdcvySGCIO--qDl5f422_qqtoup5aOUxkaCzDxUcQyASAUD8Dbr6Jsl2YuV66epjYWDWMU6zvTZ61NJQNdqTRjBxgFoV26LAeYZN9bZ40mjXZflRkMTc5fq18e_pLoaEJU1PlyJ6U0CdPfHw3a7BX5jELEKwHNDuPCpAOWt4uXb1RFhJpksItDHLk6fWRiObXeO1JGNWvM2wYMMiAXAS0KFXkVnCnD6h5kiQwyY59UCS986lbQNNy162ol2wFxw81d_BE_9bEvB2HRCj_946AaU8AaVk3oPedmXdcFlrVhzLyE4nhhWoiRgpsrOKyVpQFDEuiuezIQw5ERWKUC5qnHgBqt7HXQHdzGe611FJABj3bIcnP73MqDGvKT6vsT6ARItGlzPMTHyWZkzz7FdZ2rdiHBt5oHwSHGuXe5aXFpXnOWGzGbzGXCU5-c94hrymxYDNYXc5eSmGDUqnKsIkYz00LUObWWgpuuAoptUkucFBKWDLceu92bdOGbjo5oaMQrfSkfUsOcKShDAPdhjcQM4OtgSgAQfFwRbKgSpd0xGBKHm5YQyju9JjIlwIyK54GrWkI-cZtD9vx5xE9iE8_R5OpdqICSRS_FCTo18qB4qnRHgRbbJhFlTVwj5dz1rxsmV-4M5fxCYyjIpJGTciXRbG20sME5aRecO1t-K21_igr-i3tUzeaaT9CIOmdWlBo=.eyJlbmRwb2ludF9zbHVnIjoib3BlbmFpL2dwdC02LWx1bmEtMjAyNjA5MjJ8b3BlbmFpIn0",
+            "format": "openai-responses-v1",
+            "id": "rs_06298b7c71bd03e3016ad396121fcc87d19ed41798fcdef865",
+            "index": 1
+          }
+        ]
+      }
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 486,
+    "completion_tokens": 50,
+    "total_tokens": 536,
+    "cost": 7.36e-05,
+    "is_byok": false,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "cache_write_tokens": 0,
+      "audio_tokens": 0,
+      "video_tokens": 0
+    },
+    "cost_details": {
+      "upstream_inference_cost": 7.36e-05,
+      "upstream_inference_prompt_cost": 4.86e-05,
+      "upstream_inference_completions_cost": 2.5e-05
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 25,
+      "image_tokens": 0,
+      "audio_tokens": 0
+    }
+  }
+}

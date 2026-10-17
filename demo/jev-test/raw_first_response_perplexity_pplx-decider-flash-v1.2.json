@@ -1,0 +1,31 @@
+{
+  "model": "perplexity/pplx-decider-flash-v1.2-20261016",
+  "answers": {
+    "categoria": {
+      "type": "choice",
+      "choice": "proposta_commerciale",
+      "probabilities": {
+        "personale": 0.002599108513361776,
+        "professionale": 0.024754411313410354,
+        "spam": 0.0072873018297525865,
+        "pubblicita": 0.014384905673166706,
+        "newsletter": 0.0030820174076553585,
+        "proposta_commerciale": 0.9449118516061707,
+        "phishing": 0.0013693146146554727,
+        "notifica_automatica": 0.0016110890418267975
+      },
+      "confidence": 0.937042116121338
+    },
+    "urgente": {
+      "type": "noul",
+      "noul": 0.07499860281844853
+    }
+  },
+  "usage": {
+    "input_tokens": 462,
+    "output_tokens": 2,
+    "cost": 4.62e-06
+  },
+  "id": "gen-dec-1792251391-jFLgQTLxnztYDLLveWkH",
+  "provider": "Perplexity"
+}

@@ -1,0 +1,31 @@
+{
+  "model": "openai/gpt-6-luna-decisions-20261006",
+  "answers": {
+    "categoria": {
+      "type": "choice",
+      "choice": "proposta_commerciale",
+      "probabilities": {
+        "personale": 0,
+        "professionale": 0,
+        "spam": 0,
+        "pubblicita": 0,
+        "newsletter": 0,
+        "proposta_commerciale": 1,
+        "phishing": 0,
+        "notifica_automatica": 0
+      },
+      "confidence": 1
+    },
+    "urgente": {
+      "type": "noul",
+      "noul": 0.05
+    }
+  },
+  "usage": {
+    "input_tokens": 635,
+    "output_tokens": 0,
+    "cost": 6.35e-05
+  },
+  "id": "gen-dec-1792251399-B92ahRpm7jvVODrPFMfk",
+  "provider": "OpenAI"
+}

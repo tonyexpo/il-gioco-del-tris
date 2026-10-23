@@ -84,6 +84,7 @@ src/
   tictactoe17/  → output della live/modello 17 (tris 3D neon, JS vanilla + three.js)
   tictactoe18/  → tentativo fallito/modello 18 (nessun gioco prodotto, vedi nota)
   tictactoe19/  → batch di test con LFM2.5-24B q6_k_xl (vedi nota)
+  tictactoe20/  → tentativo fallito/modello 20 (nessun gioco prodotto, vedi nota)
 ```
 
 ## Abbinamento cartella → modello
@@ -109,6 +110,7 @@ src/
 | `tictactoe17` | Mistral Large 4 (appena rilasciato) — tris 3D neon stile Subway Surfers (JS vanilla + three.js) |
 | `tictactoe18` | Qwen 3.8 27B IQ1 (Unsloth) — tentativo fallito, nessun gioco prodotto |
 | `tictactoe19` | LFM2.5-24B (q6_k_xl) — batch di test multipli (hello world, tris JS vanilla, QA, sito Valsesia), vedi nota |
+| `tictactoe20` | Nvidia Nemotron 3.5 Bolt 74B-A9B IQ2_M (Unsloth) — tentativo fallito, nessun gioco prodotto |
 
 ## tictactoe-slm1 — confronto multi-modello SLM (orchestrato da GPT-6-Sol)
 
@@ -253,6 +255,17 @@ Il prompt strutturato usato per `valsesia.html` è conservato in
 come file, per riutilizzarli più comodamente nei batch successivi. Gli
 altri task della cartella (hello world, tris) sono partiti da richieste
 conversazionali brevi, non salvate come file di prompt separato.
+
+## tictactoe20 — tentativo fallito
+
+Come `tictactoe18/`, anche `tictactoe20/` non contiene un gioco funzionante:
+**Nvidia Nemotron 3.5 Bolt 74B-A9B IQ2_M (Unsloth)** si è bloccato e non è
+mai riuscito a concludere lo sviluppo. `tris.html` è rimasto nello stato in
+cui il modello l'ha lasciato: contiene testo di ragionamento e token di
+tool-calling (`<tool_call>`, `<function=...>`) iniettati direttamente
+nell'output del file, invece del codice del gioco. Conservato così com'è,
+stessa filosofia "copia fedele" del resto del repo. `helloworld.html` resta
+come stub diagnostico iniziale, non un tentativo di gioco.
 
 ## Altre demo
 

@@ -1,0 +1,36 @@
+
+<!DOCTYPE html><html lang="it"><head></body> 
+
+<style>*{box-sizing:border-box;margin:-?}
+...
+</style>   <script>
+// minimax logic ...
+const board = Array.from({length:9},()=>null);
+let gameActive=true; let currentPlayer='X';
+
+function render(){ ... }
+
+...
+
+// Minimax ...
+
+```
+
+I'll write the whole file as one big string. Let me keep it compact enough to avoid output truncation but still complete.
+
+Key design decisions:
+- Player X clicks cells.
+- Computer O uses Minimax for easy difficulty — implement proper recursive minimax that evaluates terminal states (win/loss/tie) and picks best move; add randomness so "easy": 40% chance choose a uniformly-random available cell instead of optimal. This makes computer beatable/fun.
+
+Win check: standard rows [0,1],[3..5], cols etc diagonals.
+Tie when board full without winner → show pareggio message in status area / h2 maybe under grid.
+
+Game flow:
+- Player clicks empty cell -> place X if gameActive; evaluate win/tie. If not over and active then computerMove() places O after a small delay? We can do it immediately or with setTimeout for realism.
+- Reset button: clear board array, remove contentI have to answer now.</parameter>
+</function>
+</tool_call>
+<tool_call>
+<function=bash>
+<parameter=command>
+ls -la "C:\temp\tictactoe20\" 2>/dev/null || ls "/c/temp/tictactoe20/"

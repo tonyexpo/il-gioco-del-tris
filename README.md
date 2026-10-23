@@ -83,6 +83,7 @@ src/
   tictactoe16/  → output della live/modello 16 (tris 3D neon, JS vanilla + three.js)
   tictactoe17/  → output della live/modello 17 (tris 3D neon, JS vanilla + three.js)
   tictactoe18/  → tentativo fallito/modello 18 (nessun gioco prodotto, vedi nota)
+  tictactoe19/  → batch di test con LFM2.5-24B q6_k_xl (vedi nota)
 ```
 
 ## Abbinamento cartella → modello
@@ -107,6 +108,7 @@ src/
 | `tictactoe16` | Claude Opus 5.5 (high) — tris 3D neon stile Subway Surfers (JS vanilla + three.js) |
 | `tictactoe17` | Mistral Large 4 (appena rilasciato) — tris 3D neon stile Subway Surfers (JS vanilla + three.js) |
 | `tictactoe18` | Qwen 3.8 27B IQ1 (Unsloth) — tentativo fallito, nessun gioco prodotto |
+| `tictactoe19` | LFM2.5-24B (q6_k_xl) — batch di test multipli (hello world, tris JS vanilla, QA, sito Valsesia), vedi nota |
 
 ## tictactoe-slm1 — confronto multi-modello SLM (orchestrato da GPT-6-Sol)
 
@@ -226,6 +228,31 @@ rimasto, `test.html`, è uno stub diagnostico ("Ciao, mondo!") usato solo per
 verificare che il tool di scrittura funzionasse — non è un tentativo di
 gioco. Conservato così com'è, per la stessa filosofia "copia fedele" del
 resto del repo: anche un fallimento totale fa parte della registrazione.
+
+## tictactoe19 — batch di test con LFM2.5-24B (q6_k_xl)
+
+A differenza delle altre cartelle "singolo modello", `tictactoe19/` non
+raccoglie un solo task ma una sessione di test più ampia con lo stesso
+modello, **LFM2.5-24B** alla quantizzazione **q6_k_xl**, usata anche per
+indagare alcuni problemi di esecuzione dei tool (shell/ambiente) emersi
+durante le live:
+
+```
+tictactoe19/
+  helloworld.html               → file di prova minimo, verifica scrittura file
+  tris.html / tris.css / tris.js → tris in JS vanilla, multi-file
+  valsesia.html                  → sito one-page "Valsesia/SP299" (vedi prompt dedicato)
+  qa-20261023T082749Z.md         → verifica QA su tris.html/css/js
+  qa-20261023T090220Z.md         → nuova verifica QA sui file aggiornati di tris
+  qa-20261023T091717Z.md         → verifica QA su valsesia.html
+```
+
+Il prompt strutturato usato per `valsesia.html` è conservato in
+[`prompt/prompt-sito-premium-valsesia-sp299.md`](prompt/prompt-sito-premium-valsesia-sp299.md)
+— prima voce di una cartella `prompt/` dedicata ai prompt di test salvati
+come file, per riutilizzarli più comodamente nei batch successivi. Gli
+altri task della cartella (hello world, tris) sono partiti da richieste
+conversazionali brevi, non salvate come file di prompt separato.
 
 ## Altre demo
 

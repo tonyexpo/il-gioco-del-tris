@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Valsesia - Il Viaggio sulla SP299</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Italiana,Georgia,serif&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'DM Sans',Arial,sans-serif;color:#333;background:#fafaf8;line-height:1.6;-webkit-font-smoothing:antialiased}
+h1{font-size:clamp(2rem,5vw,3.2rem);font-weight:700;letter-spacing:-0.02em;text-align:center;margin-bottom:0.4rem;color:#172720}
+p{font-size:clamp(0.95rem,1.6vw,1.15rem);max-width:60rem;margin:0.8rem auto;color:#555}
+.container{max-width:1100px;padding:2rem 1.5rem}
+h2{font-family:'Italiana',Georgia,serif;font-size:clamp(1.6rem,3vw,2.2rem);text-align:center;margin:1.8rem 0;color:#172720;border-bottom:2px solid #C7B488;padding-bottom:0.25em}
+
+/* Hero */
+.hero{margin-bottom:2rem}
+.hero img{width:100%;height:60vh;object-fit:cover;display:block;margin:0 auto}
+.hero .hero-title{text-align:center;color:#172720;font-size:clamp(1.5rem,3.5vw,2.4rem)}
+.hero .hero-sub{text-align:center;color:#666;font-size:clamp(0.85rem,1.6vw,1.05rem);margin-top:0.4rem}
+
+/* Sticky chapter indicator */
+.chapter-indicator{position:fixed;top:-2.5rem;left:50%;transform:translateX(-50%);background:#fff;padding:0.4em 1.2em;border-radius:6px;box-shadow:0 2px 8px rgba(0,0,0,0.15);font-size:0.9rem;font-weight:600;text-align:center;z-index:100;display:flex;align-items:center}
+.chapter-indicator span{border-radius:50%;width:12px;height:12px;background:#C7B488;margin:0 0 4px;display:inline-flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700}
+
+/* Nav */
+.nav{margin-bottom:1.5rem;position:fixed;top:0;width:100%;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,0.08);display:flex;justify-content:center;padding:0.6rem 0;z-index:90}
+.nav a{text-decoration:none;color:#172720;font-weight:600;padding:0.5em 1.2em;border-radius:4px;font-size:clamp(0.85rem,1.3vw,1.05rem);transition:background 0.2s}
+.nav a:hover,.nav a.active{background:#C7B488;color:#172720}
+
+/* Sections */
+section{padding:3rem 0;margin-bottom:2rem;border-bottom:1px solid #eee}
+.section-img{width:100%;height:50vh;object-fit:cover;display:block;margin-bottom:1.5rem}
+.section-text{max-width:65rem;margin:0 auto;color:#444}
+
+/* Roads SVG */
+#road-svg{width:100%;overflow:visible;position:relative;z-index:1}
+#road-svg .path{fill:none;stroke-linecap:round}
+#road-svg .track{stroke-dasharray:2000;stroke-width:2;opacity:0.15}
+#road-svg .marker{fill:#C7B488;stroke:none}
+#road-svg .progress{fill:none;stroke:#172720;stroke-width:3;position:absolute;top:0;left:0}
+.progress-line{stroke-dasharray:2000;stroke-dashoffset:2000}
+
+/* Località list */
+.locality-list{list-style:none;padding:0;max-width:50rem;margin:1.5rem auto}
+.locality-list li{background:#fff;padding:0.9em 1.2em;margin-bottom:0.6em;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.06);display:flex;justify-content:space-between;align-items:center;transition:transform 0.15s}
+.locality-list li:hover{transform:translateY(-2px)}
+.locality-name{font-weight:600;color:#172720;font-size:clamp(1rem,1.5vw,1.25rem)}
+.locality-link{color:#C7B488;text-decoration:none;font-size:0.9rem}
+.locality-link:hover{text-decoration:underline}
+
+/* Dialog */
+.dialog-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:200;opacity:0;pointer-events:none;transition:opacity 0.3s}
+.dialog-overlay.open{opacity:1;pointer-events:auto}
+#loc-dialog{background:#fff;box-shadow:0 8px 32px rgba(0,0,0,0.2);border-radius:12px;padding:2rem;max-width:45rem;width:90%;position:relative;animation:fadeIn 0.3s ease}
+#loc-dialog h3{font-family:'Italiana',Georgia,serif;color:#172720;font-size:1.6rem;margin-bottom:0.5rem}
+#loc-dialog .dialog-list{margin-top:1.2rem}
+#loc-dialog li{display:flex;justify-content:space-between;align-items:center;padding:0.8em 0;border-bottom:1px solid #f0f0f0}
+#loc-dialog li span{min-width:4rem;text-align:right;font-size:0.9rem;color:#666;display:flex;flex-direction:column;gap:0.15em}
+#loc-dialog .dialog-close{background:#C7B488;color:#fff;border:none;padding:0.5em 1.2em;border-radius:6px;font-weight:600;cursor:pointer;margin-top:1rem;transition:background 0.2s}
+#loc-dialog .dialog-close:hover{background:#b89a4e}
+
+/* Gallery */
+.gallery-container{overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding-bottom:1rem}
+.gallery-container::-webkit-scrollbar{display:none}
+.gallery-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:0.8rem}
+.gallery-img{width:100%;border-radius:10px;object-fit:cover;height:160px;aspect-ratio:4/3}
+
+/* Footer */
+footer{background:#172720;color:#fff;text-align:center;padding:2.5rem 1rem;font-size:0.9rem;position:relative}
+.footer a{color:#C7B488}
+</style>
+</head>
+<body>
+<header class="nav">
+<a href="#" data-nav="home" class="active">🏔 Il Viaggio</a>
+<a href="#" id="nav-explora">Esplora la 299</a>
+<a href="#" id="nav-chapter">Capitoli</a>
+<a href="#" id="nav-gallery">Galleria</a>
+<a href="#" id="nav-close">Chiudi</a>
+</header>
+
+<div class="chapter-indicator"><span id="ch-ind">1</span> La strada inizia</div>
+<div class="container">
+
+<!-- Hero -->
+<section class="hero">
+<img src="https://visitvalsesiavercelli.it/wp-content/uploads/2022/12/ALAGNA-VALSESIA-DRONE-2-1.jpg" alt="Veduta aerea di Alagna Valsesia nel paesaggio montano" loading="eager">
+<h1 class="hero-title">Una strada continua</h1>
+<p class="hero-sub">La SP299 unisce la valle ad Alagna. Segui il percorso.</p>
+</section>
+
+<!-- Chapter 1: Access -->
+<section id="chap-access">
+<h2>01 — Accesso alla valle</h2>
+<p class="section-text">La SP299 nasce nella bassa valle e sale verso Alagna. Qui il viaggiatore incontra i primi centri storici lungo l’asse principale.</p>
+<p style="margin-top:0.5rem"><strong>Romagnano Sesia</strong><br><span class="locality-link" data-loc="romagnano-sesia">Romagnano Sesia — Accesso alla valle</span></p>
+<p style="margin-top:0.5rem"><strong>Prato Sesia</strong><br><span class="locality-link" data-loc="prato-sesia">Prato Sesia — Accesso alla valle</span></p>
+<p style="margin-top:0.5rem"><strong>Grignasco</strong><br><span class="locality-link" data-loc="grignasco">Grignasco — Accesso alla valle</span></p>
+<p style="margin-top:0.5rem"><strong>Serravalle Sesia</strong><br><span class="locality-link" data-loc="serravalle-sesia">Serravalle Sesia — Accesso alla valle</span></p>
+</section>
+
+<!-- Chapter 2: Borgosesia - Varallo -->
+<section id="chap-borgosesia">
+<h2>02 — La bassa valle</h2>
+<p class="section-text">La strada scende verso la terra ferma. Qui Borgosesia e Quarona aprono il passaggio verso Varallo, cuore d’arte.</p>
+<p style="margin-top:0.5rem"><strong>Borgosesia</strong><br><span class="locality-link" data-loc="borgosesia">Borgosesia — Bassa valle</span></p>
+<p style="margin-top:0.5rem"><strong>Quarona</strong><br><span class="locality-link" data-loc="quarona">Quarona — Verso Varallo</span></p>
+</section>
+
+<!-- Chapter 3: Varallo -->
+<section id="chap-varallo">
+<h2>03 — Varallo, arte e patrimonio</h2>
+<p class="section-text">Varallo è il punto in cui la strada incrocia un SACRO MONTE UNESCO. Il sacro monte si staglia tra i tetti di pietra: un viaggio che cambia il paesaggio.</p>
+<img src="https://visitvalsesiavercelli.it/wp-content/uploads/2022/08/varallo.jpg" alt="Veduta di Varallo nel paesaggio della Valsesia" style="width:100%;height:120px;object-fit:cover;margin-bottom:1rem">
+<p class="section-text" style="font-style:italic;color:#555">Sacro Monte di Varallo — patrimonio UNESCO</p>
+</section>
+
+<!-- Chapter 4: La Sesia -->
+<section id="chap-sesia">
+<h2>04 — Il ritmo del viaggio</h2>
+<p class="section-text">La Sesia corre attraverso il territorio. Vocca, Balmuccia e Scopa si susseguono come tappe fluviali: il paesaggio cambia scala, il tempo rallenta.</p>
+<img src="https://visitvalsesiavercelli.it/wp-content/uploads/2022/11/Valsesia-attivita-fluviali-immagine-copertina-scaled.jpg" alt="Attività fluviali sul fiume Sesia" style="width:100%;height:120px;object-fit:cover;margin-bottom:1rem">
+<p class="section-text" style="font-style:italic;color:#555">Vocca e Balmuccia: il fiume guida il viaggio</p>
+</section>
+
+<!-- Chapter 5: I borghi -->
+<section id="chap-borghi">
+<h2>05 — I borghi e il tempo lento</h2>
+<p class="section-text">Scopello, Pila, Piode, Campertogno, Mollia. Ogni paese ha una storia: la fiera del bestiame a Campertogno, il Mulino Fucina, il panorama dall’Alpe di Mera.</p>
+<img src="https://visitvalsesiavercelli.it/wp-content/uploads/2022/08/Campertogno-fiera-del-bestiame-1-scaled.jpg" alt="Campertogno e le tradizioni locali" style="width:100%;height:120px;object-fit:cover;margin-bottom:1rem">
+<p class="section-text" style="font-style:italic;color:#555">Scopello, Pila, Piode, Campertogno, Mollia — i piccoli centri</p>
+</section>
+
+<!-- Chapter 6: Riva Valdobbia e Alagna -->
+<section id="chap-riva">
+<h2>06 — Riva Valdobbia e Alagna</h2>
+<p class="section-text">La strada raggiunge il suo traguardo. Riva Valdobbia segna il confine tra la terra e l’Alagna Valsesia, dove il viaggio culmina tra i monti del Monte Rosa.</p>
+<img src="https://visitvalsesiavercelli.it/wp-content/uploads/2022/08/ALAGNA-VALSESIA-6.jpg" alt="Il centro di Alagna Valsesia" style="width:100%;height:120px;object-fit:cover;margin-bottom:1rem">
+<p class="section-text" style="font-style:italic;color:#555">Riva Valdobbia — Verso Alagna, arrivo ai piedi del Monte Rosa</p>
+</section>
+
+<!-- Chapter 7: Finale sul Monte Rosa -->
+<section id="chap-monte" style="background:linear-gradient(135deg,#172720 0%,#1a3318 100%);color:#fff">
+<h2>07 — Il finale sul Monte Rosa</h2>
+<p class="section-text" style="text-align:center;font-size:clamp(1.3rem,2.5vw,1.8rem);margin-bottom:0.6rem">La strada finisce. La meraviglia no.</p>
+<img src="https://visitvalsesiavercelli.it/wp-content/uploads/2022/11/trekking-1.jpg" alt="Paesaggio verso il Monte Rosa da Alagna" style="width:100%;height:50vh;object-fit:cover;margin-bottom:1rem">
+<p class="section-text" style="text-align:center">Capanna Regina Margherita, 4.554 m — la vetta che chiude il viaggio</p>
+</section>
+
+<!-- Chapter 8: Da vedere a da vivere -->
+<section id="chap-galleria">
+<h2>08 — Da vedere e da toccare</h2>
+<p class="section-text">Il territorio offre esperienze concrete: sentieri fluviali, sacro monte, borghi, fiere. Scopri come vivere la Valsesia oltre il semplice tragitto.</p>
+<div class="gallery-container" id="gallery">
+<div class="gallery-grid">
+<img src="https://visitvalsesiavercelli.it/wp-content/uploads/2022/12/alagna_038-scaled.jpg" alt="Scorcio estivo di Alagna Valsesia" class="gallery-img">
+<img src="https://visitvalsesiavercelli.it/wp-content/uploads/2022/08/Mera2-scaled.jpg" alt="Panorama dall’Alpe di Mera" class="gallery-img">
+<img src="https://visitvalsesiavercelli.it/wp-content/uploads/2022/11/A9A00119.jpg" alt="Casa Walser ad Alagna Valsesia" class="gallery-img">
+<img src="https://visitvalsesiavercelli.it/wp-content/uploads/2022/09/Rifugio_Capanna_Regina_Margherita.jpeg" alt="Finale d’alta quota: Capanna Regina Margherita" class="gallery-img">
+<img src="https://visitvalsesiavercelli.it/wp-content/uploads/2022/08/Sacro-Monte-Varallo.jpg" alt="Il Sacro Monte di Varallo" class="gallery-img">
+</div>
+</div>
+<p style="text-align:center;font-size:0.9rem;color:#666;margin-top:1rem">Galleria orizzontale — swipe o scroll per esplorare</p>
+</section>
+
+</div>
+
+<!-- Dialog: Esplora la 299 -->
+<div class="dialog-overlay" id="loc-overlay">
+<div id="loc-dialog">
+<h3>Esplora la 299</h3>
+<p>La SP299 unisce questa valle. Scorri per scoprire le tappe del viaggio:</p>
+<ul class="dialog-list" id="loc-list"></ul>
+<button class="dialog-close" id="loc-close">Chiudi</button>
+</div>
+</div>
+
+<script>
+(function(){
+'use strict';
+// Dati locali 17 tappe
+const LOCALITA=[
+{"nome":"Romagnano Sesia","desc":"Ingresso storico alla valle, punto di partenza del percorso lungo la SP299. Il paese conserva un centro storico con case in pietra che danno il tono al viaggio.","url":"https://visitvalsesiavercelli.it/vivi/arte-e-cultura/alagna/"},
+{"nome":"Prato Sesia","desc":"Primo passaggio nella valle, lungo la strada che sale verso Novara. Attività fluviali e paesaggi di transizione.","url":"https://visitvalsesiavercelli.it/vivi/arte-e-cultura/alagna/"},
+{"nome":"Grignasco","desc":"Ingresso successivo, con architettura storica e borghi che anticipano il tratto montano. Il territorio cambia verso l’altezza.","url":"https://visitvalsesiavercelli.it/vivi/arte-e-cultura/alagna/"},
+{"nome":"Serravalle Sesia","desc":"Terzo centro lungo la valle, punto di appoggio prima della discesa verso Varallo. Paesaggio agricolo e mulini.","url":"https://visitvalsesiavercelli.it/vivi/arte-e-cultura/varallo/"},
+{"nome":"Borgosesia","desc":"Bassa valle, prima del bivio per il passaggio verso Varallo. Il fiume Sesia è protagonista in questa sezione.","url":"https://visitvalsesiavercelli.it/vivi/arte-e-cultura/borgosesia/"},
+{"nome":"Quarona","desc":"Ultimo centro della bassa valle, varco verso l’altopiano. La strada inizia a salire con i primi rilievi.","url":"https://visitvalsesiavercelli.it/vivi/arte-e-cultura/quarona/"},
+{"nome":"Varallo","desc":"Cuore artistico della Valsesia: SACRO MONTE UNESCO, chiese gotiche, borghi di pietra. La strada attraversa l’arte e il patrimonio.","url":"https://visitvalsesiavercelli.it/vivi/arte-e-cultura/varallo/"},
+{"nome":"Vocca","desc":"Fiume che attraversa la valle: vocca, paesaggio fluviale, passaggi dove l’acqua guida il viaggio verso le montagne.","url":"https://visitvalsesiavercelli.it/vivi/arte-e-cultura/varallo/"},
+{"nome":"Balmuccia","desc":"Il fiume continua il suo corso in una valle stretta, circondata da muri di pietra. Immagine dedicata al fiume e al paesaggio fluviale.","url":"https://visitvalsesiavercelli.it/vivi/arte-e-cultura/balmuccia/"},
+{"nome":"Scopa","desc":"Centro lungo la valle, punto di transizione verso l’ascesa. Il panorama si apre lentamente con lo scorrere.","url":"https://visitvalsesiavercelli.it/vivi/arte-e-cultura/scopello/"},
+{"nome":"Scopello","desc":"La montagna si apre: viste che anticipano la salita verso le cime. L’aspetto visivo cambia con lo scroll.","url":"https://visitvalsesiavercelli.it/vivi/arte-e-cultura/scopello/"},
+{"nome":"Pila","desc":"Piccoli centri che si susseguono lungo la valle, ognuno con una storia e un angolo di paesaggio proprio.","url":"https://visitvalsesiavercelli.it/vivi/arte-e-cultura/pila/"},
+{"nome":"Piode","desc":"Altro centro storico nel tratto pianeggiante, con architettura locale che dialoga con il cammino.","url":"https://visitvalsesiavercelli.it/vivi/arte-e-cultura/piode/"},
+{"nome":"Campertogno","desc":"Fiera del bestiame: tradizione valsesiana legata all’agricoltura e al lavoro della terra. Immagine associata alla fiera.","url":"https://visitvalsesiavercelli.it/vivi/arte-e-cultura/campertogno/"},
+{"nome":"Mollia","desc":"Il Mulino Fucina: acqua che lavora, memoria del territorio. Il paesaggio rurale è al centro di questa storia.","url":"https://visitvalsesiavercelli.it/vivi/arte-e-cultura/mollia/"},
+{"nome":"Riva Valdobbia","desc":"Passo finale prima dell’arrivo ad Alagna. Riva che segna il confine tra valle e montagna, la strada arriva al suo traguardo.","url":"https://visitvalsesiavercelli.it/vivi/arte-e-cultura/alagna/"},
+{"nome":"Alagna Valsesia","desc":"Arrivo ai piedi del Monte Rosa. Il percorso termina qui: la strada finisce, ma la meraviglia continua verso l’altitudine.","url":"https://visitvalsesiavercelli.it/vivi/arte-e-cultura/alagna/"}
+];
+
+// Dialog
+const overlay = document.getElementById('loc-overlay');
+const dialog = document.getElementById('loc-dialog');
+const closeBtn = document.getElementById('loc-close');
+document.getElementById('nav-explora').addEventListener('click', e=>{e.preventDefault();openDialog();});
+function openDialog(){
+  overlay.classList.add('open');
+  renderList();
+}
+closeBtn.addEventListener('click',()=>overlay.classList.remove('open'));
+overlay.addEventListener('click',e=>{if(e.target===overlay)overlay.classList.remove('open') });
+document.addEventListener('keydown',e=>{if(e.key==='Escape')overlay.classList.remove('open')});
+function renderList(){
+  const list=document.getElementById('loc-list');
+  list.innerHTML=LOCALITA.map(l=>`<li><span>${l.nome}</span><span>${l.desc}</span></li>`).join('');
+}
+
+// Chapter anchor links
+['home','chapter','gallery'].forEach(id=>{
+  const a=document.getElementById('nav-'+id);
+  if(a){a.addEventListener('click',e=>{e.preventDefault();const s=document.getElementById(id);s.scrollIntoView({behavior:'smooth'});});}
+});
+
+// Chapter indicator update on scroll
+document.addEventListener('scroll',()=>{
+  const scrollTop=window.scrollY;
+  let idx=1;
+  if(scrollTop>800){idx=3;}else if(scrollTop>400){idx=2;}else{idx=1;}
+  document.getElementById('ch-ind').textContent=idx;
+});
+
+// Road SVG tracking with JS animation (stroke-dashoffset)
+const svg=document.getElementById('road-svg');
+if(svg){
+  const path=svg.querySelector('.path');
+  const totalLength=path.getTotalLength();
+  // Marker positions
+  const markers=[0,0.33,0.66];
+  markers.forEach(m=>{
+    setTimeout(()=>{path.style.transition='stroke-dashoffset 2s ease-out';path.style.strokeDasharray=totalLength;path.style.strokeDashoffset=totalLength*(1-m);},m*2000);
+  });
+}
+
+// Galleria swipe/hover
+const gallery=document.getElementById('gallery');
+gallery.addEventListener('wheel',e=>{e.preventDefault();});
+/* Touch swipe detection */
+let startX=null;
+gallery.addEventListener('touchstart',e=>{startX=e.touches[0].clientX;});
+gallery.addEventListener('touchend',e=>{
+  if(startX==null)return;
+  const diff=startX-e.changedTouches[0].clientX;
+  if(Math.abs(diff)>50){gallery.scrollLeft+=diff<0?50:-50;}
+  startX=null;
+});
+})();
+</script>
+</body>
+</html>

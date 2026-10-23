@@ -1,0 +1,14 @@
+{
+  "name": "egg-inspection-demo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Demo: ispezione di uova (pulizia e integrità) con Jev 1.14, GPT-6 Luna Decisions e GPT-6 Luna via OpenRouter",
+  "type": "module",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "pics": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/prepare-pics.ps1",
+    "demo": "node src/demo.mjs",
+    "demo:mock": "node src/demo.mjs --mock",
+    "test": "node --test test/*.test.mjs"
+  }
+}

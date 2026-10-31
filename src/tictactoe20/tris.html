@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<title>Tris (Tic-Tac-Toe) - PC ottimale con Minimax</title>
+<style>
+  body {
+    font-family: Arial, Helvetica, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 0;
+    padding: 20px;
+    background: #f4f4f9;
+  }
+  h1 { color: #2c3e50; }
+  #status {
+    margin-top: 10px;
+    font-size: 20px;
+    min-height: 1.5em;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    max-width: 320px;
+    width: 300px;
+    margin: 0 auto 20px;
+  }
+  .cell {
+    width: 100px;
+    height: 100px;
+    background: #fff;
+    border-radius: 8px;
+    text-align: center;
+    cursor: pointer;
+    font-size: 2.5em;
+    transition: background 0.2s;
+  }
+  .cell:hover { background: #eaeaea; }
+  button {
+    margin-top: 10px;
+    padding: 8px 16px;
+    font-size: 1rem;
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+<h1>Tris (Tic-Tac-Toe)</h1>
+<div id="status"></div>
+<div class="grid" id="grid"></div>
+<button id="newGameBtn">Nuova partita</button>
+
+<script>
+(function() {
+  'use strict';
+
+  const board = Array(9).fill(null);
+  let gameOver = false;
+  const statusEl = document.getElementById('status');
+  const grid = document.getElementById('grid');
+
+  // Winning lines (indices)
+  const WIN_LINES = [
+    [0,1,2],[3,4,5],[6,7,8],
+    [0,3,6],[1,4,7],[2,5,8],
+    [0,4,8],[2,4,6]
+  ];
+
+  // Check if a given symbol occupies all three cells of a line (on the provided array)
+  function checkWinCopy(arr, symbol) {
+    for (const line of WIN_LINES) {
+      const a = arr[line[0]], b = arr[line[1]], c = arr[line[2]];
+      if (a === symbol && b === symbol && c === symbol) return true;
+    }
+    return false;
+  }
+
+  // Is the board full?
+  function isBoardFull(arr) {
+    return arr.every(cell => cell !== null);
+  }
+
+  // Minimax for O's optimal move
+  function minimax(boardArr, isMaximizing) {
+    if (checkWinCopy(boardArr, 'O')) return 10;
+    if (checkWinCopy(boardArr, 'X')) return -10;
+    if (isBoardFull(boardArr)) return 0;
+
+    if (isMaximizing) {
+      let best = -Infinity;
+      for (let i = 0; i < 9; i++) {
+        if (boardArr[i] === null) {
+          const bcopy = boardArr.slice();
+          bcopy[i] = 'O';
+          const score = minimax(bcopy, false); // X's turn
+          best = Math.max(best, score);
+        }
+      }
+      return best;
+    } else {
+      let best = Infinity;
+      for (let i = 0; i < 9; i++) {
+        if (boardArr[i] === null) {
+          const bcopy = boardArr.slice();
+          bcopy[i] = 'X';
+          const score = minimax(bcopy, true); // O's turn
+          best = Math.min(best, score);
+        }
+      }
+      return best;
+    }
+  }
+
+  // Find the best index for 'O' to play (minimax)
+  function getBestMoveForO(boardArr) {
+    let bestScore = -Infinity;
+    let bestIndex = -1;
+    for (let i = 0; i < 9; i++) {
+      if (boardArr[i] === null) {
+        const bcopy = boardArr.slice();
+        bcopy[i] = 'O';
+        const score = minimax(bcopy, false); // X to move
+        if (score > bestScore) {
+          bestScore = score;
+          bestIndex = i;
+        }
+      }
+    }
+    return bestIndex;
+  }
+
+  function updateStatus(msg) {
+    statusEl.textContent = msg;
+  }
+
+  function endGame(winner) {
+    gameOver = true;
+    const winText = (winner === 'X') ? 'Hai vinto!' : (winner === 'O' ? 'Il PC ha vinto!' : 'Pareggio!');
+    statusEl.textContent = `${winText} ${gameOver ? '' : ' — il gioco continua.'}`;
+  }
+
+  // Synthesized sound via Web Audio API
+  let audioCtx = null;
+  function playSound(type) {
+    if (!audioCtx || typeof AudioContext !== 'undefined') {
+      if (!audioCtx) {
+        try { audioCtx = new AudioContext(); } catch(e) {}
+      }
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sine';
+      // click: 880 Hz, win/draw: 660 Hz, normal move: 440 Hz
+      const freq = type === 'click' ? 880 : (type === 'win' || type === 'draw') ? 660 : 440;
+      osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+      gain.connect(audioCtx.destination);
+      // set initial gain at current time
+      const now = audioCtx.currentTime;
+      gain.gain.value = 0.25;
+      osc.start();
+      osc.stop(now + 0.1);
+    }
+  }
+
+  // Handle human click on a cell
+  function handleHumanClick(index) {
+    if (gameOver) return;
+    const btn = document.getElementById(`cell-${index}`);
+    if (board[index] !== null) { // already occupied
+      updateStatus(`La casella ${index + 1} è occupata.`);
+      return;
+    }
+    board[index] = 'X';
+    playSound('click');
+    updateStatus(`Hai scelto la casella ${index + 1} (X).`);
+    btn.textContent = 'X';
+    checkWinCopy(board, 'X');
+    if (checkWinCopy(board, 'X')) {
+      endGame('X');
+      return;
+    }
+    const pcIndex = getBestMoveForO(board);
+    if (pcIndex !== -1) {
+      board[pcIndex] = 'O';
+      playSound('move');
+      updateStatus(`Il PC risponde con la mossa ottimale ${pcIndex + 1} (O).`);
+      document.getElementById(`cell-${pcIndex}`).textContent = 'O';
+    } else {
+      // no empty cell for O -> game over / draw
+      if (isBoardFull(board)) {
+        gameOver = true;
+        statusEl.textContent = 'Pareggio!';
+      } else {
+        updateStatus('Nessun vincitore, il gioco continua.');
+      }
+    }
+
+
+  // Initialize the grid cells as buttons
+  function initGrid() {
+    grid.innerHTML = '';
+    for (let i = 0; i < 9; i++) {
+      const btn = document.createElement('button');
+      btn.id = `cell-${i}`;
+      btn.className = 'cell';
+      btn.setAttribute('role', 'gridcell');
+      btn.setAttribute('aria-label', `Casella ${i + 1}`);
+      btn.textContent = '';
+      btn.addEventListener('click', () => handleHumanClick(i));
+      grid.appendChild(btn);
+    }
+  }
+
+  // Start the game
+  function run() {
+    board.fill(null);
+    initGrid();
+  }
+
+  document.getElementById('grid').addEventListener('button', handleHumanClick);
+
+  document.getElementById('newGameBtn').addEventListener('click', run);
+
+  run();
+})();
+</script>
+</body>
+</html>

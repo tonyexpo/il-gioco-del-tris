@@ -1,6 +1,6 @@
 # Diorama voxel di Minas Tirith — JavaScript / Three.js
 
-Sviluppa una single page application in JavaScript con Three.js che generi proceduralmente un diorama 3D della città di Minas Tirith in stile Minecraft/voxel: blocchi, colori semplici, geometrie squadrate, nessun fotorealismo. Restituisci un unico file `index.html` completo con HTML, CSS e JavaScript, senza build o backend. Importa Three.js e OrbitControls tramite import map da CDN, fissando la stessa versione per entrambi. Nessun asset esterno oltre ai moduli JavaScript: geometrie, materiali, effetti sonori e musica devono essere generati dal codice.
+Sviluppa una single page application in JavaScript con Three.js che generi proceduralmente un diorama 3D della città di Minas Tirith in stile Minecraft/voxel: blocchi, colori semplici, geometrie squadrate, nessun fotorealismo. Restituisci un unico file `minas-tirith.html` completo con HTML, CSS e JavaScript, senza build o backend. Importa Three.js e OrbitControls da CDN tramite classici tag `<script>` (build UMD/globale, non moduli ES, niente import map), fissando la stessa versione per entrambi, in modo che il file funzioni apribile direttamente via `file://` senza bisogno di un server HTTP locale. Nessun asset esterno oltre agli script CDN: geometrie, materiali, effetti sonori e musica devono essere generati dal codice.
 
 ## Scena
 - Città bianca con sette livelli/anelli concentrici su terrazze, mura merlate, porte, rampe percorribili visivamente e una grande roccia centrale a sperone. Cittadella e torre svettano in cima.
@@ -28,4 +28,4 @@ Sviluppa una single page application in JavaScript con Three.js che generi proce
 - Usa InstancedMesh o geometrie unite per blocchi ripetuti, riutilizza geometrie/materiali ed evita cubi interni invisibili. Nessun oggetto separato per ogni voxel se porta a migliaia di draw call.
 - Gestisci ridimensionamento, fallimento del renderer e mancato caricamento delle dipendenze con messaggi comprensibili. Nessun errore in console durante l'uso normale.
 - Codice organizzato in funzioni leggibili con parametri iniziali per scala, dettaglio, seed, animazione e audio. Nessun pseudocodice, TODO o parte lasciata da implementare.
-- Restituisci l'intero `index.html` in un solo blocco di codice e poi istruzioni minime per servirlo con un server HTTP statico locale. Indica che il primo caricamento delle dipendenze CDN richiede internet.
+- Restituisci l'intero `minas-tirith.html` in un solo blocco di codice. Il file deve funzionare apribile direttamente nel browser via doppio clic (`file://`), senza server HTTP locale; indica solo che il primo caricamento delle dipendenze CDN richiede internet.

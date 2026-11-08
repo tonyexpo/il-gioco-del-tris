@@ -1,113 +1,64 @@
-# QA avversariale — gioco del tris
+# QA — Tris 2D
 
-**Autore della QA:** GPT-6.1 Terra (OpenAI), agente OpenCode.
+## Esito
 
-## Riesame dopo le fix segnalate — 31 ottobre 2026
+**Non approvato.** Il gioco non è utilizzabile come partita di tris: le caselle non mostrano i simboli, il rilevamento della vittoria è errato e la partita non si ferma. Inoltre la logica del PC non implementa minimax, richiesto dal prompt.
 
-**Esito: non rilasciabile; nessuna delle correzioni precedentemente richieste è riscontrabile nel `tris.html` presente in questa cartella.** Il codice rilevante corrisponde a quello descritto nel rapporto precedente. Non è possibile stabilire se l'agente di sviluppo abbia salvato le modifiche altrove o non le abbia ancora applicate a questo file.
+**Ambito:** verifica statica di `tris.html` rispetto a `../prompt-tris.md` e prova dello script JavaScript con un DOM simulato. Non è stata eseguita una prova visiva o audio in un browser reale. Righe riferite alla versione esaminata del file.
 
-Ho ripetuto le prove eseguendo lo script attuale con DOM e Web Audio simulati:
+## Problemi
 
-| Verifica di regressione | Risultato attuale |
-|---|---|
-| Prima mossa al centro | X presente nello stato interno, tutte le celle visualizzate vuote; la O viene scritta in `board[-1]`. |
-| Cella occupata | Dopo centro e alto sinistra, la O in alto al centro può ancora essere sovrascritta con X. |
-| Audio | L'oscillatore viene avviato ma non viene collegato; senza `AudioContext` il primo clic genera ancora `ReferenceError` dopo aver scritto X. |
-| Pareggio con ultima X | Compare «Pareggio!», ma viene ancora scritta una O in `board[-1]`. |
-| Tastiera e riavvio | Dall'analisi del codice persistono celle `div` con solo `click` e assenza di un comando di nuova partita. |
+### 1. Critico — X e O non sono visibili e la griglia non viene applicata
 
-**Stato dei difetti precedenti:** tutti aperti. Le prove di blocco e vittoria del PC riportate sotto non sono state ripetute separatamente in questo riesame; la logica Minimax interessata è tuttora invariata. Nessun test in browser reale è stato eseguito. Per un nuovo collaudo serve la versione corretta di `C:\temp\tictactoe20\tris.html`.
+- **Dove:** `tris.html:25-30`, `60`, `77-88`, `131-150`.
+- Il contenitore ha classe `grid`, mentre le regole CSS della griglia sono definite per `.board`. Le caselle quindi non vengono disposte secondo la griglia 3×3 prevista.
+- Ogni pulsante viene creato con testo vuoto; dopo le mosse si aggiorna solo lo stato interno e si aggiunge la stessa classe `selected` sia a X sia a O. I simboli non vengono mai scritti nelle caselle, né i due giocatori sono distinguibili dal colore.
+- **Riproduzione:** aprire la pagina e selezionare una casella. Anche dopo la risposta del PC, nessuna casella mostra X o O. La prova dello script con DOM simulato ha confermato i nove testi vuoti.
+- **Atteso:** griglia 3×3 e simboli X/O visibili e distinguibili nelle posizioni occupate.
 
----
+### 2. Critico — Una linea piena di simboli diversi viene considerata una vittoria
 
-## Esito: non conforme, non rilasciabile
+- **Dove:** `tris.html:92-100` e `104-109`.
+- `checkWinner` e `evaluateBoard` verificano solo che le tre caselle non siano vuote, senza verificare che contengano lo stesso simbolo. L'esito viene attribuito al simbolo nella prima casella della linea.
+- **Riproduzione:** su pagina iniziale selezionare la casella centrale (5), poi quella centrale sinistra (4), numerando da 1 a 9 per righe. Il PC occupa prima la 1 e poi la 2: la prima riga è `O O X`, ma lo stato annuncia la vittoria del PC. Sequenza confermata con DOM simulato.
+- **Atteso:** vittoria solo per tre simboli uguali sulla stessa linea; la stessa condizione deve essere usata dalla valutazione del PC.
 
-Il gioco non è utilizzabile: le mosse non vengono mostrate, il PC non inserisce una O valida al primo turno e i suoni non raggiungono l'uscita audio. La logica consente inoltre di sovrascrivere le caselle. Il file richiesto esiste ed è una pagina HTML autonoma con JavaScript vanilla, ma i requisiti funzionali principali non sono soddisfatti.
+### 3. Alto — Il PC non usa minimax e non prevede le minacce
 
-## Ambito e metodo
+- **Dove:** `tris.html:104-128`, `138-150`, `161-180`.
+- Si valuta solo la posizione immediatamente successiva alla mossa O; non vengono esplorate ricorsivamente le risposte dell'avversario. Inoltre `chooseBestForO` e `handleComputerMove` non sono chiamate nel flusso principale, che duplica la stessa valutazione. Il difetto di rilevamento delle linee altera anche questi punteggi.
+- **Riproduzione per ispezione del codice:** dall'inizio selezionare 1, poi 4. Il PC risponde rispettivamente con 2 e 5, lasciando libera la 7, che completa la colonna di X alla mossa successiva. Le posizioni sono numerate per righe da 1 a 9.
+- **Atteso:** un minimax semplice che consideri le mosse successive di entrambi i giocatori, blocchi le vittorie immediate di X e scelga correttamente gli esiti terminali.
 
-- Prompt di riferimento: `C:\temp\prompt-tris.md`: tris in JavaScript vanilla, pagina singola `tris.html`, umano sempre X, PC sempre O, Minimax facile e suoni sintetizzati.
-- File esaminato: `tris.html`. Nessuna modifica al gioco è stata effettuata.
-- Analisi statica e prove con Node.js eseguendo lo script originale in un contesto isolato con DOM e Web Audio simulati. Le prove verificano la logica e le chiamate, non sostituiscono un collaudo visivo, sonoro o di accessibilità in un browser reale.
-- Indici interni da 0 a 8, in ordine di lettura; nella descrizione utente le caselle sono da 1 a 9.
+### 4. Alto — Si continua a giocare dopo la fine e il PC muove dopo una vittoria di X
 
-## Difetti
+- **Dove:** `tris.html:131-159`, `227-248`.
+- Le chiamate a `checkWinner()` dopo le mosse ignorano il valore restituito; non esiste un controllo di partita terminata all'inizio degli handler. Il PC viene eseguito subito dopo X anche se X ha già vinto. Anche il pulsante separato può modificare la partita conclusa.
+- **Riproduzione:** seguire la sequenza 5, 4 del problema 2; dopo l'annuncio della vittoria del PC, selezionare la casella 7. La casella viene comunque accettata e il PC effettua un'altra mossa; la continuazione è stata confermata con DOM simulato.
+- **Atteso:** verificare vittoria o pareggio subito dopo ogni mossa, fermare la sequenza e impedire ulteriori mosse fino a una nuova partita.
 
-### P0 — Nessuna mossa viene visualizzata
+### 5. Alto — Il pulsante aggiuntivo inserisce X senza rispettare i turni
 
-**Riferimenti:** `tris.html:165-176`, `tris.html:193-201`.
+- **Dove:** `tris.html:62`, `227-249`.
+- Il pulsante «Scegli la tua mossa (X)» non permette di scegliere una casella: inserisce X automaticamente nella prima libera. `bestScore` parte da `-Infinity` e il confronto `score < bestScore` non può riuscire con i punteggi restituiti, quindi viene sempre usato il fallback. Non segue una mossa del PC; clic ripetuti consentono più X consecutive.
+- **Riproduzione:** all'avvio premere due volte il pulsante: lo stato interno contiene X nelle prime due caselle e nessuna O.
+- **Atteso:** eliminare il pulsante superfluo oppure assegnargli un comportamento coerente con scelta della casella, alternanza e fine partita.
 
-Le celle sono create vuote e non esiste alcuna funzione che aggiorni il loro contenuto dopo una mossa. Cliccando la cella centrale, la X viene scritta nello stato interno, ma tutte le nove celle restano vuote. L'utente non può conoscere la posizione dei simboli né giocare una partita verificabile.
+### 6. Medio — Nessun comando per iniziare una nuova partita
 
-**Atteso:** aggiornare la cella corrispondente a ogni mossa valida, mostrando X o O e mantenendo sincronizzati interfaccia e stato.
+- **Dove:** interfaccia e stato in `tris.html:58-63`, `69-70`.
+- Non è previsto un reset della scacchiera; per rigiocare occorre ricaricare la pagina. La funzionalità non è esplicitamente richiesta dal prompt, ma è importante per l'usabilità.
+- **Atteso:** un comando di nuova partita che ripristini stato, caselle e messaggio iniziale.
 
-### P0 — Minimax valuta la scacchiera sbagliata e la prima O finisce fuori griglia
+### 7. Medio — Layout e accessibilità da verificare
 
-**Riferimenti:** `tris.html:70-81`, `tris.html:85-109`, `tris.html:118-132`, `tris.html:175-176`.
+- **Dove:** `tris.html:3-5`, `13`, `27-28`, `32-40`, `77-87`.
+- Manca il viewport per dispositivi mobili; griglia e celle hanno dimensioni fisse e il contenitore è centrato in un'area alta esattamente `100vh`, con rischio di tagli su schermi piccoli. Le celle sono pulsanti senza testo né etichetta accessibile, quindi posizione e contenuto non sono comunicati chiaramente agli screen reader.
+- **Atteso:** layout adattabile, viewport configurato ed etichette accessibili che identifichino posizione e stato di ogni casella. Da confermare con test su dispositivi e tecnologie assistive.
 
-`minimax` simula le mosse sulle copie `boardArr`, ma `checkWin` e `isBoardFull` leggono sempre la `board` globale. Le posizioni simulate non sono quindi valutate: quando la copia si riempie, la ricorsione può restituire valori infiniti anziché un punteggio valido. Alla prima mossa umana, `getBestMoveForO` restituisce `-1`; l'assegnazione successiva crea la proprietà `board[-1] = 'O'` invece di occupare una delle nove caselle.
+## Requisiti e verifiche residue
 
-**Riproduzione verificata:** clic sulla cella centrale: tra gli indici 0–8 rimane solo la X centrale, senza alcuna O. In una posizione di prova con `X, X, vuota` sulla prima riga, il calcolo ha restituito `-1` anziché bloccare la minaccia; in un'altra con due O consecutive ha scelto l'indice 1 anziché completare la riga all'indice 5.
-
-**Atteso:** valutare vittoria e pareggio sulla posizione simulata, restituire sempre una casella libera valida quando disponibile e verificare il risultato prima di scrivere. Il prompt dice «minimax facile», senza definire precisamente il livello: in ogni caso la simulazione deve operare correttamente.
-
-### P1 — Le caselle occupate possono essere sovrascritte
-
-**Riferimenti:** `tris.html:165-167`.
-
-`handleHumanClick` controlla solo `gameOver`, non se la casella sia libera. Con il DOM simulato, dopo un clic al centro e uno sulla cella in alto a sinistra, il PC colloca una O nella cella in alto al centro; cliccando quest'ultima, la O viene sovrascritta con una X e il PC gioca un'ulteriore O. Anche ricliccare una X può provocare un turno aggiuntivo del PC.
-
-**Atteso:** ignorare una selezione su una casella occupata senza cambiare stato, turno o suono.
-
-### P1 — I suoni sintetizzati sono silenziosi
-
-**Riferimenti:** `tris.html:151-161`.
-
-L'oscillatore viene creato e avviato, e il gain viene collegato alla destinazione, ma manca il collegamento dall'oscillatore al gain. Nella prova simulata sono state osservate chiamate a `gain.connect` e `osc.start`, ma nessuna a `osc.connect`: il segnale non raggiunge l'uscita. Inoltre non viene mai richiamato un suono specifico di vittoria o pareggio, nonostante i tipi siano previsti.
-
-**Atteso:** collegare oscillatore → gain → destinazione e verificare l'udibilità in un browser reale; gestire coerentemente anche gli eventi di fine partita se si vogliono distinguere.
-
-### P1 — Se l'audio non è disponibile la partita si interrompe a metà mossa
-
-**Riferimenti:** `tris.html:147-150`, `tris.html:165-169`.
-
-In un ambiente simulato senza `AudioContext`, il primo clic genera `ReferenceError: AudioContext is not defined` dopo aver già scritto la X, ma prima di aggiornare lo stato o far giocare il PC. L'espressione accede all'identificatore non dichiarato prima di provare `window.AudioContext`. Anche altri errori di inizializzazione audio non sono gestiti.
-
-**Atteso:** rilevare in sicurezza il supporto audio e trattare l'audio come opzionale: se non disponibile o fallisce, la partita deve proseguire normalmente.
-
-### P2 — Il pareggio viene controllato dopo un turno PC inesistente
-
-**Riferimenti:** `tris.html:170-176`, `tris.html:184-186`.
-
-Se l'ultima X riempie la griglia senza vincere, il codice tenta comunque la mossa del PC. Nella prova con posizione iniziale `X O X / X O O / O X vuota`, l'ultima X produce correttamente il testo «Pareggio!», ma prima viene scritto `board[-1] = 'O'` e viene tentato un suono per una mossa PC inesistente.
-
-**Atteso:** controllare il pareggio subito dopo la mossa umana e terminare senza chiamare il PC quando la griglia è piena.
-
-### P2 — Mancano comandi accessibili e nuova partita
-
-**Riferimenti:** `tris.html:50-52`, `tris.html:193-201`, `tris.html:205-210`.
-
-Le celle sono `div` con solo un gestore `click`: non sono pulsanti nativi, non sono normalmente raggiungibili da tastiera e non dichiarano posizione o stato accessibile. Lo stato iniziale è vuoto e non c'è un comando per ricominciare senza ricaricare la pagina. Mancano inoltre il meta viewport e una verifica del layout su schermi stretti. La UX era libera nel prompt, ma questi aspetti riducono l'usabilità.
-
-**Atteso:** celle utilizzabili da tastiera e con nome/stato accessibile, stato iniziale comprensibile, comando di nuova partita e verifica responsive.
-
-## Copertura delle verifiche
-
-| Verifica | Esito |
-|---|---|
-| Pagina singola `tris.html`, JavaScript vanilla | Presente |
-| Prima mossa umana e risposta PC nella griglia | Fallita: PC scrive in `board[-1]` |
-| Visualizzazione delle mosse | Fallita: celle sempre vuote |
-| Blocco minaccia e scelta vittoria PC | Fallita nelle posizioni di prova |
-| Clic su casella occupata | Fallita: casella sovrascritta |
-| Pareggio sull'ultima X | Messaggio corretto, ma tentata mossa PC non valida |
-| Collegamento del segnale audio | Fallita: oscillatore scollegato |
-| Indisponibilità API audio | Fallita: eccezione dopo modifica parziale dello stato |
-| Browser reale, ascolto, dispositivi mobili e screen reader | Non eseguiti |
-
-## Priorità di correzione e regressione
-
-1. Correggere le funzioni di valutazione del Minimax affinché usino la scacchiera simulata; impedire indici non validi e controllare le condizioni terminali dopo ogni mossa.
-2. Implementare il rendering delle celle e bloccare le mosse su celle occupate; aggiungere una nuova partita che ripristini stato e interfaccia.
-3. Collegare il grafo audio e rendere innocui gli errori audio.
-4. Ripetere le prove in browser, comprese tutte le otto linee di vittoria per entrambi i giocatori, pareggio, clic ripetuti, riavvio, tastiera e schermi stretti. Per il Minimax, esplorare sistematicamente le partite raggiungibili e verificare mosse legali e comportamento rispetto al livello di difficoltà scelto.
+- **File singolo / JavaScript vanilla:** presenti in `tris.html`, senza dipendenze esterne apparenti.
+- **Umano X e PC O:** rispettati nei valori assegnati dal percorso principale, ma non visibili; il pulsante aggiuntivo rompe l'alternanza.
+- **Suoni sintetizzati:** presente un beep Web Audio sulle selezioni valide delle celle, con fallback silenzioso in caso di errore. Riproduzione effettiva non verificata in browser.
+- Dopo le correzioni, verificare in browser: tutte le otto linee vincenti per entrambi i giocatori, linee miste non vincenti, pareggio, blocco delle mosse a fine partita, reset, input da tastiera, schermi piccoli e audio. Verificare inoltre minimax su tutti gli stati raggiungibili, inclusa l'impossibilità per X di vincere contro un PC perfetto.

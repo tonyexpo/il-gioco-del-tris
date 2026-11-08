@@ -110,7 +110,7 @@ src/
 | `tictactoe17` | Mistral Large 4 (appena rilasciato) — tris 3D neon stile Subway Surfers (JS vanilla + three.js) |
 | `tictactoe18` | Qwen 3.8 27B IQ1 (Unsloth) — tentativo fallito, nessun gioco prodotto |
 | `tictactoe19` | LFM2.5-24B (q6_k_xl) — batch di test multipli (hello world, tris JS vanilla, QA, sito Valsesia), vedi nota |
-| `tictactoe20` | LFM-3-1.7B (Q8_0, LiquidAI) — batch di test multipli (hello world, tris JS vanilla, sito Valsesia, tesina Milano, traduzione Venezia), QA di GPT-6.1-Terra, entrambi via OpenCode, vedi nota |
+| `tictactoe20` | LFM-3-1.7B (Q8_0, LiquidAI) — batch di test multipli (hello world, tris JS vanilla, tesina Milano, traduzioni IT/EN), QA codice di GPT-6.1-Terra e review accademiche del "professor GPT", entrambi via OpenCode, vedi nota |
 
 ## tictactoe-slm1 — confronto multi-modello SLM (orchestrato da GPT-6-Sol)
 
@@ -251,30 +251,33 @@ tictactoe19/
 
 Il prompt strutturato usato per `valsesia.html` è conservato in
 [`prompt/prompt-sito-premium-valsesia-sp299.md`](prompt/prompt-sito-premium-valsesia-sp299.md)
-— prima voce di una cartella `prompt/` dedicata ai prompt di test salvati
-come file, per riutilizzarli più comodamente nei batch successivi. Gli
-altri task della cartella (hello world, tris) sono partiti da richieste
-conversazionali brevi, non salvate come file di prompt separato.
+— prima voce di una cartella [`prompt/`](prompt/) dedicata ai prompt di
+test salvati come file, per riutilizzarli più comodamente nei batch
+successivi. La cartella raccoglie progressivamente anche i prompt usati
+nei batch successivi (tris con minimax, tris3d/snake3d minecraft-style,
+tesina Milano, traduzioni, analisi email, diorami Halloween/Natale,
+Minas Tirith in JS e Blender). Gli altri task della cartella (hello
+world) sono partiti da richieste conversazionali brevi, non salvate come
+file di prompt separato.
 
 ## tictactoe20 — batch di test con LFM-3-1.7B (Q8_0, LiquidAI)
 
 Come `tictactoe19/`, anche `tictactoe20/` non raccoglie un solo task ma una
-sessione di test più ampia, stavolta con **LFM-3-1.7B** alla quantizzazione
-**Q8_0** di LiquidAI. Il modello ha generato i contenuti, mentre la QA è
-stata svolta da **GPT-6.1-Terra**; entrambi via **OpenCode CLI**:
+sessione di test più ampia, con **LFM-3-1.7B** alla quantizzazione **Q8_0**
+di LiquidAI a generare i contenuti. La QA sul codice (tris) è stata svolta
+da **GPT-6.1-Terra**, mentre le review delle prove accademiche/testuali
+(tesina Milano, traduzioni) sono a cura del "**professor GPT**"; entrambi
+via **OpenCode CLI**:
 
 ```
 tictactoe20/
-  helloworld.html   → file di prova minimo, verifica scrittura file
-  tris.html         → tris in JS vanilla, single-file
-  tris-qa.md         → QA avversariale sul tris
-  valsesia.html      → sito one-page "Valsesia/SP299" (vedi prompt dedicato)
-  valsesia-qa.md      → QA avversariale sul sito Valsesia
-  milano.md          → tesina su Milano
-  milano-qa.md        → QA sulla tesina Milano
-  venezia-it.md       → testo su Venezia in italiano
-  venezia-en.md       → traduzione in inglese dello stesso testo
-  venezia-qa.md       → QA sulla traduzione Venezia
+  helloworld.html                    → file di prova minimo, verifica scrittura file
+  tris.html                           → tris in JS vanilla, single-file
+  tris-qa.md / tris-qa2.md            → due round di QA avversariale sul tris
+  milano.md                           → tesina su Milano
+  milano-review.html                  → review accademica della tesina ("professor GPT")
+  traduzioni_ita_eng.md               → set di traduzioni italiano/inglese
+  traduzioni_ita_eng-review.html      → review delle traduzioni ("professor GPT")
 ```
 
 ## Altre demo

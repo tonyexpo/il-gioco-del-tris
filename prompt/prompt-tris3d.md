@@ -1,0 +1,1 @@
+sviluppa un gioco del tris in javascript vanilla + eventualmente three.js (cdn), single page in tris3d.html, giocatore sempre X, PC sempre O, logica del PC con minimax facile, UX a discrezione, stile minecraft 3D, genera un po di mondo attorno che sia bello da guardare, la scena deve essere ruotabile (es. drag del mouse), effetti sonori sintetizzati

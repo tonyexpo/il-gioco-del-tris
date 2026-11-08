@@ -86,6 +86,7 @@ src/
   tictactoe19/  → batch di test con LFM2.5-24B q6_k_xl (vedi nota)
   tictactoe20/  → batch di test con LFM-3-1.7B Q8_0 (vedi nota)
   tictactoe21/  → batch di test con Nemotron-3.5-Bolt-E4B UD Q8_K_XL (vedi nota)
+  tictactoe22/  → batch di test con Kimi K3.1 Pro via OpenRouter (vedi nota)
 ```
 
 ## Abbinamento cartella → modello
@@ -113,6 +114,7 @@ src/
 | `tictactoe19` | LFM2.5-24B (q6_k_xl) — batch di test multipli (hello world, tris JS vanilla, QA, sito Valsesia), vedi nota |
 | `tictactoe20` | LFM-3-1.7B (Q8_0, LiquidAI) — batch di test multipli (hello world, tris JS vanilla, tesina Milano, traduzioni IT/EN), QA codice di GPT-6.1-Terra e review accademiche del "professor GPT", entrambi via OpenCode, vedi nota |
 | `tictactoe21` | Nemotron-3.5-Bolt-E4B UD (Unsloth Dynamic) Q8_K_XL — batch di test multipli (hello world, tris JS vanilla, diorama 3D Natale, tesina Milano, classificazione 200 email), vedi nota |
+| `tictactoe22` | Kimi K3.1 Pro (via OpenRouter) — batch di test multipli (tris3d, snake3d, diorama Natale, città di Minas Tirith in Blender), vedi nota |
 
 ## tictactoe-slm1 — confronto multi-modello SLM (orchestrato da GPT-6-Sol)
 
@@ -256,11 +258,12 @@ Il prompt strutturato usato per `valsesia.html` è conservato in
 — prima voce di una cartella [`prompt/`](prompt/) dedicata ai prompt di
 test salvati come file, per riutilizzarli più comodamente nei batch
 successivi. La cartella raccoglie progressivamente anche i prompt usati
-nei batch successivi (tris con minimax, tris3d/snake3d minecraft-style,
-tesina Milano, traduzioni, analisi email, diorami Halloween/Natale,
-Minas Tirith in JS e Blender). Gli altri task della cartella (hello
-world) sono partiti da richieste conversazionali brevi, non salvate come
-file di prompt separato.
+nei batch successivi (tris con minimax, tris3d/snake3d minecraft-style
+con musica sintetizzata, tesina Milano, traduzioni, analisi email,
+diorami Halloween/Natale in JS, Minas Tirith in Blender alta
+risoluzione). Gli altri task della cartella (hello world) sono partiti
+da richieste conversazionali brevi, non salvate come file di prompt
+separato.
 
 ## tictactoe20 — batch di test con LFM-3-1.7B (Q8_0, LiquidAI)
 
@@ -299,6 +302,20 @@ tictactoe21/
   milano-review.html              → review accademica della tesina
   email_analysis.md               → classificazione di 200 email sintetiche
   email_analysis-review.html       → review della classificazione
+```
+
+## tictactoe22 — batch di test con Kimi K3.1 Pro (via OpenRouter)
+
+Come le altre cartelle batch, `tictactoe22/` raccoglie più task eseguiti
+dallo stesso modello, **Kimi K3.1 Pro**, usato tramite **OpenRouter**
+invece che in locale:
+
+```
+tictactoe22/
+  tris3d.html             → tris 3D minecraft-style (JS vanilla + three.js)
+  snake3d.html            → snake 3D minecraft-style (JS vanilla + three.js)
+  natale.html             → diorama 3D di Natale (JS vanilla + three.js)
+  diorama_minas_tirith.py → città di Minas Tirith in alta risoluzione, script Blender (bpy)
 ```
 
 ## Altre demo

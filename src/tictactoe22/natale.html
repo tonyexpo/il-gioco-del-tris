@@ -1,0 +1,1073 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#142846">
+  <title>Bianca Citadella — Diorama voxel di Natale</title>
+  <style>
+    :root {
+      --ink: #fff9e9;
+      --muted: #bfd0df;
+      --glass: rgba(10, 25, 43, .86);
+      --line: rgba(255, 255, 255, .16);
+      --gold: #ffd978;
+      --red: #e65d55;
+      --green: #73b887;
+    }
+    * { box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; background: #142846; color: var(--ink); font-family: Georgia, "Times New Roman", serif; }
+    body { user-select: none; }
+    #scene { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; outline: none; cursor: grab; }
+    #scene:active { cursor: grabbing; }
+    .ui { position: fixed; inset: 0; z-index: 4; pointer-events: none; }
+    .panel {
+      background: var(--glass);
+      border: 1px solid var(--line);
+      box-shadow: 0 8px 30px rgba(0,0,0,.26), inset 0 0 0 1px rgba(0,0,0,.16);
+      backdrop-filter: blur(12px);
+      border-radius: 4px;
+    }
+    .title { position: absolute; top: 20px; left: 22px; padding: 14px 18px 13px; border-left: 3px solid var(--gold); }
+    .title h1 { margin: 0; font-size: clamp(20px, 2.1vw, 30px); font-weight: 500; letter-spacing: 2px; text-shadow: 0 2px 8px #000; }
+    .title p { margin: 6px 0 0; color: var(--muted); font: 10px/1.4 system-ui, sans-serif; letter-spacing: 2px; text-transform: uppercase; }
+    .legend { position: absolute; top: 20px; right: 22px; width: 230px; padding: 12px 15px; color: var(--muted); font: 11px/1.55 system-ui, sans-serif; pointer-events: auto; }
+    .legend summary { color: var(--ink); cursor: pointer; font: 600 11px/1.3 system-ui, sans-serif; letter-spacing: 1.2px; text-transform: uppercase; }
+    .legend div { margin-top: 9px; padding-top: 8px; border-top: 1px solid var(--line); }
+    .legend b { color: var(--gold); font-weight: 600; }
+    .dot { display: inline-block; width: 7px; height: 7px; margin: 0 6px 0 2px; border-radius: 1px; }
+    .controls { position: absolute; left: 22px; bottom: 20px; display: flex; flex-wrap: wrap; max-width: calc(100vw - 330px); gap: 7px; pointer-events: auto; }
+    button, select {
+      appearance: none; border: 1px solid rgba(255,255,255,.22); border-radius: 3px; padding: 9px 11px;
+      background: rgba(16,35,55,.92); color: var(--ink); box-shadow: 0 3px 8px rgba(0,0,0,.22);
+      font: 600 10px/1 system-ui, sans-serif; letter-spacing: .6px; cursor: pointer;
+    }
+    button:hover, select:hover { background: #27465e; border-color: rgba(255,217,120,.55); }
+    button:active { transform: translateY(1px); }
+    button:focus-visible, select:focus-visible, input:focus-visible, summary:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+    button.active { color: #17273a; background: var(--gold); border-color: #ffe8aa; }
+    button.primary { background: #7e3536; border-color: #bd6660; }
+    button:disabled { opacity: .45; cursor: default; }
+    select { padding-right: 7px; }
+    .audio-panel { position: absolute; right: 22px; bottom: 20px; width: 285px; padding: 12px 14px; pointer-events: auto; font: 10px/1.3 system-ui, sans-serif; }
+    .audio-row { display: grid; grid-template-columns: 70px 1fr 30px; align-items: center; gap: 8px; margin-top: 8px; color: var(--muted); }
+    .audio-row output { text-align: right; color: var(--ink); font-variant-numeric: tabular-nums; }
+    input[type="range"] { width: 100%; height: 3px; accent-color: var(--gold); cursor: pointer; }
+    .audio-head { display: flex; gap: 7px; }
+    .audio-head button { flex: 1; }
+    #mute-btn { flex: 0 0 74px; }
+    .info-card {
+      position: absolute; left: 50%; bottom: 92px; width: min(400px, calc(100vw - 40px)); padding: 13px 17px;
+      transform: translate(-50%, 12px); opacity: 0; transition: opacity .22s, transform .22s; text-align: center;
+    }
+    .info-card.visible { opacity: 1; transform: translate(-50%, 0); }
+    .info-card strong { display: block; color: var(--gold); font-size: 16px; font-weight: 500; margin-bottom: 4px; }
+    .info-card span { color: var(--muted); font: 11px/1.5 system-ui, sans-serif; }
+    #tooltip { position: fixed; z-index: 7; display: none; pointer-events: none; padding: 6px 9px; color: #17273a; background: var(--gold); border-radius: 2px; font: 600 10px/1 system-ui, sans-serif; box-shadow: 0 3px 10px #0005; }
+    .toast { position: absolute; top: 104px; left: 50%; transform: translate(-50%, -8px); padding: 9px 14px; opacity: 0; transition: .2s; color: var(--ink); font: 11px/1.4 system-ui, sans-serif; }
+    .toast.visible { opacity: 1; transform: translate(-50%, 0); }
+    #boot { position: fixed; inset: 0; z-index: 20; display: grid; place-items: center; padding: 30px; background: #142846; color: var(--ink); text-align: center; font: 15px/1.7 system-ui, sans-serif; transition: opacity .45s; }
+    #boot.hidden { opacity: 0; pointer-events: none; }
+    #boot small { display: block; max-width: 520px; margin-top: 8px; color: var(--muted); }
+    .star { color: var(--gold); font-size: 34px; }
+    @media (max-width: 820px) {
+      .title { top: 12px; left: 12px; padding: 10px 13px; }
+      .title p { display: none; }
+      .legend { top: 12px; right: 12px; width: auto; max-width: 190px; padding: 10px 12px; }
+      .legend div { display: none; }
+      .legend[open] div { display: block; }
+      .controls { left: 12px; bottom: 12px; max-width: calc(100vw - 24px); padding-right: 190px; }
+      .audio-panel { right: 12px; bottom: 12px; width: 178px; padding: 9px; }
+      .audio-row { grid-template-columns: 48px 1fr; gap: 5px; }
+      .audio-row output { display: none; }
+      .audio-head { flex-direction: column; }
+      #mute-btn { flex: auto; }
+      button, select { padding: 8px; font-size: 9px; }
+      .info-card { bottom: 155px; }
+    }
+    @media (max-width: 520px) {
+      .legend { display: none; }
+      .controls { padding-right: 122px; gap: 5px; }
+      .audio-panel { width: 112px; }
+      .audio-row { display: block; margin-top: 7px; }
+      .audio-row label { display: block; margin-bottom: 4px; }
+      #quality { max-width: 92px; }
+      button { font-size: 8px; padding: 8px 6px; }
+    }
+    @media (prefers-reduced-motion: reduce) { * { transition-duration: .01ms !important; } }
+  </style>
+</head>
+<body>
+  <canvas id="scene" aria-label="Diorama natalizio voxel interattivo. Trascina per orbitare, usa la rotellina per lo zoom e clicca albero, regali e slitta." tabindex="0"></canvas>
+  <div class="ui">
+    <header class="title panel"><h1>Bianca Citadella</h1><p>Sette terrazze · un villaggio · la notte di Natale</p></header>
+    <details class="legend panel">
+      <summary>Come esplorare</summary>
+      <div>
+        <b>Trascina</b> per orbitare · <b>rotellina / pinch</b> per zoom.<br>
+        <span class="dot" style="background:#ffd978"></span>Clicca l'albero: cambia le luci<br>
+        <span class="dot" style="background:#e65d55"></span>Clicca i regali: scopri i giocattoli<br>
+        <span class="dot" style="background:#73b887"></span>Clicca la slitta: sonagli e renne<br>
+        Gli abitanti vivono anche senza interazioni.
+      </div>
+    </details>
+    <div class="controls">
+      <button id="camera-btn" title="Ripristina la visuale iniziale">⌂ CAMERA</button>
+      <button id="rotate-btn" title="Rotazione automatica">↻ AUTO</button>
+      <button id="pause-btn" title="Pausa delle animazioni ambientali">Ⅱ PAUSA</button>
+      <button id="capture-btn" title="Esporta un vero PNG 3840×2160">▣ PNG 4K</button>
+      <select id="quality" aria-label="Qualità grafica" title="Risoluzione canvas e ombre; non modifica i voxel">
+        <option value="high">QUALITÀ ALTA</option><option value="medium">MEDIA</option><option value="low">BASSA</option>
+      </select>
+    </div>
+    <section class="audio-panel panel" aria-label="Controlli audio">
+      <div class="audio-head"><button id="audio-btn" class="primary">ATTIVA AUDIO</button><button id="mute-btn" disabled>MUTE</button></div>
+      <div class="audio-row"><label for="volume">Generale</label><input id="volume" type="range" min="0" max="100" value="55"><output id="volume-out">55%</output></div>
+      <div class="audio-row"><label for="music-volume">Musica</label><input id="music-volume" type="range" min="0" max="100" value="32"><output id="music-out">32%</output></div>
+      <div class="audio-row"><label for="sfx-volume">Effetti</label><input id="sfx-volume" type="range" min="0" max="100" value="55"><output id="sfx-out">55%</output></div>
+    </section>
+    <div id="info-card" class="info-card panel" role="status"><strong></strong><span></span></div>
+    <div id="toast" class="toast panel" role="status"></div>
+  </div>
+  <div id="tooltip"></div>
+  <div id="boot"><div><div class="star">✦</div>Si accendono le luci della citadella…<small>Caricamento di Three.js dal CDN. È richiesta una connessione Internet; nessun server locale.</small></div></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js" onerror="window.threeDependencyFailed=true"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js" onerror="window.threeDependencyFailed=true"></script>
+  <script>
+  (() => {
+    'use strict';
+    const boot = document.getElementById('boot');
+    function fatal(message) {
+      boot.style.display = 'grid';
+      boot.classList.remove('hidden');
+      boot.innerHTML = '<div><div class="star">✦</div><strong>Il diorama non può essere avviato</strong><small></small></div>';
+      boot.querySelector('small').textContent = message;
+    }
+    if (window.threeDependencyFailed || !window.THREE || !THREE.OrbitControls) {
+      fatal('Dipendenze Three.js non caricate. Controlla la connessione Internet e riapri il file. La pagina usa script CDN alla versione 0.128.0.');
+      return;
+    }
+
+    // Parametri distinti: il voxel è la risoluzione costruttiva, quality/pixelRatio quella del canvas.
+    const CONFIG = {
+      seed: 241225, voxel: 0.32, baseSize: 62, quality: 'high',
+      pixelRatioLimit: 2, snowflakes: 84, smokePuffsPerChimney: 3,
+      animationSpeed: 1, masterVolume: 0.55, musicVolume: 0.32, sfxVolume: 0.55
+    };
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let seed = CONFIG.seed;
+    function random() {
+      seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+      let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+      t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    }
+    const range = (a, b) => a + (b - a) * random();
+    const clamp = THREE.MathUtils.clamp;
+    const lerp = THREE.MathUtils.lerp;
+    const TAU = Math.PI * 2;
+    const angleDelta = (a, b) => Math.atan2(Math.sin(a - b), Math.cos(a - b));
+
+    let renderer;
+    try {
+      renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('scene'), antialias: true, alpha: false, powerPreference: 'high-performance' });
+    } catch (error) {
+      fatal('WebGL non disponibile. Abilita l’accelerazione hardware o prova un browser aggiornato.');
+      return;
+    }
+    renderer.setPixelRatio(Math.min(devicePixelRatio, CONFIG.pixelRatioLimit));
+    renderer.setSize(innerWidth, innerHeight);
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.outputEncoding = THREE.sRGBEncoding;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.03;
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x172d4d);
+    scene.fog = new THREE.Fog(0x203b59, 72, 135);
+    const camera = new THREE.OrthographicCamera(-40, 40, 32, -32, 0.1, 220);
+    const initialCamera = new THREE.Vector3(48, 43, 55);
+    const initialTarget = new THREE.Vector3(0, 8.2, 0);
+    camera.position.copy(initialCamera);
+    const controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.target.copy(initialTarget);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.065;
+    controls.enablePan = false;
+    controls.minZoom = 0.68;
+    controls.maxZoom = 2.7;
+    controls.minPolarAngle = 0.42;
+    controls.maxPolarAngle = 1.37;
+    controls.rotateSpeed = 0.55;
+    controls.zoomSpeed = 0.75;
+    controls.autoRotate = false;
+    controls.autoRotateSpeed = 0.55;
+    controls.update();
+
+    scene.add(new THREE.HemisphereLight(0xa9c8ff, 0x263729, 1.55));
+    const moonLight = new THREE.DirectionalLight(0xc9dcff, 2.25);
+    moonLight.position.set(-28, 48, 24);
+    moonLight.castShadow = true;
+    moonLight.shadow.mapSize.set(2048, 2048);
+    moonLight.shadow.camera.left = -39; moonLight.shadow.camera.right = 39;
+    moonLight.shadow.camera.top = 42; moonLight.shadow.camera.bottom = -35;
+    moonLight.shadow.camera.near = 1; moonLight.shadow.camera.far = 110;
+    moonLight.shadow.bias = -0.0003;
+    scene.add(moonLight);
+    const warmFill = new THREE.PointLight(0xffbd63, 14, 24, 2);
+    warmFill.position.set(-15, 7, 20); scene.add(warmFill);
+    const marketFill = new THREE.PointLight(0xffa957, 10, 20, 2);
+    marketFill.position.set(0, 5, 26); scene.add(marketFill);
+
+    // Materiali condivisi e un'unica geometria cubica per quasi tutta la scena.
+    const unitBox = new THREE.BoxGeometry(1, 1, 1);
+    function standard(color, extra = {}) { return new THREE.MeshStandardMaterial({ color, roughness: 0.9, metalness: 0, ...extra }); }
+    const MAT = {
+      snow: standard(0xeaf4f2), snowBlue: standard(0xcbdcde), snowShade: standard(0xabc6cf),
+      rock: standard(0x586675), rockDark: standard(0x3f4b59), rockLight: standard(0x71808a),
+      earth: standard(0x59463c), dirt: standard(0x765747), stone: standard(0x839095), stoneLight: standard(0xa7b1ae),
+      path: standard(0xa9aaa1), wood: standard(0x76503a), darkWood: standard(0x402f2c), bark: standard(0x513a2d),
+      pine: standard(0x1f5b45), pineLight: standard(0x2f7452), pineDark: standard(0x163e36),
+      red: standard(0xb9423f), redLight: standard(0xdf5b4d), green: standard(0x397054),
+      gold: standard(0xd7a844, { metalness: 0.25, roughness: 0.55 }), cream: standard(0xe3cfaa),
+      wall: standard(0xc4b89f), wallDark: standard(0x9a8b78), black: standard(0x202a32),
+      blue: standard(0x406b91), ice: standard(0x82bfd0, { roughness: 0.28, metalness: 0.12 }),
+      iceDark: standard(0x4b8ea9, { roughness: 0.35 }), white: standard(0xf7f1df),
+      skin: standard(0xdca47e), skinLight: standard(0xf0c39b), orange: standard(0xe57c37),
+      purple: standard(0x72557f), pink: standard(0xc8797c),
+      window: standard(0xffcb67, { emissive: 0xff9c32, emissiveIntensity: 1.8, roughness: 0.55 }),
+      lamp: standard(0xffd77d, { emissive: 0xffa82e, emissiveIntensity: 2.5 }),
+      star: standard(0xffe694, { emissive: 0xffbd43, emissiveIntensity: 3.2 }),
+      iceGlow: standard(0xa7dce4, { emissive: 0x2d7384, emissiveIntensity: 0.25 })
+    };
+
+    const batches = new Map();
+    const dummy = new THREE.Object3D();
+    function block(key, x, y, z, sx = 1, sy = 1, sz = 1, ry = 0, rx = 0, rz = 0) {
+      if (!batches.has(key)) batches.set(key, []);
+      dummy.position.set(x, y, z); dummy.scale.set(sx, sy, sz); dummy.rotation.set(rx, ry, rz); dummy.updateMatrix();
+      batches.get(key).push(dummy.matrix.clone());
+    }
+    function localBlock(key, cx, baseY, cz, yaw, lx, ly, lz, sx, sy, sz, localYaw = 0, rx = 0, rz = 0) {
+      const c = Math.cos(yaw), s = Math.sin(yaw);
+      block(key, cx + lx * c + lz * s, baseY + ly, cz - lx * s + lz * c, sx, sy, sz, yaw + localYaw, rx, rz);
+    }
+    function cube(material, sx, sy, sz, parent, x = 0, y = 0, z = 0) {
+      const mesh = new THREE.Mesh(unitBox, material);
+      mesh.scale.set(sx, sy, sz); mesh.position.set(x, y, z);
+      mesh.castShadow = true; mesh.receiveShadow = true;
+      if (parent) parent.add(mesh);
+      return mesh;
+    }
+    function flushBatches() {
+      for (const [key, matrices] of batches) {
+        const mesh = new THREE.InstancedMesh(unitBox, MAT[key], matrices.length);
+        matrices.forEach((matrix, i) => mesh.setMatrixAt(i, matrix));
+        mesh.instanceMatrix.needsUpdate = true;
+        mesh.castShadow = key !== 'window' && key !== 'lamp' && key !== 'star';
+        mesh.receiveShadow = true;
+        scene.add(mesh);
+      }
+      batches.clear();
+    }
+
+    // Base stratificata e neve geometrica.
+    block('earth', 0, -3.7, 0, 62, 2.6, 62);
+    block('dirt', 0, -2.15, 0, 62, 0.5, 62);
+    block('rockDark', 0, -1.25, 0, 61.8, 1.3, 61.8);
+    block('rock', 0, -0.45, 0, 61.5, 0.35, 61.5);
+    block('snowBlue', 0, -0.12, 0, 61.7, 0.45, 61.7);
+    block('snow', 0, 0.25, 0, 62, 0.35, 62);
+    for (let i = -30; i <= 30; i += 1.25) {
+      if (random() < 0.75) block(random() < 0.5 ? 'rockLight' : 'rock', i, -1.15 + range(-0.4, 0.4), 31.02, 1.05, range(0.5, 1.25), 0.16);
+      if (random() < 0.58) block('snowBlue', i, -0.48 - range(0, 0.5), 31.08, 0.18, range(0.35, 1.15), 0.18);
+      if (random() < 0.55) block('snowBlue', 31.08, -0.45 - range(0, 0.5), i, 0.18, range(0.35, 1.05), 0.18);
+    }
+    // Chiazze di neve rialzata, senza z-fighting.
+    for (let i = 0; i < 65; i++) {
+      const x = range(-29, 29), z = range(-29, 29);
+      if (Math.hypot(x, z) < 21 || (x > 14 && z > 7 && z < 20)) continue;
+      block(random() < 0.7 ? 'snow' : 'snowBlue', x, 0.48, z, range(0.7, 2.2), 0.12, range(0.7, 2.1));
+    }
+
+    // Sette anelli concentrici: solo superfici e muri visibili, niente riempimento interno.
+    const LEVELS = [
+      { r: 22.0, y: 1.20 }, { r: 18.5, y: 3.30 }, { r: 15.0, y: 5.40 },
+      { r: 11.5, y: 7.50 }, { r: 8.4, y: 9.60 }, { r: 5.8, y: 11.70 }, { r: 3.7, y: 13.80 }
+    ];
+    const rampAngles = [1.30, 2.02, 2.72, 3.42, 4.12, 4.82];
+    const wallStep = 0.64;
+    for (let level = 0; level < LEVELS.length; level++) {
+      const { r, y } = LEVELS[level];
+      const lower = level === 0 ? 0.42 : LEVELS[level - 1].y - 0.05;
+      const nextR = level < LEVELS.length - 1 ? LEVELS[level + 1].r : 0;
+      const segments = Math.ceil(TAU * r / wallStep);
+      for (let j = 0; j < segments; j++) {
+        const a = j / segments * TAU;
+        const gateGap = level === 0 && Math.abs(angleDelta(a, Math.PI / 2)) < 0.075;
+        let rampGap = false;
+        if (level > 0 && Math.abs(angleDelta(a, rampAngles[level - 1])) < 0.075) rampGap = true;
+        if (gateGap || rampGap) continue;
+        const x = Math.cos(a) * r, z = Math.sin(a) * r;
+        const yaw = Math.PI / 2 - a;
+        const courses = Math.ceil((y - lower) / 0.64);
+        for (let c = 0; c < courses; c++) {
+          const h = Math.min(0.64, y - lower - c * 0.64);
+          if (h <= 0) continue;
+          block((j + c) % 7 === 0 ? 'rockLight' : 'stone', x, lower + c * 0.64 + h / 2, z, wallStep * 1.04, h, 0.64, yaw);
+        }
+        block('stoneLight', x, y + 0.27, z, wallStep * 1.04, 0.5, 0.62, yaw);
+        block('snow', x, y + 0.56, z, wallStep * 1.08, 0.12, 0.68, yaw);
+        if (j % 3 === 0) {
+          block('stoneLight', x, y + 0.85, z, wallStep * 1.03, 0.52, 0.65, yaw);
+          block('snow', x, y + 1.14, z, wallStep * 1.1, 0.1, 0.72, yaw);
+        }
+      }
+      // Terrazza ad anello rasterizzata, con blocchi da 0.64 (doppia risoluzione rispetto a 1.28).
+      const tile = CONFIG.voxel * 2;
+      for (let x = -r + tile / 2; x < r; x += tile) {
+        for (let z = -r + tile / 2; z < r; z += tile) {
+          const d = Math.hypot(x, z);
+          if (d < r - 0.25 && d > nextR - 0.3) block(random() < 0.12 ? 'snowBlue' : 'snow', x, y - 0.055, z, tile, 0.11, tile);
+        }
+      }
+    }
+
+    // Roccia centrale/prow, ispirata alla grande rupe di Minas Tirith.
+    for (let i = 0; i < 17; i++) {
+      const y = 0.9 + i * 0.78;
+      const width = Math.max(1.2, 5.8 - i * 0.25);
+      block(i % 3 ? 'rock' : 'rockLight', 0, y, 1.0 + Math.sin(i * 0.65) * 0.35, width, 0.82, Math.max(1.3, width * 0.75));
+      if (i % 4 === 0) block('snow', -width * 0.2, y + 0.45, 1.1, width * 0.65, 0.12, width * 0.6);
+    }
+
+    function radialPosition(radius, angle, y) { return new THREE.Vector3(Math.cos(angle) * radius, y, Math.sin(angle) * radius); }
+    // Scale/rampe fra tutti i livelli e camminamenti in pietra.
+    const rampRoutes = [];
+    for (let i = 0; i < 6; i++) {
+      const a = rampAngles[i], fromR = LEVELS[i].r - 1.15, toR = LEVELS[i + 1].r + 0.55;
+      const fromY = LEVELS[i].y + 0.12, toY = LEVELS[i + 1].y + 0.12;
+      const steps = 10, yaw = Math.PI / 2 - a;
+      for (let s = 0; s < steps; s++) {
+        const t = s / (steps - 1), r = lerp(fromR, toR, t), y = lerp(fromY, toY, t);
+        block('path', Math.cos(a) * r, y - 0.13, Math.sin(a) * r, 1.35, 0.26, 0.48, yaw);
+        if (s % 2 === 0) block('snow', Math.cos(a) * r + Math.sin(a) * 0.54, y + 0.03, Math.sin(a) * r - Math.cos(a) * 0.54, 0.25, 0.09, 0.42, yaw);
+      }
+      rampRoutes.push({ type: 'ramp', a, fromR, toR, fromY, toY });
+    }
+    for (let i = 0; i < 6; i++) {
+      const midR = (LEVELS[i].r + LEVELS[i + 1].r) / 2;
+      const y = LEVELS[i].y + 0.075;
+      for (let a = 0; a < TAU; a += 0.09) {
+        if (i === 0 && Math.abs(angleDelta(a, Math.PI / 2)) < 0.12) continue;
+        block('path', Math.cos(a) * midR, y, Math.sin(a) * midR, 1.05, 0.09, 0.58, Math.PI / 2 - a);
+      }
+    }
+    // Sentiero esterno, scalinata del portone e ponticello sul canale gelato.
+    for (let z = 22; z <= 30; z += 0.7) block('path', 0, 0.52, z, 2.25, 0.12, 0.66);
+    for (let s = 0; s < 4; s++) block('path', 0, 0.62 + s * 0.16, 22.8 - s * 0.48, 2.4, 0.22, 0.52);
+    block('iceDark', 0, 0.47, 25.3, 8.5, 0.08, 1.25);
+    for (let z = 24.65; z <= 26; z += 0.28) block('wood', 0, 0.75, z, 2.8, 0.16, 0.24);
+    block('darkWood', -1.25, 1.05, 25.3, 0.12, 0.65, 1.8); block('darkWood', 1.25, 1.05, 25.3, 0.12, 0.65, 1.8);
+    // Arco principale a gradoni.
+    block('stoneLight', -1.55, 2.25, 22, 0.75, 3.6, 1.0); block('stoneLight', 1.55, 2.25, 22, 0.75, 3.6, 1.0);
+    block('stoneLight', -1.05, 4.05, 22, 0.75, 0.65, 1.0); block('stoneLight', 1.05, 4.05, 22, 0.75, 0.65, 1.0);
+    block('stoneLight', -0.52, 4.43, 22, 0.7, 0.65, 1.0); block('stoneLight', 0.52, 4.43, 22, 0.7, 0.65, 1.0);
+    block('stoneLight', 0, 4.72, 22, 0.55, 0.45, 1.0); block('snow', 0, 5.0, 22, 3.7, 0.14, 1.1);
+
+    // Chalet con tetti a gradoni; finestre e porte dinamiche condividono la geometria.
+    const chimneys = [], animatedWindows = [], animatedDoors = [];
+    function chalet(cx, cz, baseY, yaw, roofKey = 'red', scale = 1) {
+      const W = 2.45 * scale, D = 2.05 * scale, H = 1.7 * scale;
+      localBlock('stone', cx, baseY, cz, yaw, 0, 0.14, 0, W + 0.2, 0.28, D + 0.18);
+      localBlock('wall', cx, baseY, cz, yaw, 0, H / 2 + 0.25, 0, W, H, D);
+      for (const x of [-W / 2 + 0.1, W / 2 - 0.1]) for (const z of [-D / 2 + 0.08, D / 2 - 0.08]) localBlock('darkWood', cx, baseY, cz, yaw, x, H / 2 + 0.25, z, 0.16, H + 0.12, 0.16);
+      localBlock('wood', cx, baseY, cz, yaw, 0, 0.65, D / 2 + 0.035, W, 0.12, 0.09);
+      localBlock('wood', cx, baseY, cz, yaw, 0, 1.35 * scale, D / 2 + 0.035, W, 0.12, 0.09);
+      for (let r = 0; r < 5; r++) {
+        const width = W + 0.45 - r * 0.43 * scale;
+        localBlock(roofKey, cx, baseY, cz, yaw, 0, H + 0.35 + r * 0.24 * scale, 0, width, 0.28 * scale, D + 0.48);
+        localBlock('snow', cx, baseY, cz, yaw, 0, H + 0.51 + r * 0.24 * scale, -0.03, width + 0.04, 0.08, D + 0.5);
+      }
+      localBlock('rockDark', cx, baseY, cz, yaw, W * 0.26, H + 0.95, -D * 0.2, 0.36, 1.35, 0.38);
+      localBlock('snow', cx, baseY, cz, yaw, W * 0.26, H + 1.66, -D * 0.2, 0.46, 0.12, 0.48);
+      const chimneyLocal = new THREE.Vector3(W * 0.26, baseY + H + 1.82, -D * 0.2);
+      const c = Math.cos(yaw), s = Math.sin(yaw);
+      chimneys.push(new THREE.Vector3(cx + chimneyLocal.x * c + chimneyLocal.z * s, chimneyLocal.y, cz - chimneyLocal.x * s + chimneyLocal.z * c));
+
+      const windowMaterial = MAT.window.clone();
+      const frontZ = D / 2 + 0.07;
+      for (const lx of [-W * 0.28, W * 0.28]) {
+        const wx = cx + lx * c + frontZ * s, wz = cz - lx * s + frontZ * c;
+        const win = cube(windowMaterial, 0.4 * scale, 0.46 * scale, 0.08, scene, wx, baseY + 1.1 * scale, wz);
+        win.rotation.y = yaw; win.castShadow = false;
+      }
+      animatedWindows.push({ material: windowMaterial, phase: range(0, 12), period: range(7, 15), on: true });
+      const hinge = new THREE.Group();
+      const lx = -0.34 * scale, lz = D / 2 + 0.1;
+      hinge.position.set(cx + lx * c + lz * s, baseY + 0.25, cz - lx * s + lz * c);
+      hinge.rotation.y = yaw; scene.add(hinge);
+      const door = cube(MAT.darkWood, 0.68 * scale, 1.15 * scale, 0.12, hinge, 0.34 * scale, 0.575 * scale, 0);
+      cube(MAT.gold, 0.07, 0.07, 0.06, door, 0.32, 0, 0.55);
+      animatedDoors.push({ pivot: hinge, baseYaw: yaw, phase: range(0, TAU), speed: range(0.18, 0.3) });
+      // Ghirlanda sopra la porta.
+      for (let g = -2; g <= 2; g++) localBlock(g % 2 ? 'gold' : 'pine', cx, baseY, cz, yaw, g * 0.18, 1.55 + Math.abs(g) * 0.07, D / 2 + 0.14, 0.2, 0.2, 0.16);
+    }
+    const houseAngles = [
+      [0.12, 2.92, 4.38], [0.62, 2.52, 4.72], [0.10, 3.08, 5.02],
+      [0.82, 2.48, 4.48], [0.18, 2.90, 5.12], [1.72, 4.40]
+    ];
+    houseAngles.forEach((angles, level) => {
+      const outer = LEVELS[level].r, inner = LEVELS[level + 1].r;
+      const radius = (outer + inner) / 2;
+      angles.forEach((a, i) => {
+        const p = radialPosition(radius, a, LEVELS[level].y + 0.06);
+        chalet(p.x, p.z, p.y, Math.PI / 2 - a, (level + i) % 3 === 0 ? 'green' : 'red', level > 3 ? 0.86 : 1);
+      });
+    });
+
+    // Cittadella e torre dell'orologio.
+    const citadelY = LEVELS[6].y;
+    block('stoneLight', 0, citadelY + 0.3, 0, 5.4, 0.6, 5.4);
+    block('snow', 0, citadelY + 0.65, 0, 5.7, 0.12, 5.7);
+    block('wall', 0, citadelY + 3.5, 0, 2.65, 5.8, 2.65);
+    for (const x of [-1.25, 1.25]) for (const z of [-1.25, 1.25]) block('stoneLight', x, citadelY + 3.5, z, 0.3, 6.0, 0.3);
+    for (let i = 0; i < 4; i++) {
+      block('green', 0, citadelY + 6.6 + i * 0.36, 0, 3.4 - i * 0.7, 0.42, 3.4 - i * 0.7);
+      block('snow', 0, citadelY + 6.84 + i * 0.36, 0, 3.45 - i * 0.7, 0.08, 3.45 - i * 0.7);
+    }
+    block('gold', 0, citadelY + 8.25, 0, 0.22, 1.6, 0.22);
+    // Orologio frontale e laterale.
+    block('gold', 0, citadelY + 4.55, 1.36, 1.5, 1.5, 0.12);
+    block('cream', 0, citadelY + 4.55, 1.43, 1.22, 1.22, 0.08);
+    const clockHands = new THREE.Group(); clockHands.position.set(0, citadelY + 4.55, 1.5); scene.add(clockHands);
+    const hourHand = cube(MAT.black, 0.09, 0.48, 0.06, clockHands, 0, 0.2, 0);
+    const minuteHand = cube(MAT.black, 0.07, 0.72, 0.06, clockHands, 0, 0.3, 0.02);
+    block('gold', 1.36, citadelY + 4.55, 0, 0.12, 1.5, 1.5); block('cream', 1.43, citadelY + 4.55, 0, 0.08, 1.22, 1.22);
+    block('black', 1.49, citadelY + 4.72, 0, 0.06, 0.48, 0.08); block('black', 1.5, citadelY + 4.55, 0.22, 0.06, 0.08, 0.5);
+    // Finestre della torre.
+    for (const x of [-0.65, 0.65]) block('window', x, citadelY + 2.35, 1.36, 0.38, 0.72, 0.1);
+    // Stella voxel della cittadella.
+    const citadelStar = new THREE.Group(); citadelStar.position.set(0, citadelY + 9.55, 0); scene.add(citadelStar);
+    cube(MAT.star, 0.42, 2.0, 0.42, citadelStar); cube(MAT.star, 2.0, 0.42, 0.42, citadelStar);
+    cube(MAT.star, 0.32, 1.35, 0.32, citadelStar).rotation.z = Math.PI / 4;
+    cube(MAT.star, 0.32, 1.35, 0.32, citadelStar).rotation.z = -Math.PI / 4;
+
+    // Abeti voxel innevati e alberi spogli.
+    function fir(x, z, height, decorated = false) {
+      const base = 0.46;
+      block('bark', x, base + height * 0.19, z, 0.48, height * 0.38, 0.48);
+      const layers = Math.max(4, Math.round(height / 0.85));
+      for (let i = 0; i < layers; i++) {
+        const t = i / layers, width = height * 0.58 * (1 - t) + 0.35;
+        const y = base + height * 0.28 + i * (height * 0.68 / layers);
+        block(i % 2 ? 'pine' : 'pineLight', x, y, z, width, height / layers * 0.72, width);
+        block('snow', x, y + height / layers * 0.39, z, width + 0.06, 0.12, width + 0.06);
+        if (i % 2 === 0) {
+          block('pineDark', x + width * 0.43, y - 0.18, z, width * 0.28, 0.34, width * 0.7);
+          block('snowBlue', x - width * 0.4, y + 0.12, z, width * 0.25, 0.13, width * 0.65);
+        }
+      }
+      return base + height;
+    }
+    const firSpots = [[-26,-19,6],[-20,-25,4.8],[-10,-27,5.8],[3,-27,4.4],[17,-25,6.4],[27,-17,5.1],[28,-5,4.2],[-28,12,5.4],[-25,22,4.3],[24,25,4.1],[12,-19,3.8],[-16,-15,4.5],[27,8,3.6],[-5,-23,3.7]];
+    firSpots.forEach(([x,z,h]) => fir(x,z,h));
+    function bareTree(x,z,h) {
+      block('bark', x, 0.5 + h/2, z, 0.48, h, 0.48);
+      for (let i = 0; i < 6; i++) {
+        const a = i * 2.4, y = 1.7 + i * h / 8, len = 1.4 + (i%2)*0.6;
+        block('bark', x + Math.cos(a)*0.55, y, z + Math.sin(a)*0.55, 0.25, len, 0.25, a, 0, Math.cos(a)*0.65);
+        block('snow', x + Math.cos(a)*1.05, y + len*0.42, z + Math.sin(a)*1.05, 0.5, 0.12, 0.5);
+      }
+    }
+    bareTree(-27, 1, 5.2); bareTree(10, -27, 4.7);
+
+    // Grande albero interattivo con palline cubiche e ghirlanda a spirale.
+    const interactiveRoots = [];
+    const treeGroup = new THREE.Group(); treeGroup.position.set(-17, 0.48, 21); treeGroup.userData.interactive = 'tree'; scene.add(treeGroup); interactiveRoots.push(treeGroup);
+    cube(MAT.bark, 0.7, 2.0, 0.7, treeGroup, 0, 1.0, 0);
+    const treeLightMaterials = [0,1,2].map(i => standard([0xffd76a,0xf05c50,0x75cfff][i], { emissive: [0xffb72f,0xd63228,0x368cff][i], emissiveIntensity: 2 }));
+    const ornaments = [];
+    for (let layer = 0; layer < 7; layer++) {
+      const width = 6.0 - layer * 0.72, y = 1.65 + layer * 0.66;
+      cube(layer % 2 ? MAT.pine : MAT.pineLight, width, 0.68, width, treeGroup, 0, y, 0);
+      cube(MAT.snow, width + 0.08, 0.1, width + 0.08, treeGroup, 0, y + 0.39, 0);
+      for (let o = 0; o < 5; o++) {
+        const a = o / 5 * TAU + layer * 0.8, r = width * 0.48;
+        const ornament = cube(treeLightMaterials[(o+layer)%3], 0.24, 0.24, 0.24, treeGroup, Math.cos(a)*r, y, Math.sin(a)*r);
+        ornament.userData.phase = a + layer; ornaments.push(ornament);
+      }
+      const ga = layer * 1.25;
+      cube(MAT.gold, 0.3, 0.18, 0.3, treeGroup, Math.cos(ga)*width*0.52, y+0.18, Math.sin(ga)*width*0.52);
+    }
+    const treeStar = new THREE.Group(); treeStar.position.y = 6.75; treeGroup.add(treeStar);
+    cube(MAT.star, 0.32, 1.55, 0.32, treeStar); cube(MAT.star, 1.55, 0.32, 0.32, treeStar);
+    cube(MAT.star, 0.26, 1.15, 0.26, treeStar).rotation.z = Math.PI/4;
+    cube(MAT.star, 0.26, 1.15, 0.26, treeStar).rotation.z = -Math.PI/4;
+    let treeLightMode = 0;
+    const treeLightSpeeds = [1.2, 2.8, 5.5];
+
+    // Regali apribili: coperchio incernierato e giocattolo voxel nascosto.
+    const gifts = [];
+    function gift(x, z, colorKey, size = 1, interactive = true, parent = scene, local = false) {
+      const group = new THREE.Group();
+      if (!local) group.position.set(x, 0.44, z); else group.position.set(x, 0, z);
+      parent.add(group);
+      cube(MAT[colorKey], 0.9*size, 0.65*size, 0.9*size, group, 0, 0.325*size, 0);
+      cube(MAT.gold, 0.15*size, 0.67*size, 0.93*size, group, 0, 0.34*size, 0);
+      cube(MAT.gold, 0.93*size, 0.67*size, 0.15*size, group, 0, 0.34*size, 0);
+      const lid = new THREE.Group(); lid.position.set(0, 0.69*size, -0.46*size); group.add(lid);
+      cube(MAT[colorKey], 0.98*size, 0.18*size, 0.98*size, lid, 0, 0, 0.46*size);
+      cube(MAT.gold, 0.16*size, 0.2*size, 1.0*size, lid, 0, 0.02, 0.46*size);
+      const toy = new THREE.Group(); toy.position.y = 0.68*size; toy.scale.setScalar(0.001); group.add(toy);
+      cube(MAT.blue, 0.48*size, 0.28*size, 0.3*size, toy, 0, 0.14*size, 0);
+      cube(MAT.redLight, 0.25*size, 0.27*size, 0.28*size, toy, 0.2*size, 0.39*size, 0);
+      cube(MAT.black, 0.12*size, 0.12*size, 0.34*size, toy, -0.2*size, 0, 0);
+      cube(MAT.black, 0.12*size, 0.12*size, 0.34*size, toy, 0.2*size, 0, 0);
+      if (interactive) {
+        group.userData.interactive = 'gift'; interactiveRoots.push(group);
+        gifts.push({ group, lid, toy, open: 0, target: 0, size });
+      }
+      return group;
+    }
+    gift(-19.1,22.6,'red',1.05); gift(-15.0,22.8,'green',0.9); gift(-18.6,18.9,'purple',0.82); gift(-14.8,19.5,'redLight',0.72);
+    gift(-12.2,25.8,'green',0.7,false); gift(16.8,-2.5,'red',0.75,false);
+
+    // Personaggi voxel articolati.
+    const walkers = [], skaters = [], idlePeople = [];
+    function person(options = {}) {
+      const g = new THREE.Group();
+      const coat = MAT[options.coat || 'red'], hat = MAT[options.hat || options.coat || 'red'];
+      const body = cube(coat, 0.52, 0.65, 0.34, g, 0, 0.93, 0);
+      const head = cube(options.skinLight ? MAT.skinLight : MAT.skin, 0.43, 0.43, 0.41, g, 0, 1.5, 0);
+      // Occhi rivolti in avanti (+Z), narice e capelli.
+      cube(MAT.black, 0.055, 0.065, 0.035, g, -0.11, 1.55, 0.218);
+      cube(MAT.black, 0.055, 0.065, 0.035, g, 0.11, 1.55, 0.218);
+      cube(MAT.darkWood, 0.45, 0.13, 0.42, g, 0, 1.7, -0.02);
+      const leftArm = new THREE.Group(), rightArm = new THREE.Group();
+      leftArm.position.set(-0.35, 1.18, 0); rightArm.position.set(0.35, 1.18, 0); g.add(leftArm, rightArm);
+      cube(coat, 0.17, 0.58, 0.2, leftArm, 0, -0.24, 0); cube(coat, 0.17, 0.58, 0.2, rightArm, 0, -0.24, 0);
+      cube(MAT.skin, 0.18, 0.16, 0.2, leftArm, 0, -0.55, 0); cube(MAT.skin, 0.18, 0.16, 0.2, rightArm, 0, -0.55, 0);
+      const leftLeg = new THREE.Group(), rightLeg = new THREE.Group();
+      leftLeg.position.set(-0.15, 0.62, 0); rightLeg.position.set(0.15, 0.62, 0); g.add(leftLeg, rightLeg);
+      cube(MAT.black, 0.2, 0.55, 0.24, leftLeg, 0, -0.27, 0); cube(MAT.black, 0.2, 0.55, 0.24, rightLeg, 0, -0.27, 0);
+      cube(MAT.darkWood, 0.23, 0.14, 0.36, leftLeg, 0, -0.55, 0.06); cube(MAT.darkWood, 0.23, 0.14, 0.36, rightLeg, 0, -0.55, 0.06);
+      if (options.scarf) {
+        cube(MAT[options.scarf], 0.55, 0.14, 0.42, g, 0, 1.27, 0);
+        cube(MAT[options.scarf], 0.14, 0.5, 0.09, g, 0.19, 1.04, 0.23);
+      }
+      if (options.type === 'santa') {
+        cube(MAT.white, 0.46, 0.38, 0.12, g, 0, 1.34, 0.23);
+        cube(MAT.red, 0.53, 0.17, 0.5, g, 0, 1.76, 0);
+        cube(MAT.red, 0.34, 0.45, 0.34, g, 0, 1.98, -0.04);
+        cube(MAT.white, 0.18, 0.18, 0.18, g, 0.12, 2.2, -0.04);
+        cube(MAT.white, 0.56, 0.1, 0.38, g, 0, 0.78, 0);
+      } else {
+        cube(hat, 0.51, 0.15, 0.49, g, 0, 1.76, 0);
+        if (options.type === 'elf') {
+          cube(hat, 0.3, 0.46, 0.3, g, 0.08, 1.99, 0);
+          cube(MAT.gold, 0.12, 0.12, 0.12, g, 0.17, 2.22, 0);
+          cube(MAT.gold, 0.56, 0.1, 0.37, g, 0, 0.78, 0);
+        } else if (options.type === 'child') {
+          cube(hat, 0.38, 0.28, 0.38, g, 0, 1.91, 0);
+          cube(MAT.white, 0.15, 0.15, 0.15, g, 0, 2.08, 0);
+          g.scale.setScalar(0.82);
+        }
+      }
+      if (options.gift) {
+        cube(MAT.purple, 0.42, 0.38, 0.38, rightArm, 0, -0.56, 0.28);
+        cube(MAT.gold, 0.08, 0.4, 0.4, rightArm, 0, -0.56, 0.28);
+        rightArm.rotation.x = -0.8;
+      }
+      if (options.mug) {
+        cube(MAT.cream, 0.22, 0.26, 0.22, rightArm, 0, -0.57, 0.24);
+        rightArm.rotation.x = -0.65;
+      }
+      if (options.skater) {
+        cube(MAT.iceGlow, 0.08, 0.07, 0.48, leftLeg, 0, -0.65, 0.08);
+        cube(MAT.iceGlow, 0.08, 0.07, 0.48, rightLeg, 0, -0.65, 0.08);
+      }
+      g.userData.parts = { leftArm, rightArm, leftLeg, rightLeg, body, head };
+      scene.add(g);
+      return g;
+    }
+    function placePerson(p, x, y, z, yaw = 0) { p.position.set(x,y,z); p.rotation.y = yaw; return p; }
+    function addIdle(p, kind = 'idle', phase = range(0,TAU)) { idlePeople.push({ p, kind, phase, parts: p.userData.parts }); return p; }
+    function arcWalker(p, radius, y, a0, a1, speed, phase = 0) {
+      walkers.push({ p, parts:p.userData.parts, type:'arc', radius,y,a0,a1,speed,phase });
+    }
+    function rampWalker(p, route, speed, phase = 0) { walkers.push({ p, parts:p.userData.parts, type:'ramp',route,speed,phase }); }
+
+    // Abitanti in cammino su terrazze e rampe.
+    arcWalker(person({coat:'blue',scarf:'gold'}),20.15,1.28,0.1,1.05,0.22,0.3);
+    arcWalker(person({coat:'green',type:'elf'}),16.7,3.38,3.1,4.4,0.18,1.4);
+    arcWalker(person({coat:'purple',scarf:'red',gift:true}),13.2,5.48,0.3,1.65,0.16,2.1);
+    arcWalker(person({coat:'redLight',type:'child',scarf:'green'}),9.85,7.58,4.5,5.7,0.25,0.8);
+    rampWalker(person({coat:'green',scarf:'gold'}),rampRoutes[0],0.16,0.2);
+    rampWalker(person({coat:'blue',gift:true}),rampRoutes[2],0.12,1.5);
+    rampWalker(person({coat:'red',type:'elf'}),rampRoutes[4],0.14,2.4);
+
+    // Mercatino: quattro bancarelle distinte e presidiate.
+    function stall(x, z, type, colorKey) {
+      const y = 0.5;
+      block('wood',x,y+0.55,z,3.25,1.1,1.8);
+      block('darkWood',x,y+1.13,z+0.35,3.35,0.16,1.15);
+      for (const dx of [-1.45,1.45]) block('darkWood',x+dx,y+1.8,z,0.16,3.4,0.16);
+      for (let s=-3;s<=3;s++) block(s%2?colorKey:'cream',x+s*0.47,y+3.18,z,0.48,0.28,2.35);
+      block('snow',x,y+3.36,z,3.55,0.1,2.42);
+      // Insegna e ghirlanda.
+      block('darkWood',x,y+2.52,z+1.0,1.65,0.55,0.12);
+      for(let g=-3;g<=3;g++) block(g%3===0?'redLight':'pine',x+g*0.38,y+2.95-Math.abs(g)*0.05,z+1.12,0.24,0.24,0.18);
+      if(type==='dolci') {
+        for(let i=-2;i<=2;i++) { block(i%2?'redLight':'cream',x+i*0.42,y+1.35,z+0.55,0.28,0.28,0.28); block('gold',x+i*0.42,y+1.55,z+0.55,0.12,0.18,0.12); }
+      } else if(type==='giocattoli') {
+        block('blue',x-0.55,y+1.38,z+0.55,0.65,0.32,0.35); block('red',x-0.25,y+1.65,z+0.55,0.3,0.28,0.32);
+        block('gold',x+0.65,y+1.48,z+0.55,0.42,0.55,0.38); block('black',x+0.55,y+1.58,z+0.76,0.05,0.06,0.03); block('black',x+0.75,y+1.58,z+0.76,0.05,0.06,0.03);
+      } else if(type==='decorazioni') {
+        for(let i=0;i<8;i++){const a=i/8*TAU;block(i%2?'pine':'redLight',x+Math.cos(a)*0.48,y+1.75+Math.sin(a)*0.48,z+0.6,0.22,0.22,0.2);}
+        block('star',x+0.9,y+1.55,z+0.55,0.35,0.35,0.2);
+      } else {
+        for(let i=-2;i<=2;i++){block('cream',x+i*0.48,y+1.45,z+0.58,0.28,0.36,0.28);block('darkWood',x+i*0.48,y+1.66,z+0.58,0.22,0.04,0.22);}
+        block('rockDark',x,y+1.55,z-0.25,0.75,0.75,0.65);
+      }
+      const vendor=person({coat:colorKey,type:type==='bevande'?'resident':'elf',mug:type==='bevande'});
+      placePerson(vendor,x,0.45,z-1.15,0); addIdle(vendor,'vendor');
+    }
+    stall(-10,26,'dolci','red'); stall(-4,26,'giocattoli','green'); stall(4,26,'decorazioni','red'); stall(10,26,'bevande','green');
+    // Famiglia al mercatino.
+    addIdle(placePerson(person({coat:'blue',scarf:'red'}),-5.1,0.45,28.8,Math.PI),'family');
+    addIdle(placePerson(person({coat:'purple',scarf:'gold',gift:true}),-3.8,0.45,29.0,Math.PI),'family',1);
+    addIdle(placePerson(person({coat:'redLight',type:'child',scarf:'green'}),-4.3,0.45,27.8,Math.PI),'family',2);
+
+    // Laghetto ghiacciato laterale, pattinatori e impronte squadrate.
+    const pondCenter = { x: 22, z: 12 };
+    for(let x=-5;x<=5;x++) for(let z=-4;z<=4;z++) {
+      if((x*x/25+z*z/16)>1.1) continue;
+      block((x+z)%4===0?'iceGlow':'ice',pondCenter.x+x,0.5,pondCenter.z+z,1.02,0.12,1.02);
+      if((x*x/25+z*z/16)>0.75) block('snow',pondCenter.x+x,0.59,pondCenter.z+z,0.65,0.12,0.65);
+    }
+    block('iceDark',20.5,0.58,12.2,2.2,0.025,0.08,0.45); block('iceDark',23,0.58,10.8,1.8,0.025,0.07,-0.7);
+    for(let i=0;i<2;i++) {
+      const sk=person({coat:i?'redLight':'blue',type:i?'child':'resident',scarf:i?'gold':'red',skater:true});
+      skaters.push({p:sk,parts:sk.userData.parts,phase:i*Math.PI,speed:i?0.48:-0.38,rx:i?3.1:4,rz:i?2.0:2.8});
+    }
+    for(let i=0;i<14;i++) {
+      const z=28.8-i*0.45, x=1.8+Math.sin(i*0.5)*0.25;
+      block('snowShade',x+(i%2?0.17:-0.17),0.565,z,0.18,0.035,0.3);
+    }
+    for(let i=0;i<12;i++) block('snowShade',-21.5+(i%2)*0.3,0.56,-7-i*0.35,0.18,0.035,0.28,0.3);
+
+    // Slitta interattiva, sacco, due renne e narrazione degli elfi.
+    const sleighGroup = new THREE.Group(); sleighGroup.position.set(22,0.55,-3); sleighGroup.rotation.y=-0.25; sleighGroup.userData.interactive='sleigh'; scene.add(sleighGroup); interactiveRoots.push(sleighGroup);
+    cube(MAT.red,2.6,0.65,3.1,sleighGroup,0,0.85,0);
+    cube(MAT.redLight,2.7,1.15,0.3,sleighGroup,0,1.35,-1.4);
+    for(const x of [-1.25,1.25]) {
+      cube(MAT.gold,0.14,0.16,3.8,sleighGroup,x,-0.05,0.2);
+      cube(MAT.gold,0.14,0.75,0.16,sleighGroup,x,0.52,1.85).rotation.x=-0.5;
+      cube(MAT.gold,0.12,0.65,3.0,sleighGroup,x,1.25,0);
+    }
+    cube(MAT.darkWood,1.8,0.25,1.2,sleighGroup,0,1.25,-0.45);
+    const sack=cube(MAT.green,1.65,1.65,1.45,sleighGroup,0,1.85,-0.55); sack.rotation.z=0.12;
+    cube(MAT.gold,1.15,0.18,1.0,sleighGroup,0,2.35,-0.5);
+    gift(-0.45,0.25,'purple',0.65,false,sleighGroup,true); gift(0.5,0.1,'redLight',0.58,false,sleighGroup,true);
+    const reindeer = [];
+    function makeReindeer(x) {
+      const r=new THREE.Group(); r.position.set(x,0,4.25); sleighGroup.add(r);
+      cube(MAT.bark,0.85,0.85,1.55,r,0,1.15,0);
+      const neck=cube(MAT.wood,0.48,0.9,0.5,r,0,1.7,0.62); neck.rotation.x=-0.25;
+      const head=new THREE.Group(); head.position.set(0,2.15,0.88); r.add(head);
+      cube(MAT.wood,0.62,0.58,0.8,head,0,0,0);
+      cube(MAT.darkWood,0.48,0.35,0.42,head,0,-0.12,0.54);
+      cube(MAT.redLight,0.2,0.2,0.18,head,0,-0.08,0.79);
+      cube(MAT.black,0.07,0.08,0.04,head,-0.18,0.12,0.41); cube(MAT.black,0.07,0.08,0.04,head,0.18,0.12,0.41);
+      for(const side of [-1,1]) {
+        cube(MAT.cream,0.12,0.85,0.12,head,side*0.25,0.62,-0.05).rotation.z=side*-0.3;
+        cube(MAT.cream,0.55,0.12,0.12,head,side*0.43,0.85,-0.05).rotation.z=side*0.35;
+        cube(MAT.cream,0.4,0.1,0.1,head,side*0.45,0.57,-0.05).rotation.z=side*-0.25;
+      }
+      const legs=[];
+      for(const lx of [-0.3,0.3]) for(const lz of [-0.48,0.48]) {
+        const leg=new THREE.Group(); leg.position.set(lx,0.85,lz); r.add(leg);
+        cube(MAT.bark,0.18,0.9,0.2,leg,0,-0.42,0); cube(MAT.black,0.22,0.18,0.3,leg,0,-0.87,0.06); legs.push(leg);
+      }
+      cube(MAT.red,1.0,0.12,1.0,r,0,1.45,0);
+      reindeer.push({group:r,head,legs,phase:x});
+    }
+    makeReindeer(-0.8); makeReindeer(0.8);
+    const santa=placePerson(person({type:'santa',coat:'red'}),18.8,0.45,-1.5,0.5); addIdle(santa,'santa');
+    addIdle(placePerson(person({type:'elf',coat:'green',gift:true}),20.0,0.45,-5.7,-0.2),'loader',0.3);
+    addIdle(placePerson(person({type:'elf',coat:'red',scarf:'green'}),23.8,0.45,-5.2,0.4),'loader',1.6);
+    gift(20.2,-5.0,'blue',0.75,false); gift(21.2,-5.7,'red',0.65,false);
+    let sleighExcitement=0;
+
+    // Pupazzi di neve e bambini che ne costruiscono uno.
+    function snowman(x,z,scale=1) {
+      const ground=0.43;
+      block('snow',x,ground+0.52*scale,z,1.05*scale,1.05*scale,1.05*scale);
+      block('snow',x,ground+1.28*scale,z,0.8*scale,0.8*scale,0.8*scale);
+      block('snow',x,ground+1.9*scale,z,0.58*scale,0.58*scale,0.58*scale);
+      block('black',x,ground+2.25*scale,z,0.85*scale,0.12*scale,0.85*scale);
+      block('black',x,ground+2.53*scale,z,0.55*scale,0.52*scale,0.55*scale);
+      for(const dx of [-0.14,0.14]) block('black',x+dx*scale,ground+1.98*scale,z+0.3*scale,0.07,0.07,0.04);
+      block('orange',x,ground+1.85*scale,z+0.48*scale,0.13,0.13,0.48*scale);
+      for(let i=0;i<3;i++) block('black',x,ground+(1.0+i*0.25)*scale,z+0.43*scale,0.08,0.08,0.05);
+      block('bark',x-0.85*scale,ground+1.35*scale,z,0.85*scale,0.12,0.12,0,0,0.35);
+      block('bark',x+0.85*scale,ground+1.35*scale,z,0.85*scale,0.12,0.12,0,0,-0.35);
+    }
+    snowman(-22,-10,1.05); snowman(-12,19,0.72);
+    addIdle(placePerson(person({type:'child',coat:'redLight',scarf:'gold'}),-23.3,0.45,-8.8,2.7),'builder',0.4);
+    addIdle(placePerson(person({type:'child',coat:'blue',scarf:'red'}),-20.8,0.45,-9.0,-2.5),'builder',1.7);
+
+    // Lampioni, cassette postali, bastoncini, catasta di legna.
+    function lamp(x,z,y=0.5) {
+      block('darkWood',x,y+1.55,z,0.18,3.1,0.18); block('gold',x,y+3.1,z,0.58,0.12,0.58);
+      block('lamp',x,y+2.75,z,0.42,0.58,0.42); block('darkWood',x,y+2.75,z,0.52,0.08,0.52);
+      block('snow',x,y+3.24,z,0.7,0.12,0.7);
+    }
+    [[-2,23],[2,28],[-13,28],[13,28],[-19,17],[18,18],[-24,-4],[24,4]].forEach(([x,z])=>lamp(x,z));
+    function mailbox(x,z,yaw=0) {
+      block('wood',x,1.0,z,0.18,1.1,0.18); block('red',x,1.65,z,0.65,0.65,0.8,yaw);
+      block('cream',x,1.67,z+0.41,0.38,0.12,0.04,yaw); block('gold',x+0.42,1.9,z,0.08,0.65,0.08,yaw);
+    }
+    mailbox(-2.8,22); mailbox(16,23);
+    function candyCane(x,z,flip=1) {
+      for(let i=0;i<7;i++) block(i%2?'white':'redLight',x,0.65+i*0.28,z,0.22,0.29,0.22);
+      block('white',x+flip*0.18,2.52,z,0.5,0.22,0.22); block('redLight',x+flip*0.42,2.34,z,0.22,0.45,0.22);
+    }
+    candyCane(-2.5,23.5,-1); candyCane(2.5,23.5,1); candyCane(-15.5,24,-1); candyCane(15.5,24,1);
+    for(let row=0;row<3;row++) for(let i=0;i<4-row;i++) {
+      block('bark',13+i*0.48+row*0.22,0.7+row*0.35,-13,0.42,0.32,1.5);
+      block('cream',13+i*0.48+row*0.22,0.7+row*0.35,-12.23,0.3,0.24,0.05);
+    }
+    block('snow',13.8,1.85,-13,2.2,0.12,1.6);
+
+    // Piccoli archi e ghirlande ai livelli superiori.
+    for(let level=1;level<5;level++) {
+      const a=0.05+level*0.6,r=LEVELS[level].r-0.2,y=LEVELS[level].y;
+      const p=radialPosition(r,a,y),yaw=Math.PI/2-a;
+      localBlock('stoneLight',p.x,y,p.z,yaw,-0.8,0.9,0,0.35,1.8,0.45);
+      localBlock('stoneLight',p.x,y,p.z,yaw,0.8,0.9,0,0.35,1.8,0.45);
+      localBlock('stoneLight',p.x,y,p.z,yaw,0,1.85,0,1.95,0.3,0.45);
+      for(let g=-3;g<=3;g++) localBlock(g%3===0?'redLight':'pine',p.x,y,p.z,yaw,g*0.24,1.7-Math.abs(g)*0.05,0.28,0.25,0.25,0.18);
+    }
+
+    // Finalizza tutti i voxel statici in poche decine di draw call.
+    flushBatches();
+
+    // Fumo dei camini: pool instanced fisso, nessuna allocazione per frame.
+    const smokeCount = chimneys.length * CONFIG.smokePuffsPerChimney;
+    const smokeMaterial = new THREE.MeshStandardMaterial({color:0xb9c5ca,transparent:true,opacity:0.28,roughness:1,depthWrite:false});
+    const smokeMesh = new THREE.InstancedMesh(unitBox,smokeMaterial,smokeCount);
+    smokeMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage); smokeMesh.frustumCulled=false; scene.add(smokeMesh);
+    const smokeData=[];
+    chimneys.forEach((origin,c)=>{for(let i=0;i<CONFIG.smokePuffsPerChimney;i++)smokeData.push({origin,phase:i/CONFIG.smokePuffsPerChimney+random()*0.1,drift:range(-0.5,0.5),speed:range(0.07,0.11)});});
+
+    // Fiocchi cubici riciclati in un pool.
+    const snowMaterial = new THREE.MeshBasicMaterial({color:0xf4fbff,transparent:true,opacity:0.8});
+    const snowMesh = new THREE.InstancedMesh(unitBox,snowMaterial,CONFIG.snowflakes);
+    snowMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage); snowMesh.frustumCulled=false; scene.add(snowMesh);
+    const snowData=[];
+    for(let i=0;i<CONFIG.snowflakes;i++)snowData.push({x:range(-35,35),y:range(1,34),z:range(-35,35),speed:range(0.55,1.25),drift:range(0.3,0.9),phase:range(0,TAU),size:range(0.055,0.13)});
+
+    // Web Audio: nessun campione esterno, sequencer a 8 battute con look-ahead.
+    const AudioEngine = {
+      ctx:null,master:null,music:null,sfx:null,wind:null,noiseBuffer:null,timer:null,
+      nextNoteTime:0,step:0,loop:0,muted:false,activated:false,suspendedByTab:false,
+      tempo:76,stepsPerBar:8,totalSteps:64,
+      melody:[
+        72,null,76,79,76,null,74,72, 74,null,77,81,79,77,76,null,
+        76,79,84,null,83,81,79,76, 77,81,79,77,76,null,74,null,
+        72,null,76,79,81,79,76,74, 72,74,76,null,79,null,76,null,
+        77,76,74,77,81,null,79,76, 74,76,77,79,76,74,72,null
+      ],
+      chords:[[60,64,67],[59,62,67],[60,64,69],[57,60,65],[60,64,67],[57,60,65],[59,62,67],[60,64,67]],
+      bass:[48,43,45,41,48,41,43,48],
+      init() {
+        if(this.ctx)return true;
+        const AC=window.AudioContext||window.webkitAudioContext;
+        if(!AC)return false;
+        this.ctx=new AC();
+        this.master=this.ctx.createGain();this.music=this.ctx.createGain();this.sfx=this.ctx.createGain();
+        const compressor=this.ctx.createDynamicsCompressor();compressor.threshold.value=-18;compressor.ratio.value=4;
+        this.music.connect(this.master);this.sfx.connect(this.master);this.master.connect(compressor);compressor.connect(this.ctx.destination);
+        this.master.gain.value=CONFIG.masterVolume;this.music.gain.value=CONFIG.musicVolume;this.sfx.gain.value=CONFIG.sfxVolume;
+        const length=this.ctx.sampleRate*2;this.noiseBuffer=this.ctx.createBuffer(1,length,this.ctx.sampleRate);
+        const data=this.noiseBuffer.getChannelData(0);let last=0;
+        for(let i=0;i<length;i++){last=last*0.82+(Math.random()*2-1)*0.18;data[i]=last;}
+        return true;
+      },
+      ramp(param,value,time=0.08){if(!this.ctx)return;const t=this.ctx.currentTime;param.cancelScheduledValues(t);param.setTargetAtTime(value,t,time);},
+      async activate(){
+        if(!this.init()){showToast('Web Audio non è supportato da questo browser');return;}
+        const needsRestart=this.ctx.state!=='running';
+        try{await this.ctx.resume();}catch(error){showToast('Il browser ha bloccato l’audio. Riprova.');return;}
+        this.activated=true;this.startWind();
+        if(needsRestart){this.stopSequencer();this.nextNoteTime=this.ctx.currentTime+0.08;}
+        this.startSequencer();
+        document.getElementById('audio-btn').textContent='AUDIO ATTIVO';document.getElementById('audio-btn').classList.add('active');document.getElementById('mute-btn').disabled=false;
+        this.gift([72,76,79],0.05);
+      },
+      startWind(){
+        if(this.wind||!this.ctx)return;
+        const source=this.ctx.createBufferSource(),filter=this.ctx.createBiquadFilter(),gain=this.ctx.createGain();
+        source.buffer=this.noiseBuffer;source.loop=true;filter.type='lowpass';filter.frequency.value=420;gain.gain.value=0.055;
+        source.connect(filter);filter.connect(gain);gain.connect(this.sfx);source.start();this.wind={source,filter,gain};
+      },
+      voice(midi,time,duration,type='bell',destination=this.music,volume=0.06){
+        if(!this.ctx)return;
+        const freq=440*Math.pow(2,(midi-69)/12),osc=this.ctx.createOscillator(),gain=this.ctx.createGain();
+        osc.type=type==='pad'?'sine':type==='bass'?'triangle':'sine';osc.frequency.setValueAtTime(freq,time);
+        gain.gain.setValueAtTime(0,time);gain.gain.linearRampToValueAtTime(volume,time+(type==='pad'?0.18:0.008));
+        gain.gain.exponentialRampToValueAtTime(0.0001,time+duration);
+        osc.connect(gain);gain.connect(destination);osc.start(time);osc.stop(time+duration+0.03);
+        osc.onended=()=>{osc.disconnect();gain.disconnect();};
+        if(type==='bell'){
+          const overtone=this.ctx.createOscillator(),og=this.ctx.createGain();overtone.type='sine';overtone.frequency.setValueAtTime(freq*2.76,time);
+          og.gain.setValueAtTime(0,time);og.gain.linearRampToValueAtTime(volume*0.22,time+0.005);og.gain.exponentialRampToValueAtTime(0.0001,time+Math.min(duration,0.8));
+          overtone.connect(og);og.connect(destination);overtone.start(time);overtone.stop(time+Math.min(duration,0.85));
+          overtone.onended=()=>{overtone.disconnect();og.disconnect();};
+        }
+      },
+      pad(midi,time,duration){
+        if(!this.ctx)return;
+        const osc=this.ctx.createOscillator(),filter=this.ctx.createBiquadFilter(),gain=this.ctx.createGain();
+        osc.type='triangle';osc.frequency.value=440*Math.pow(2,(midi-69)/12);filter.type='lowpass';filter.frequency.value=900;
+        gain.gain.setValueAtTime(0,time);gain.gain.linearRampToValueAtTime(0.022,time+0.35);gain.gain.setValueAtTime(0.022,time+duration-0.4);gain.gain.linearRampToValueAtTime(0,time+duration);
+        osc.connect(filter);filter.connect(gain);gain.connect(this.music);osc.start(time);osc.stop(time+duration+0.03);
+        osc.onended=()=>{osc.disconnect();filter.disconnect();gain.disconnect();};
+      },
+      scheduleStep(step,time){
+        const beat=60/this.tempo,bar=Math.floor(step/8),inBar=step%8;
+        const note=this.melody[step];if(note!==null)this.voice(note,time,beat*0.82,'bell',this.music,0.055);
+        if(inBar===0){this.chords[bar].forEach(n=>this.pad(n,time,beat*4));this.voice(this.bass[bar],time,beat*1.8,'bass',this.music,0.05);}
+        if(inBar===4)this.voice(this.bass[bar]+7,time,beat*1.7,'bass',this.music,0.035);
+        if(step===0&&this.loop>0&&this.loop%2===0){[60,67,72].forEach((n,i)=>this.voice(n,time+i*0.38,2.5,'bell',this.sfx,0.08));}
+      },
+      scheduler(){
+        if(!this.ctx||this.ctx.state!=='running')return;
+        const beat=60/this.tempo,stepDuration=beat/2;
+        while(this.nextNoteTime<this.ctx.currentTime+0.14){
+          this.scheduleStep(this.step,this.nextNoteTime);this.nextNoteTime+=stepDuration;this.step++;
+          if(this.step>=this.totalSteps){this.step=0;this.loop++;}
+        }
+      },
+      startSequencer(){
+        if(this.timer||!this.ctx||this.ctx.state!=='running')return;
+        this.nextNoteTime=this.ctx.currentTime+0.08;this.timer=setInterval(()=>this.scheduler(),25);this.scheduler();
+      },
+      stopSequencer(){if(this.timer){clearInterval(this.timer);this.timer=null;}},
+      setVolume(kind,value){CONFIG[kind]=value;if(!this.ctx)return;this.ramp(kind==='masterVolume'?this.master.gain:kind==='musicVolume'?this.music.gain:this.sfx.gain,value);},
+      toggleMute(){this.muted=!this.muted;if(this.ctx)this.ramp(this.master.gain,this.muted?0:CONFIG.masterVolume,0.06);return this.muted;},
+      noise(duration=0.08,frequency=500,volume=0.04,time=null){
+        if(!this.ctx||this.ctx.state!=='running')return;
+        const t=time??this.ctx.currentTime,source=this.ctx.createBufferSource(),filter=this.ctx.createBiquadFilter(),gain=this.ctx.createGain();
+        source.buffer=this.noiseBuffer;filter.type='lowpass';filter.frequency.value=frequency;gain.gain.setValueAtTime(volume,t);gain.gain.exponentialRampToValueAtTime(0.0001,t+duration);
+        source.connect(filter);filter.connect(gain);gain.connect(this.sfx);source.start(t);source.stop(t+duration+0.02);
+        source.onended=()=>{source.disconnect();filter.disconnect();gain.disconnect();};
+      },
+      gift(notes=[76,81,85,88],delay=0){if(!this.ctx)return;const t=this.ctx.currentTime+delay;notes.forEach((n,i)=>this.voice(n,t+i*0.09,0.55,'bell',this.sfx,0.07));},
+      sleigh(){if(!this.ctx)return;const t=this.ctx.currentTime;for(let i=0;i<12;i++){this.voice(88+(i%3)*4,t+i*0.065,0.25,'bell',this.sfx,0.035);if(i%3===0)this.noise(0.04,2400,0.012,t+i*0.065);}},
+      tree(){if(!this.ctx)return;const t=this.ctx.currentTime;[84,88,91].forEach((n,i)=>this.voice(n,t+i*0.12,0.9,'bell',this.sfx,0.055));},
+      stepSound(){this.noise(0.055,380,0.012);}
+    };
+
+    // UI audio con ramp e controlli separati.
+    const volumeInputs=[['volume','masterVolume','volume-out'],['music-volume','musicVolume','music-out'],['sfx-volume','sfxVolume','sfx-out']];
+    volumeInputs.forEach(([id,key,out])=>{
+      const input=document.getElementById(id);input.addEventListener('input',()=>{const value=Number(input.value)/100;document.getElementById(out).textContent=input.value+'%';AudioEngine.setVolume(key,value);});
+    });
+    document.getElementById('audio-btn').addEventListener('click',()=>AudioEngine.activate());
+    document.getElementById('mute-btn').addEventListener('click',event=>{const muted=AudioEngine.toggleMute();event.currentTarget.textContent=muted?'UNMUTE':'MUTE';event.currentTarget.classList.toggle('active',muted);});
+    document.addEventListener('visibilitychange',()=>{
+      if(!AudioEngine.ctx)return;
+      if(document.hidden&&AudioEngine.ctx.state==='running'){
+        AudioEngine.suspendedByTab=true;AudioEngine.stopSequencer();AudioEngine.ctx.suspend().catch(()=>{});
+      }else if(!document.hidden&&AudioEngine.suspendedByTab){
+        AudioEngine.suspendedByTab=false;AudioEngine.ctx.resume().then(()=>AudioEngine.startSequencer()).catch(()=>{});
+      }
+    });
+    window.addEventListener('pagehide',()=>AudioEngine.stopSequencer());
+
+    // Raycasting: evidenziazione e schede, con protezione dal drag della camera.
+    const raycaster=new THREE.Raycaster(),pointer=new THREE.Vector2();
+    const tooltip=document.getElementById('tooltip'),infoCard=document.getElementById('info-card');
+    let hovered=null,pointerStart=null,infoTimer,toastTimer;
+    const activePointers=new Set();
+    const highlight=new THREE.BoxHelper(treeGroup,0xffdf78);highlight.visible=false;highlight.material.depthTest=false;highlight.material.transparent=true;highlight.material.opacity=0.85;scene.add(highlight);
+    const labels={tree:'Albero dei desideri',gift:'Regalo misterioso',sleigh:'Slitta di Babbo Natale'};
+    function rootInteractive(object){let current=object;while(current){if(current.userData.interactive)return current;current=current.parent;}return null;}
+    function pick(event){
+      const rect=renderer.domElement.getBoundingClientRect();pointer.x=(event.clientX-rect.left)/rect.width*2-1;pointer.y=-(event.clientY-rect.top)/rect.height*2+1;
+      raycaster.setFromCamera(pointer,camera);const hits=raycaster.intersectObjects(interactiveRoots,true);return hits.length?rootInteractive(hits[0].object):null;
+    }
+    function showInfo(title,text){clearTimeout(infoTimer);infoCard.querySelector('strong').textContent=title;infoCard.querySelector('span').textContent=text;infoCard.classList.add('visible');infoTimer=setTimeout(()=>infoCard.classList.remove('visible'),3600);}
+    function showToast(text){clearTimeout(toastTimer);const el=document.getElementById('toast');el.textContent=text;el.classList.add('visible');toastTimer=setTimeout(()=>el.classList.remove('visible'),2400);}
+    renderer.domElement.addEventListener('pointerdown',event=>{
+      activePointers.add(event.pointerId);
+      pointerStart=activePointers.size===1?{x:event.clientX,y:event.clientY,id:event.pointerId}:null;
+    });
+    renderer.domElement.addEventListener('pointermove',event=>{
+      if(event.pointerType!=='mouse'||pointerStart)return;
+      const root=pick(event);hovered=root;
+      highlight.visible=!!root;if(root)highlight.setFromObject(root);
+      tooltip.style.display=root?'block':'none';renderer.domElement.style.cursor=root?'pointer':'grab';
+      if(root){tooltip.textContent=labels[root.userData.interactive];tooltip.style.left=(event.clientX+14)+'px';tooltip.style.top=(event.clientY+14)+'px';}
+    });
+    renderer.domElement.addEventListener('pointerup',event=>{
+      activePointers.delete(event.pointerId);
+      if(!pointerStart||pointerStart.id!==event.pointerId){pointerStart=null;return;}
+      const distance=Math.hypot(event.clientX-pointerStart.x,event.clientY-pointerStart.y);pointerStart=null;
+      if(distance>7)return;
+      const root=pick(event);if(!root)return;
+      const type=root.userData.interactive;
+      if(type==='tree'){
+        treeLightMode=(treeLightMode+1)%treeLightSpeeds.length;AudioEngine.tree();
+        showInfo('Albero dei desideri',['Le luci seguono un lento valzer.','Le palline danzano un ritmo allegro.','È la notte di Natale: luci scintillanti!'][treeLightMode]);
+      }else if(type==='gift'){
+        const item=gifts.find(g=>g.group===root);item.target=item.target>0.5?0:1;AudioEngine.gift();
+        showInfo(item.target?'Un trenino per te!':'Regalo incartato',item.target?'Il coperchio si apre e appare un trenino voxel. Clicca di nuovo per richiuderlo.':'Carta, nastro dorato e un piccolo mistero.');
+      }else if(type==='sleigh'){
+        sleighExcitement=2.8;AudioEngine.sleigh();showInfo('Pronti al decollo!','Le renne scalpitano, i sonagli risuonano e gli elfi finiscono di caricare i doni.');
+      }
+    });
+    renderer.domElement.addEventListener('pointerleave',()=>{activePointers.clear();pointerStart=null;hovered=null;highlight.visible=false;tooltip.style.display='none';renderer.domElement.style.cursor='grab';});
+    renderer.domElement.addEventListener('pointercancel',()=>{activePointers.clear();pointerStart=null;});
+    renderer.domElement.addEventListener('contextmenu',event=>event.preventDefault());
+
+    // Controlli generali.
+    let animationPaused=reducedMotion,worldTime=0,lastFootstep=0;
+    const pauseButton=document.getElementById('pause-btn');
+    function updatePauseButton(){pauseButton.textContent=animationPaused?'▶ ANIMA':'Ⅱ PAUSA';pauseButton.classList.toggle('active',animationPaused);}
+    updatePauseButton();
+    pauseButton.addEventListener('click',()=>{animationPaused=!animationPaused;updatePauseButton();showToast(animationPaused?'Animazioni ambientali in pausa':'Il villaggio riprende vita');});
+    document.getElementById('rotate-btn').addEventListener('click',event=>{controls.autoRotate=!controls.autoRotate;event.currentTarget.classList.toggle('active',controls.autoRotate);});
+    document.getElementById('camera-btn').addEventListener('click',()=>{
+      camera.position.copy(initialCamera);camera.zoom=1;controls.target.copy(initialTarget);resize();controls.update();showToast('Visuale iniziale ripristinata');
+    });
+    function applyQuality(value){
+      CONFIG.quality=value;const limit=value==='high'?2:value==='medium'?1.5:1;
+      renderer.setPixelRatio(Math.min(devicePixelRatio,limit));renderer.shadowMap.enabled=value!=='low';
+      snowMesh.count=value==='low'?36:value==='medium'?60:CONFIG.snowflakes;
+      renderer.setSize(innerWidth,innerHeight);
+    }
+    document.getElementById('quality').addEventListener('change',event=>applyQuality(event.target.value));
+    if(reducedMotion){snowMesh.count=36;controls.autoRotate=false;}
+
+    function resize(){
+      const aspect=innerWidth/innerHeight,viewHeight=Math.max(64,92/aspect);
+      camera.left=-viewHeight*aspect/2;camera.right=viewHeight*aspect/2;camera.top=viewHeight/2;camera.bottom=-viewHeight/2;camera.updateProjectionMatrix();
+      renderer.setSize(innerWidth,innerHeight);
+    }
+    window.addEventListener('resize',resize);resize();
+
+    // Export nativo 3840×2160: nuovo render, non upscaling del canvas visibile.
+    document.getElementById('capture-btn').addEventListener('click',event=>{
+      const button=event.currentTarget;button.disabled=true;button.textContent='RENDER 4K…';
+      const oldSize=renderer.getSize(new THREE.Vector2()),oldRatio=renderer.getPixelRatio();
+      const oldProjection={left:camera.left,right:camera.right,top:camera.top,bottom:camera.bottom,zoom:camera.zoom};
+      const oldPosition=camera.position.clone(),oldQuaternion=camera.quaternion.clone();
+      try{
+        const visibleW=(camera.right-camera.left)/camera.zoom,visibleH=(camera.top-camera.bottom)/camera.zoom;
+        const exportH=Math.max(visibleH,visibleW/(16/9)),exportW=exportH*(16/9);
+        camera.left=-exportW/2;camera.right=exportW/2;camera.top=exportH/2;camera.bottom=-exportH/2;camera.zoom=1;camera.updateProjectionMatrix();
+        renderer.setPixelRatio(1);renderer.setSize(3840,2160,false);renderer.render(scene,camera);
+        const data=renderer.domElement.toDataURL('image/png');
+        const link=document.createElement('a');link.download='bianca-citadella-3840x2160.png';link.href=data;document.body.appendChild(link);link.click();link.remove();
+        showToast('PNG 3840×2160 esportato');
+      }catch(error){showToast('Cattura non riuscita: memoria GPU insufficiente. Prova qualità bassa.');}
+      finally{
+        camera.left=oldProjection.left;camera.right=oldProjection.right;camera.top=oldProjection.top;camera.bottom=oldProjection.bottom;camera.zoom=oldProjection.zoom;
+        camera.position.copy(oldPosition);camera.quaternion.copy(oldQuaternion);camera.updateProjectionMatrix();
+        renderer.setPixelRatio(oldRatio);renderer.setSize(oldSize.x,oldSize.y,false);renderer.render(scene,camera);
+        button.disabled=false;button.textContent='▣ PNG 4K';
+      }
+    });
+    renderer.domElement.addEventListener('webglcontextlost',event=>{event.preventDefault();fatal('Il contesto WebGL è stato perso. Chiudi altre schede grafiche e riapri il file.');});
+
+    // Animazione ambientale continua e indipendente dalle interazioni.
+    const clock=new THREE.Clock();
+    function triangle(value){const t=((value%2)+2)%2;return t<1?t:2-t;}
+    function animatePerson(parts,phase,amount=0.55){
+      parts.leftLeg.rotation.x=Math.sin(phase)*amount;parts.rightLeg.rotation.x=-Math.sin(phase)*amount;
+      parts.leftArm.rotation.x=-Math.sin(phase)*amount*0.75;parts.rightArm.rotation.x=Math.sin(phase)*amount*0.75;
+    }
+    function updateWalkers(time){
+      for(const w of walkers){
+        const raw=time*w.speed+w.phase,t=triangle(raw),directionSign=((raw%2)+2)%2<1?1:-1;
+        let x,z,y,dx,dz;
+        if(w.type==='arc'){
+          const a=lerp(w.a0,w.a1,t);x=Math.cos(a)*w.radius;z=Math.sin(a)*w.radius;y=w.y;
+          dx=-Math.sin(a)*(w.a1-w.a0)*directionSign;dz=Math.cos(a)*(w.a1-w.a0)*directionSign;
+        }else{
+          const r=w.route,a=lerp(r.fromR,r.toR,t);x=Math.cos(r.a)*a;z=Math.sin(r.a)*a;y=lerp(r.fromY,r.toY,t)+0.05;
+          dx=Math.cos(r.a)*(r.toR-r.fromR)*directionSign;dz=Math.sin(r.a)*(r.toR-r.fromR)*directionSign;
+        }
+        w.p.position.set(x,y,z);w.p.rotation.y=Math.atan2(dx,dz);animatePerson(w.parts,time*7+w.phase*4);
+      }
+    }
+    function updateAmbient(dt){
+      worldTime+=dt*CONFIG.animationSpeed;
+      updateWalkers(worldTime);
+      for(const s of skaters){
+        const a=worldTime*s.speed+s.phase;s.p.position.set(pondCenter.x+Math.cos(a)*s.rx,0.67,pondCenter.z+Math.sin(a)*s.rz);
+        const dx=-Math.sin(a)*s.rx*s.speed,dz=Math.cos(a)*s.rz*s.speed;s.p.rotation.y=Math.atan2(dx,dz);
+        animatePerson(s.parts,worldTime*4+s.phase,0.28);s.parts.leftArm.rotation.z=0.55;s.parts.rightArm.rotation.z=-0.55;
+      }
+      idlePeople.forEach(({p,kind,phase,parts})=>{
+        const wave=Math.sin(worldTime*2+phase);
+        if(kind==='loader'){parts.leftArm.rotation.x=-0.9+wave*0.35;parts.rightArm.rotation.x=-0.9-wave*0.35;p.position.y=0.45+Math.max(0,wave)*0.05;}
+        else if(kind==='builder'){parts.leftArm.rotation.x=-0.5+wave*0.4;parts.rightArm.rotation.x=-0.5-wave*0.4;}
+        else if(kind==='vendor'){parts.rightArm.rotation.x=-0.35+wave*0.18;}
+        else{p.rotation.z=wave*0.012;parts.leftArm.rotation.x=wave*0.08;}
+      });
+      animatedWindows.forEach(w=>{
+        const slot=Math.floor((worldTime+w.phase)/w.period),on=slot%4!==3;
+        w.material.emissiveIntensity=lerp(w.material.emissiveIntensity,on?1.8:0.05,Math.min(1,dt*2));
+      });
+      animatedDoors.forEach(d=>{const open=clamp((Math.sin(worldTime*d.speed+d.phase)-0.58)/0.42,0,1);d.pivot.rotation.y=d.baseYaw+open*1.05;});
+      ornaments.forEach((o,i)=>{const intensity=1.1+Math.max(0,Math.sin(worldTime*treeLightSpeeds[treeLightMode]+o.userData.phase))*2.5;o.material.emissiveIntensity=intensity;o.rotation.y=worldTime*0.4+i;});
+      treeStar.rotation.y=Math.sin(worldTime*0.45)*0.18;treeStar.scale.setScalar(1+Math.sin(worldTime*2)*0.035);
+      citadelStar.rotation.y=worldTime*0.25;citadelStar.scale.setScalar(1+Math.sin(worldTime*1.7)*0.04);
+      hourHand.rotation.z=-worldTime*0.015;minuteHand.rotation.z=-worldTime*0.18;
+      smokeData.forEach((p,i)=>{
+        const life=(worldTime*p.speed+p.phase)%1,scale=(0.22+life*0.55)*(1-life*0.55);
+        dummy.position.set(p.origin.x+p.drift*life+Math.sin(life*5+i)*0.13,p.origin.y+life*3.3,p.origin.z+life*0.65);
+        dummy.scale.set(scale,scale,scale);dummy.rotation.set(0,life*2+i,0);dummy.updateMatrix();smokeMesh.setMatrixAt(i,dummy.matrix);
+      });smokeMesh.instanceMatrix.needsUpdate=true;
+      snowData.forEach((f,i)=>{
+        f.y-=dt*f.speed;if(f.y<0.6){f.y=34;f.x=range(-35,35);f.z=range(-35,35);}
+        dummy.position.set(f.x+Math.sin(worldTime*0.35+f.phase)*f.drift,f.y,f.z+Math.cos(worldTime*0.27+f.phase)*f.drift);
+        dummy.scale.setScalar(f.size);dummy.rotation.set(worldTime+f.phase,worldTime*0.7,0);dummy.updateMatrix();snowMesh.setMatrixAt(i,dummy.matrix);
+      });snowMesh.instanceMatrix.needsUpdate=true;
+      if(AudioEngine.ctx&&worldTime-lastFootstep>0.48){lastFootstep=worldTime;AudioEngine.stepSound();}
+    }
+    function updateInteractions(dt){
+      gifts.forEach(g=>{
+        const speed=reducedMotion?30:5;g.open=lerp(g.open,g.target,Math.min(1,dt*speed));
+        g.lid.rotation.x=-g.open*1.35;g.lid.position.y=0.69*g.size+g.open*0.16;
+        const reveal=clamp((g.open-0.25)/0.75,0,1);g.toy.scale.setScalar(Math.max(0.001,reveal));g.toy.position.y=(0.68+reveal*0.5)*g.size;g.toy.rotation.y=reveal*Math.PI*0.6;
+      });
+      if(sleighExcitement>0){
+        sleighExcitement=Math.max(0,sleighExcitement-dt);const strength=Math.min(1,sleighExcitement);
+        reindeer.forEach((r,i)=>{r.head.rotation.x=Math.sin(worldTime*15+i)*0.18*strength;r.legs.forEach((leg,j)=>leg.rotation.x=Math.sin(worldTime*18+j*Math.PI)*0.42*strength);});
+        sleighGroup.position.y=0.55+Math.abs(Math.sin(worldTime*12))*0.07*strength;
+      }else{reindeer.forEach(r=>{r.head.rotation.x*=0.85;r.legs.forEach(leg=>leg.rotation.x*=0.8);});sleighGroup.position.y=0.55;}
+    }
+    function frame(){
+      requestAnimationFrame(frame);
+      const dt=Math.min(clock.getDelta(),0.05);
+      if(!animationPaused)updateAmbient(dt);
+      updateInteractions(dt);controls.update();
+      if(hovered&&highlight.visible)highlight.setFromObject(hovered);
+      renderer.render(scene,camera);
+    }
+
+    // Posiziona subito ogni elemento animato, così il primo frame è completo.
+    updateAmbient(0);updateInteractions(0);frame();
+    boot.classList.add('hidden');setTimeout(()=>{boot.style.display='none';},500);
+  })();
+  </script>
+</body>
+</html>

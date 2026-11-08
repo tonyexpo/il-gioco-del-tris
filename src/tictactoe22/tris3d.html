@@ -1,0 +1,1324 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#79bcec">
+  <title>TrisCraft — Tris 3D</title>
+  <style>
+    :root {
+      --ink: #f7f3dc;
+      --dark: #172331;
+      --panel: rgba(20, 31, 40, 0.88);
+      --line: rgba(255, 255, 255, 0.18);
+      --cyan: #42d8ff;
+      --orange: #ff8848;
+      --gold: #ffe071;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: #79bcec;
+      color: var(--ink);
+      font-family: "Trebuchet MS", system-ui, sans-serif;
+    }
+
+    body { user-select: none; }
+
+    #scene {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+      outline: none;
+      cursor: grab;
+      touch-action: none;
+    }
+
+    #scene:active { cursor: grabbing; }
+
+    .ui {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 5;
+    }
+
+    .pixel-panel {
+      background: var(--panel);
+      border: 2px solid var(--line);
+      box-shadow: 0 5px 0 rgba(7, 13, 18, 0.45), inset 0 0 0 2px rgba(0, 0, 0, 0.18);
+      backdrop-filter: blur(10px);
+      clip-path: polygon(7px 0, calc(100% - 7px) 0, calc(100% - 7px) 3px, 100% 3px,
+        100% calc(100% - 7px), calc(100% - 3px) calc(100% - 7px),
+        calc(100% - 3px) 100%, 7px 100%, 7px calc(100% - 3px),
+        0 calc(100% - 3px), 0 7px, 3px 7px, 3px 3px, 7px 3px);
+    }
+
+    .brand {
+      position: absolute;
+      top: 20px;
+      left: 22px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 11px 16px 11px 12px;
+    }
+
+    .brand-cube {
+      width: 38px;
+      height: 38px;
+      flex: 0 0 auto;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,.18) 25%, transparent 25%) 0 0 / 10px 10px,
+        linear-gradient(315deg, rgba(0,0,0,.12) 25%, transparent 25%) 0 0 / 10px 10px,
+        #63a943;
+      border: 3px solid #284c2b;
+      border-top-color: #a5d565;
+      border-left-color: #80bd52;
+      box-shadow: 3px 3px 0 #101a20;
+      image-rendering: pixelated;
+    }
+
+    h1 {
+      margin: 0;
+      font: 900 22px/1 "Courier New", monospace;
+      letter-spacing: 2px;
+      text-shadow: 3px 3px 0 #0b1218;
+    }
+
+    .brand small {
+      display: block;
+      margin-top: 5px;
+      color: #b7c8cd;
+      font: 700 10px/1 "Courier New", monospace;
+      letter-spacing: 1.7px;
+    }
+
+    .turn {
+      position: absolute;
+      top: 22px;
+      left: 50%;
+      transform: translateX(-50%);
+      min-width: 240px;
+      padding: 11px 20px;
+      text-align: center;
+      font: 700 13px/1.2 "Courier New", monospace;
+      letter-spacing: .5px;
+      transition: border-color .2s;
+    }
+
+    .turn::before {
+      content: "";
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      margin-right: 9px;
+      background: var(--cyan);
+      box-shadow: 0 0 10px var(--cyan);
+      vertical-align: 1px;
+    }
+
+    .turn.thinking::before {
+      background: var(--orange);
+      box-shadow: 0 0 10px var(--orange);
+      animation: blink .65s steps(2) infinite;
+    }
+
+    .turn.finished::before {
+      background: var(--gold);
+      box-shadow: 0 0 10px var(--gold);
+    }
+
+    @keyframes blink { 50% { opacity: .25; } }
+
+    .scoreboard {
+      position: absolute;
+      top: 20px;
+      right: 22px;
+      display: flex;
+      padding: 9px 8px;
+      gap: 4px;
+    }
+
+    .score {
+      min-width: 62px;
+      padding: 1px 10px;
+      text-align: center;
+      border-right: 1px solid rgba(255,255,255,.13);
+    }
+
+    .score:last-child { border-right: 0; }
+
+    .score span {
+      display: block;
+      color: #aebfc5;
+      font: 700 9px/1 "Courier New", monospace;
+      letter-spacing: 1px;
+    }
+
+    .score strong {
+      display: block;
+      margin-top: 5px;
+      font: 900 22px/1 "Courier New", monospace;
+    }
+
+    .score.you strong { color: var(--cyan); }
+    .score.pc strong { color: var(--orange); }
+
+    .hint {
+      position: absolute;
+      left: 22px;
+      bottom: 22px;
+      padding: 11px 15px;
+      color: #d4e0df;
+      font: 700 11px/1.65 "Courier New", monospace;
+    }
+
+    .hint b { color: white; }
+    .hint .desktop { display: inline; }
+    .hint .mobile { display: none; }
+
+    .actions {
+      position: absolute;
+      right: 22px;
+      bottom: 22px;
+      display: flex;
+      gap: 9px;
+      pointer-events: auto;
+    }
+
+    button {
+      appearance: none;
+      border: 2px solid rgba(255,255,255,.22);
+      border-bottom-color: rgba(0,0,0,.55);
+      border-right-color: rgba(0,0,0,.55);
+      border-radius: 0;
+      padding: 11px 14px;
+      background: #2b3d49;
+      color: #f7f3dc;
+      box-shadow: 0 4px 0 rgba(7,13,18,.55);
+      font: 700 11px/1 "Courier New", monospace;
+      letter-spacing: .4px;
+      cursor: pointer;
+      transition: transform .08s, filter .15s;
+    }
+
+    button:hover { filter: brightness(1.18); }
+    button:active { transform: translateY(3px); box-shadow: 0 1px 0 rgba(7,13,18,.55); }
+    button:focus-visible { outline: 3px solid var(--cyan); outline-offset: 3px; }
+    button.primary { background: #337f52; }
+    button.icon { min-width: 44px; padding-inline: 11px; }
+
+    .difficulty {
+      position: absolute;
+      right: 23px;
+      top: 96px;
+      padding: 5px 9px;
+      color: #263541;
+      background: rgba(239, 246, 218, .8);
+      font: 900 9px/1 "Courier New", monospace;
+      letter-spacing: 1px;
+      box-shadow: 2px 2px 0 rgba(0,0,0,.18);
+    }
+
+    .result-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 10;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      background: rgba(8, 17, 23, 0);
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition: opacity .25s, background .25s, visibility .25s;
+    }
+
+    .result-overlay.visible {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+      background: rgba(8, 17, 23, .28);
+    }
+
+    .result-card {
+      width: min(390px, 92vw);
+      padding: 28px;
+      text-align: center;
+      transform: translateY(18px) scale(.96);
+      transition: transform .3s cubic-bezier(.2,.8,.2,1);
+    }
+
+    .visible .result-card { transform: translateY(0) scale(1); }
+
+    .result-icon {
+      width: 58px;
+      height: 58px;
+      margin: 0 auto 17px;
+      display: grid;
+      place-items: center;
+      background: #28414d;
+      border: 3px solid #4d6874;
+      color: var(--gold);
+      box-shadow: 5px 5px 0 #0c151b;
+      font: 900 35px/1 "Courier New", monospace;
+    }
+
+    .result-card h2 {
+      margin: 0 0 10px;
+      font: 900 28px/1 "Courier New", monospace;
+      text-shadow: 3px 3px 0 #0a1218;
+    }
+
+    .result-card p {
+      margin: 0 0 23px;
+      color: #bfcdd0;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .result-card button { padding: 14px 25px; font-size: 13px; }
+
+    .toast {
+      position: absolute;
+      left: 50%;
+      bottom: 86px;
+      transform: translate(-50%, 10px);
+      padding: 9px 14px;
+      background: rgba(18, 30, 38, .86);
+      border: 1px solid rgba(255,255,255,.18);
+      color: #ecf4e9;
+      font: 700 11px/1 "Courier New", monospace;
+      opacity: 0;
+      transition: opacity .2s, transform .2s;
+      white-space: nowrap;
+    }
+
+    .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+    @media (max-width: 760px) {
+      .brand { top: 12px; left: 12px; padding: 9px 11px; }
+      .brand-cube { width: 31px; height: 31px; }
+      h1 { font-size: 17px; }
+      .brand small { display: none; }
+      .scoreboard { top: 12px; right: 12px; padding: 7px 3px; }
+      .score { min-width: 45px; padding-inline: 6px; }
+      .score strong { font-size: 18px; }
+      .score span { font-size: 8px; }
+      .turn { top: 77px; min-width: 210px; padding: 9px 13px; font-size: 11px; }
+      .difficulty { top: 67px; right: 12px; font-size: 8px; }
+      .hint { left: 12px; bottom: 72px; padding: 8px 10px; font-size: 9px; }
+      .hint .desktop { display: none; }
+      .hint .mobile { display: inline; }
+      .actions { right: 12px; bottom: 15px; left: 12px; justify-content: flex-end; }
+      button { padding: 11px; font-size: 10px; }
+      .toast { bottom: 124px; max-width: 90vw; white-space: normal; text-align: center; }
+    }
+
+    @media (max-height: 560px) {
+      .turn { top: 12px; }
+      .difficulty, .hint { display: none; }
+      .result-card { padding: 18px; }
+      .result-icon { width: 42px; height: 42px; margin-bottom: 10px; font-size: 27px; }
+      .result-card h2 { font-size: 23px; }
+      .result-card p { margin-bottom: 14px; }
+    }
+  </style>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body>
+  <canvas id="scene" aria-label="Tabellone del tris 3D. Trascina per ruotare la visuale e clicca una casella libera per giocare." tabindex="0"></canvas>
+
+  <div class="ui">
+    <div class="brand pixel-panel">
+      <div class="brand-cube" aria-hidden="true"></div>
+      <div>
+        <h1>TRISCRAFT</h1>
+        <small>UN MONDO. NOVE CASSE. UN CAMPIONE.</small>
+      </div>
+    </div>
+
+    <div id="turn" class="turn pixel-panel" role="status" aria-live="polite">Tocca a te · sei X</div>
+
+    <div class="scoreboard pixel-panel" aria-label="Punteggio">
+      <div class="score you"><span>TU · X</span><strong id="score-x">0</strong></div>
+      <div class="score"><span>PARI</span><strong id="score-draw">0</strong></div>
+      <div class="score pc"><span>PC · O</span><strong id="score-o">0</strong></div>
+    </div>
+
+    <div class="difficulty">MINIMAX · FACILE</div>
+
+    <div class="hint pixel-panel">
+      <span class="desktop"><b>DRAG</b> ruota &nbsp;·&nbsp; <b>ROTELLINA</b> zoom &nbsp;·&nbsp; <b>1–9</b> gioca<br><b>R</b> nuova partita &nbsp;·&nbsp; <b>M</b> audio</span>
+      <span class="mobile"><b>TRASCINA</b> per ruotare · <b>PINCH</b> per zoom<br>Tocca una casella libera per posizionare X</span>
+    </div>
+
+    <div class="actions">
+      <button id="sound-btn" class="icon" type="button" title="Attiva/disattiva audio (M)" aria-label="Disattiva audio">AUDIO: ON</button>
+      <button id="restart-btn" class="primary" type="button" title="Nuova partita (R)">NUOVA PARTITA</button>
+    </div>
+
+    <div id="toast" class="toast" role="status"></div>
+  </div>
+
+  <div id="result-overlay" class="result-overlay" role="dialog" aria-modal="true" aria-labelledby="result-title">
+    <div class="result-card pixel-panel">
+      <div id="result-icon" class="result-icon">★</div>
+      <h2 id="result-title">Vittoria!</h2>
+      <p id="result-text">Hai allineato tre X. Il villaggio è salvo!</p>
+      <button id="play-again-btn" class="primary" type="button">GIOCA ANCORA</button>
+    </div>
+  </div>
+
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+    // ---------- Renderer, scena e camera ----------
+    const canvas = document.getElementById('scene');
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.12;
+
+    const scene = new THREE.Scene();
+    scene.fog = new THREE.Fog(0xa8d4df, 35, 82);
+
+    const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 180);
+    camera.position.set(14, 14, 18);
+
+    const controls = new OrbitControls(camera, canvas);
+    controls.target.set(0, 2.25, 0);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.065;
+    controls.enablePan = false;
+    controls.minDistance = 10;
+    controls.maxDistance = 35;
+    controls.minPolarAngle = 0.3;
+    controls.maxPolarAngle = Math.PI / 2.12;
+    controls.rotateSpeed = 0.65;
+    controls.zoomSpeed = 0.8;
+    controls.update();
+
+    const sky = new THREE.Mesh(
+      new THREE.SphereGeometry(95, 24, 16),
+      new THREE.ShaderMaterial({
+        side: THREE.BackSide,
+        depthWrite: false,
+        uniforms: {
+          topColor: { value: new THREE.Color(0x62aeee) },
+          bottomColor: { value: new THREE.Color(0xe3f3d4) }
+        },
+        vertexShader: `varying float vY;
+          void main() {
+            vY = normalize(position).y;
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+          }`,
+        fragmentShader: `uniform vec3 topColor; uniform vec3 bottomColor; varying float vY;
+          void main() {
+            float h = smoothstep(-0.18, 0.72, vY);
+            gl_FragColor = vec4(mix(bottomColor, topColor, h), 1.0);
+          }`
+      })
+    );
+    scene.add(sky);
+
+    const hemi = new THREE.HemisphereLight(0xdaf2ff, 0x607044, 2.15);
+    scene.add(hemi);
+
+    const sunLight = new THREE.DirectionalLight(0xfff1c7, 3.4);
+    sunLight.position.set(-16, 25, 12);
+    sunLight.castShadow = true;
+    sunLight.shadow.mapSize.set(2048, 2048);
+    sunLight.shadow.camera.left = -25;
+    sunLight.shadow.camera.right = 25;
+    sunLight.shadow.camera.top = 25;
+    sunLight.shadow.camera.bottom = -25;
+    sunLight.shadow.camera.near = 1;
+    sunLight.shadow.camera.far = 65;
+    sunLight.shadow.bias = -0.00025;
+    scene.add(sunLight);
+
+    const sunCube = new THREE.Mesh(
+      new THREE.BoxGeometry(5.5, 5.5, 0.8),
+      new THREE.MeshBasicMaterial({ color: 0xfff4ac, fog: false })
+    );
+    sunCube.position.set(-29, 29, -48);
+    sunCube.lookAt(0, 5, 0);
+    scene.add(sunCube);
+
+    // ---------- Texture pixelart generate localmente ----------
+    function seededRandom(seed) {
+      return function () {
+        seed |= 0;
+        seed = seed + 0x6D2B79F5 | 0;
+        let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+        t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+        return ((t ^ t >>> 14) >>> 0) / 4294967296;
+      };
+    }
+
+    const worldRandom = seededRandom(481516);
+    const textureRandom = seededRandom(2342);
+
+    function pixelTexture(base, flecks, count = 55) {
+      const c = document.createElement('canvas');
+      c.width = c.height = 16;
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = base;
+      ctx.fillRect(0, 0, 16, 16);
+      for (let i = 0; i < count; i++) {
+        ctx.fillStyle = flecks[Math.floor(textureRandom() * flecks.length)];
+        const size = textureRandom() > 0.84 ? 2 : 1;
+        ctx.fillRect(Math.floor(textureRandom() * 16), Math.floor(textureRandom() * 16), size, size);
+      }
+      const texture = new THREE.CanvasTexture(c);
+      texture.colorSpace = THREE.SRGBColorSpace;
+      texture.magFilter = THREE.NearestFilter;
+      texture.minFilter = THREE.NearestFilter;
+      texture.generateMipmaps = false;
+      return texture;
+    }
+
+    function voxelMaterial(base, flecks, options = {}) {
+      const { count = 55, ...materialOptions } = options;
+      return new THREE.MeshStandardMaterial({
+        map: pixelTexture(base, flecks, count),
+        roughness: 0.94,
+        metalness: 0,
+        ...materialOptions
+      });
+    }
+
+    const materials = {
+      grass: voxelMaterial('#68a94b', ['#7aba54', '#4f8c3e', '#92be5c', '#3f7937']),
+      dirt: voxelMaterial('#825936', ['#6d472e', '#9c6d42', '#5f422e', '#ad7b4d']),
+      stone: voxelMaterial('#8c9692', ['#727e7b', '#a7ae9f', '#697571', '#bac0af']),
+      sand: voxelMaterial('#d9ca82', ['#c5b573', '#ecdc94', '#bbaa69']),
+      wood: voxelMaterial('#79502e', ['#5e3d25', '#9b6a3b', '#ad7841']),
+      leaves: voxelMaterial('#3e813e', ['#2e6936', '#559b45', '#6ba54d', '#285b32']),
+      darkWood: voxelMaterial('#4e3527', ['#64432c', '#39291f', '#785036']),
+      quartz: voxelMaterial('#d5d0b5', ['#c1bca5', '#e4dfc5', '#b3b09f'], { count: 25, roughness: 0.82 }),
+      flowerRed: new THREE.MeshStandardMaterial({ color: 0xf05c55, roughness: 0.8 }),
+      flowerYellow: new THREE.MeshStandardMaterial({ color: 0xffdc55, roughness: 0.8 }),
+      stem: new THREE.MeshStandardMaterial({ color: 0x4a8c3b, roughness: 1 })
+    };
+
+    // ---------- Mondo voxel ----------
+    const unitBox = new THREE.BoxGeometry(1, 1, 1);
+    const batches = new Map();
+    const dummy = new THREE.Object3D();
+
+    function queueBlock(type, x, y, z, sx = 1, sy = sx, sz = sx, rotationY = 0, shade = 1) {
+      if (!batches.has(type)) batches.set(type, []);
+      dummy.position.set(x, y, z);
+      dummy.scale.set(sx, sy, sz);
+      dummy.rotation.set(0, rotationY, 0);
+      dummy.updateMatrix();
+      batches.get(type).push({ matrix: dummy.matrix.clone(), shade });
+    }
+
+    const waterTexture = pixelTexture('#4fabc2', ['#67bed0', '#418fae', '#8acbd3'], 35);
+    waterTexture.wrapS = waterTexture.wrapT = THREE.RepeatWrapping;
+    waterTexture.repeat.set(22, 22);
+    const water = new THREE.Mesh(
+      new THREE.PlaneGeometry(150, 150),
+      new THREE.MeshStandardMaterial({
+        map: waterTexture,
+        color: 0x75c4d2,
+        transparent: true,
+        opacity: 0.83,
+        roughness: 0.32,
+        metalness: 0.08
+      })
+    );
+    water.rotation.x = -Math.PI / 2;
+    water.position.y = -1.18;
+    water.receiveShadow = true;
+    scene.add(water);
+
+    const terrainTops = new Map();
+    const BLOCK = 1.55;
+
+    for (let gx = -10; gx <= 10; gx++) {
+      for (let gz = -10; gz <= 10; gz++) {
+        const x = gx * BLOCK;
+        const z = gz * BLOCK;
+        const distance = Math.hypot(x, z);
+        if (Math.abs(x) < 5.05 && Math.abs(z) < 5.05) continue;
+        if (distance > 20.5 && worldRandom() > 0.48) continue;
+
+        const wave = Math.sin(gx * 0.48) + Math.cos(gz * 0.43) + Math.sin((gx + gz) * 0.23);
+        let level = wave > 1.25 ? 1 : wave < -1.15 ? -1 : 0;
+        if (distance > 15 && worldRandom() > 0.73) level -= 1;
+        const y = level * 0.75;
+        const topType = level < 0 ? 'sand' : (worldRandom() < 0.035 ? 'stone' : 'grass');
+        queueBlock(topType, x, y, z, BLOCK, BLOCK, BLOCK, 0, 0.9 + worldRandom() * 0.18);
+        queueBlock(level < 0 ? 'sand' : 'dirt', x, y - BLOCK, z, BLOCK, BLOCK, BLOCK, 0, 0.86 + worldRandom() * 0.15);
+        if (distance < 14 || worldRandom() > 0.35) {
+          queueBlock('stone', x, y - BLOCK * 2, z, BLOCK, BLOCK, BLOCK, 0, 0.82 + worldRandom() * 0.14);
+        }
+        terrainTops.set(`${gx},${gz}`, { x, z, y: y + BLOCK / 2, level });
+      }
+    }
+
+    // Alberi: tronchi e chiome mantengono libera la visuale centrale.
+    const treeSpots = [];
+    const terrainEntries = [...terrainTops.values()];
+    for (let attempt = 0; attempt < 180 && treeSpots.length < 15; attempt++) {
+      const spot = terrainEntries[Math.floor(worldRandom() * terrainEntries.length)];
+      if (!spot || spot.level < 0 || Math.hypot(spot.x, spot.z) < 9) continue;
+      if (treeSpots.some(p => Math.hypot(p.x - spot.x, p.z - spot.z) < 4.2)) continue;
+      treeSpots.push(spot);
+      const trunkHeight = 3 + Math.floor(worldRandom() * 2);
+      for (let j = 0; j < trunkHeight; j++) {
+        queueBlock('wood', spot.x, spot.y + 0.58 + j * 1.12, spot.z, 0.82, 1.14, 0.82, 0, 0.9 + worldRandom() * 0.15);
+      }
+      const crownY = spot.y + trunkHeight * 1.1;
+      for (let lx = -1; lx <= 1; lx++) {
+        for (let lz = -1; lz <= 1; lz++) {
+          if (Math.abs(lx) + Math.abs(lz) === 2 && worldRandom() < 0.35) continue;
+          queueBlock('leaves', spot.x + lx * 1.18, crownY, spot.z + lz * 1.18, 1.28, 1.28, 1.28, 0, 0.86 + worldRandom() * 0.25);
+        }
+      }
+      queueBlock('leaves', spot.x, crownY + 1.18, spot.z, 1.28, 1.28, 1.28, 0, 1.06);
+      queueBlock('leaves', spot.x + 1.05, crownY + 1.05, spot.z, 1.15, 1.15, 1.15);
+      queueBlock('leaves', spot.x - 1.05, crownY + 1.05, spot.z, 1.15, 1.15, 1.15);
+    }
+
+    // Fiori minuscoli nel prato.
+    for (let i = 0; i < 42; i++) {
+      const spot = terrainEntries[Math.floor(worldRandom() * terrainEntries.length)];
+      if (!spot || spot.level < 0 || Math.hypot(spot.x, spot.z) < 6.3) continue;
+      const ox = (worldRandom() - 0.5) * 0.75;
+      const oz = (worldRandom() - 0.5) * 0.75;
+      queueBlock('stem', spot.x + ox, spot.y + 0.27, spot.z + oz, 0.1, 0.54, 0.1);
+      queueBlock(worldRandom() > 0.5 ? 'flowerRed' : 'flowerYellow', spot.x + ox, spot.y + 0.6, spot.z + oz, 0.32, 0.24, 0.32);
+    }
+
+    for (const [type, blocks] of batches) {
+      const mesh = new THREE.InstancedMesh(unitBox, materials[type], blocks.length);
+      blocks.forEach((block, i) => {
+        mesh.setMatrixAt(i, block.matrix);
+        mesh.setColorAt(i, new THREE.Color(block.shade, block.shade, block.shade));
+      });
+      mesh.instanceMatrix.needsUpdate = true;
+      if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
+      mesh.castShadow = type !== 'stem' && !type.startsWith('flower');
+      mesh.receiveShadow = true;
+      scene.add(mesh);
+    }
+
+    // Nuvole fatte di cubi, lente e leggere.
+    const clouds = [];
+    const cloudMaterial = new THREE.MeshLambertMaterial({ color: 0xf4f7e9, transparent: true, opacity: 0.9 });
+    for (let i = 0; i < 7; i++) {
+      const cloud = new THREE.Group();
+      const pieces = 3 + Math.floor(worldRandom() * 3);
+      for (let j = 0; j < pieces; j++) {
+        const part = new THREE.Mesh(unitBox, cloudMaterial);
+        part.scale.set(3 + worldRandom() * 3, 0.8 + worldRandom() * 0.8, 1.8 + worldRandom() * 2);
+        part.position.set(j * 2.4, worldRandom() * 0.65, (worldRandom() - 0.5) * 2.2);
+        cloud.add(part);
+      }
+      cloud.position.set(-32 + worldRandom() * 64, 15 + worldRandom() * 8, -28 + worldRandom() * 45);
+      cloud.userData.speed = 0.22 + worldRandom() * 0.22;
+      scene.add(cloud);
+      clouds.push(cloud);
+    }
+
+    // ---------- Il tabellone ----------
+    const boardGroup = new THREE.Group();
+    scene.add(boardGroup);
+
+    function boardBlock(w, h, d, y, material) {
+      const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), material);
+      mesh.position.y = y;
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
+      boardGroup.add(mesh);
+      return mesh;
+    }
+
+    boardBlock(9.0, 1.75, 9.0, 1.05, materials.stone);
+    boardBlock(9.35, 0.3, 9.35, 1.98, materials.darkWood);
+    boardBlock(8.75, 0.3, 8.75, 2.25, materials.wood);
+    boardBlock(7.65, 0.18, 7.65, 2.48, materials.darkWood);
+
+    const CELL_STEP = 2.36;
+    const TILE_Y = 2.7;
+    const SYMBOL_Y = 3.01;
+    const cells = [];
+    const cellPositions = [];
+
+    for (let row = 0; row < 3; row++) {
+      for (let col = 0; col < 3; col++) {
+        const index = row * 3 + col;
+        const x = (col - 1) * CELL_STEP;
+        const z = (row - 1) * CELL_STEP;
+        const tileMaterial = materials.quartz.clone();
+        tileMaterial.emissive = new THREE.Color(0x000000);
+        tileMaterial.emissiveIntensity = 0;
+        const tile = new THREE.Mesh(new THREE.BoxGeometry(2.12, 0.4, 2.12), tileMaterial);
+        tile.position.set(x, TILE_Y, z);
+        tile.castShadow = true;
+        tile.receiveShadow = true;
+        tile.userData.index = index;
+        boardGroup.add(tile);
+        cells.push(tile);
+        cellPositions.push(new THREE.Vector3(x, SYMBOL_Y, z));
+      }
+    }
+
+    // Quattro torce voxel agli angoli del tavolo.
+    const flames = [];
+    const torchPositions = [[-4.15, -4.15], [4.15, -4.15], [-4.15, 4.15], [4.15, 4.15]];
+    torchPositions.forEach(([x, z], i) => {
+      const post = new THREE.Mesh(new THREE.BoxGeometry(0.2, 1.2, 0.2), materials.darkWood);
+      post.position.set(x, 2.65, z);
+      post.castShadow = true;
+      scene.add(post);
+      const flameMaterial = new THREE.MeshStandardMaterial({
+        color: 0xffc33c, emissive: 0xff7b16, emissiveIntensity: 2.8, roughness: 0.6
+      });
+      const flame = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.42, 0.3), flameMaterial);
+      flame.position.set(x, 3.4, z);
+      scene.add(flame);
+      flames.push(flame);
+      if (i === 0 || i === 3) {
+        const light = new THREE.PointLight(0xffa43a, 8, 7, 2);
+        light.position.set(x, 3.65, z);
+        scene.add(light);
+        flame.userData.light = light;
+      }
+    });
+
+    // Piccole lucciole cubiche sopra il prato.
+    const fireflies = [];
+    const fireflyMaterial = new THREE.MeshBasicMaterial({ color: 0xffed8a });
+    for (let i = 0; i < 22; i++) {
+      const fly = new THREE.Mesh(new THREE.BoxGeometry(0.075, 0.075, 0.075), fireflyMaterial);
+      const angle = worldRandom() * Math.PI * 2;
+      const radius = 6 + worldRandom() * 10;
+      fly.position.set(Math.cos(angle) * radius, 1.5 + worldRandom() * 3.5, Math.sin(angle) * radius);
+      fly.userData.baseY = fly.position.y;
+      fly.userData.phase = worldRandom() * Math.PI * 2;
+      scene.add(fly);
+      fireflies.push(fly);
+    }
+
+    // ---------- Simboli voxel ----------
+    const PATTERNS = {
+      X: [
+        'X...X',
+        '.X.X.',
+        '..X..',
+        '.X.X.',
+        'X...X'
+      ],
+      O: [
+        '.OOO.',
+        'O...O',
+        'O...O',
+        'O...O',
+        '.OOO.'
+      ]
+    };
+    const symbolGeometry = new THREE.BoxGeometry(0.325, 0.29, 0.325);
+    const animatedSymbols = [];
+    const symbolByCell = Array(9).fill(null);
+
+    function createSymbol(type, ghost = false) {
+      const group = new THREE.Group();
+      const color = type === 'X' ? 0x35d4ff : 0xff8244;
+      const material = new THREE.MeshStandardMaterial({
+        color,
+        emissive: color,
+        emissiveIntensity: ghost ? 0.25 : 0.28,
+        roughness: 0.48,
+        metalness: 0.08,
+        transparent: ghost,
+        opacity: ghost ? 0.25 : 1,
+        depthWrite: !ghost
+      });
+      PATTERNS[type].forEach((line, row) => {
+        [...line].forEach((pixel, col) => {
+          if (pixel !== type) return;
+          const cube = new THREE.Mesh(symbolGeometry, material);
+          cube.position.set((col - 2) * 0.36, 0, (row - 2) * 0.36);
+          cube.castShadow = !ghost;
+          cube.receiveShadow = !ghost;
+          group.add(cube);
+        });
+      });
+      group.userData.material = material;
+      group.userData.type = type;
+      return group;
+    }
+
+    const ghostX = createSymbol('X', true);
+    ghostX.visible = false;
+    scene.add(ghostX);
+    let hoveredCell = -1;
+
+    function placeSymbol(index, type) {
+      const symbol = createSymbol(type);
+      symbol.position.copy(cellPositions[index]);
+      symbol.position.y += 1.8;
+      symbol.scale.setScalar(0.01);
+      symbol.userData.age = 0;
+      symbol.userData.baseY = SYMBOL_Y;
+      symbol.userData.winning = false;
+      scene.add(symbol);
+      symbolByCell[index] = symbol;
+      animatedSymbols.push(symbol);
+    }
+
+    // ---------- Stato e logica del Tris ----------
+    const LINES = [
+      [0, 1, 2], [3, 4, 5], [6, 7, 8],
+      [0, 3, 6], [1, 4, 7], [2, 5, 8],
+      [0, 4, 8], [2, 4, 6]
+    ];
+
+    let board = Array(9).fill(null);
+    let turn = 'X';
+    let gameOver = false;
+    let roundId = 0;
+    let winLine = null;
+    const scores = { X: 0, O: 0, draw: 0 };
+
+    const turnElement = document.getElementById('turn');
+    const resultOverlay = document.getElementById('result-overlay');
+    const resultTitle = document.getElementById('result-title');
+    const resultText = document.getElementById('result-text');
+    const resultIcon = document.getElementById('result-icon');
+    const toast = document.getElementById('toast');
+    let toastTimer;
+
+    function evaluate(state) {
+      for (const line of LINES) {
+        const [a, b, c] = line;
+        if (state[a] && state[a] === state[b] && state[a] === state[c]) {
+          return { winner: state[a], line };
+        }
+      }
+      if (state.every(Boolean)) return { winner: 'draw', line: null };
+      return null;
+    }
+
+    // Minimax completo; in modalità facile il PC sceglie talvolta una mossa casuale.
+    // La casualità tra punteggi identici rende comunque varie le partite.
+    function minimax(state, isMaximizing, depth = 0) {
+      const result = evaluate(state);
+      if (result) {
+        if (result.winner === 'O') return 10 - depth;
+        if (result.winner === 'X') return depth - 10;
+        return 0;
+      }
+
+      const scoresForMoves = [];
+      for (let i = 0; i < state.length; i++) {
+        if (state[i]) continue;
+        state[i] = isMaximizing ? 'O' : 'X';
+        scoresForMoves.push(minimax(state, !isMaximizing, depth + 1));
+        state[i] = null;
+      }
+      return isMaximizing ? Math.max(...scoresForMoves) : Math.min(...scoresForMoves);
+    }
+
+    function chooseComputerMove() {
+      const available = board.map((value, index) => value ? null : index).filter(index => index !== null);
+      if (!available.length) return -1;
+
+      // Facile: circa una mossa su quattro non usa la strategia perfetta.
+      if (Math.random() < 0.24) return available[Math.floor(Math.random() * available.length)];
+
+      let bestScore = -Infinity;
+      let bestMoves = [];
+      for (const index of available) {
+        board[index] = 'O';
+        const score = minimax(board, false);
+        board[index] = null;
+        if (score > bestScore) {
+          bestScore = score;
+          bestMoves = [index];
+        } else if (score === bestScore) {
+          bestMoves.push(index);
+        }
+      }
+      return bestMoves[Math.floor(Math.random() * bestMoves.length)];
+    }
+
+    function setTurnMessage(text, mode = '') {
+      turnElement.textContent = text;
+      turnElement.className = `turn pixel-panel ${mode}`;
+    }
+
+    function showToast(message) {
+      clearTimeout(toastTimer);
+      toast.textContent = message;
+      toast.classList.add('show');
+      toastTimer = setTimeout(() => toast.classList.remove('show'), 1500);
+    }
+
+    function makeMove(index, type) {
+      if (gameOver || turn !== type || board[index]) return false;
+      board[index] = type;
+      hoveredCell = -1;
+      ghostX.visible = false;
+      cells.forEach(cell => {
+        cell.material.emissive.setHex(0x000000);
+        cell.material.emissiveIntensity = 0;
+      });
+      placeSymbol(index, type);
+      playMoveSound(type);
+
+      const result = evaluate(board);
+      if (result) {
+        finishRound(result);
+        return true;
+      }
+
+      if (type === 'X') {
+        turn = 'O';
+        setTurnMessage('Il PC sta pensando…', 'thinking');
+        const thisRound = roundId;
+        setTimeout(() => {
+          if (thisRound !== roundId || gameOver) return;
+          const computerIndex = chooseComputerMove();
+          if (computerIndex >= 0) makeMove(computerIndex, 'O');
+        }, 520 + Math.random() * 420);
+      } else {
+        turn = 'X';
+        setTurnMessage('Tocca a te · sei X');
+      }
+      return true;
+    }
+
+    function finishRound(result) {
+      gameOver = true;
+      turn = '';
+      ghostX.visible = false;
+      setTurnMessage('Partita terminata', 'finished');
+
+      if (result.winner === 'X') {
+        scores.X++;
+        resultTitle.textContent = 'Vittoria!';
+        resultText.textContent = 'Hai allineato tre X. Il villaggio è salvo!';
+        resultIcon.textContent = '★';
+        resultIcon.style.color = '#ffe071';
+        setTurnMessage('Hai vinto! · tre X in fila', 'finished');
+        createWinLine(result.line);
+        spawnConfetti();
+        setTimeout(() => playResultSound('win'), 180);
+      } else if (result.winner === 'O') {
+        scores.O++;
+        resultTitle.textContent = 'Vince il PC';
+        resultText.textContent = 'Tre O in fila. Prendi il piccone e riprova!';
+        resultIcon.textContent = 'O';
+        resultIcon.style.color = '#ff8848';
+        setTurnMessage('Ha vinto il PC · riprova!', 'finished');
+        createWinLine(result.line);
+        setTimeout(() => playResultSound('lose'), 180);
+      } else {
+        scores.draw++;
+        resultTitle.textContent = 'Pareggio!';
+        resultText.textContent = 'Nessuna casella libera. Una sfida perfettamente bilanciata.';
+        resultIcon.textContent = '=';
+        resultIcon.style.color = '#f7f3dc';
+        setTurnMessage('Pareggio · bella sfida!', 'finished');
+        setTimeout(() => playResultSound('draw'), 180);
+      }
+
+      result.line?.forEach(index => {
+        cells[index].material.emissive.setHex(0xffc938);
+        cells[index].material.emissiveIntensity = 0.55;
+        if (symbolByCell[index]) symbolByCell[index].userData.winning = true;
+      });
+      updateScoreboard();
+      const thisRound = roundId;
+      setTimeout(() => {
+        if (thisRound === roundId && gameOver) resultOverlay.classList.add('visible');
+      }, 1050);
+    }
+
+    function createWinLine(line) {
+      if (!line) return;
+      const start = cellPositions[line[0]];
+      const end = cellPositions[line[2]];
+      const midpoint = start.clone().add(end).multiplyScalar(0.5);
+      const length = start.distanceTo(end) + 0.55;
+      const material = new THREE.MeshStandardMaterial({
+        color: 0xffe372, emissive: 0xffb319, emissiveIntensity: 1.8,
+        transparent: true, opacity: 0.82, depthWrite: false
+      });
+      winLine = new THREE.Mesh(new THREE.BoxGeometry(length, 0.085, 0.085), material);
+      winLine.position.copy(midpoint);
+      winLine.position.y += 0.42;
+      winLine.rotation.y = -Math.atan2(end.z - start.z, end.x - start.x);
+      scene.add(winLine);
+    }
+
+    function updateScoreboard() {
+      document.getElementById('score-x').textContent = scores.X;
+      document.getElementById('score-o').textContent = scores.O;
+      document.getElementById('score-draw').textContent = scores.draw;
+    }
+
+    function newRound(withSound = true) {
+      roundId++;
+      board = Array(9).fill(null);
+      turn = 'X';
+      gameOver = false;
+      hoveredCell = -1;
+      ghostX.visible = false;
+      resultOverlay.classList.remove('visible');
+      setTurnMessage('Tocca a te · sei X');
+
+      for (const symbol of symbolByCell) {
+        if (symbol) {
+          scene.remove(symbol);
+          symbol.userData.material.dispose();
+        }
+      }
+      symbolByCell.fill(null);
+      animatedSymbols.length = 0;
+      cells.forEach(cell => {
+        cell.material.emissive.setHex(0x000000);
+        cell.material.emissiveIntensity = 0;
+      });
+      if (winLine) {
+        scene.remove(winLine);
+        winLine.geometry.dispose();
+        winLine.material.dispose();
+        winLine = null;
+      }
+      clearConfetti();
+      if (withSound) playUiSound();
+    }
+
+    // ---------- Coriandoli voxel ----------
+    const CONFETTI_COUNT = 80;
+    const confettiGeometry = new THREE.BoxGeometry(0.14, 0.14, 0.14);
+    const confettiMaterial = new THREE.MeshBasicMaterial({ vertexColors: true });
+    const confettiMesh = new THREE.InstancedMesh(confettiGeometry, confettiMaterial, CONFETTI_COUNT);
+    confettiMesh.visible = false;
+    confettiMesh.frustumCulled = false;
+    scene.add(confettiMesh);
+    let confettiPieces = [];
+    const confettiColors = [0x42d8ff, 0xffe071, 0xff6e58, 0x82d95b, 0xffffff, 0xb487ff];
+
+    function spawnConfetti() {
+      confettiPieces = [];
+      for (let i = 0; i < CONFETTI_COUNT; i++) {
+        const piece = {
+          position: new THREE.Vector3((Math.random() - 0.5) * 2, 4.2 + Math.random(), (Math.random() - 0.5) * 2),
+          velocity: new THREE.Vector3((Math.random() - 0.5) * 7, 4 + Math.random() * 5, (Math.random() - 0.5) * 7),
+          rotation: new THREE.Vector3(Math.random() * 3, Math.random() * 3, Math.random() * 3),
+          spin: new THREE.Vector3(Math.random() * 5, Math.random() * 5, Math.random() * 5),
+          life: 3.2 + Math.random()
+        };
+        confettiPieces.push(piece);
+        confettiMesh.setColorAt(i, new THREE.Color(confettiColors[i % confettiColors.length]));
+      }
+      confettiMesh.instanceColor.needsUpdate = true;
+      confettiMesh.visible = true;
+    }
+
+    function clearConfetti() {
+      confettiPieces = [];
+      confettiMesh.visible = false;
+    }
+
+    function updateConfetti(dt) {
+      if (!confettiPieces.length) return;
+      let alive = false;
+      confettiPieces.forEach((piece, i) => {
+        piece.life -= dt;
+        if (piece.life > 0) alive = true;
+        piece.velocity.y -= 8.8 * dt;
+        piece.velocity.multiplyScalar(1 - dt * 0.12);
+        piece.position.addScaledVector(piece.velocity, dt);
+        piece.rotation.x += piece.spin.x * dt;
+        piece.rotation.y += piece.spin.y * dt;
+        piece.rotation.z += piece.spin.z * dt;
+        dummy.position.copy(piece.position);
+        dummy.rotation.set(piece.rotation.x, piece.rotation.y, piece.rotation.z);
+        dummy.scale.setScalar(Math.max(0, Math.min(1, piece.life)));
+        dummy.updateMatrix();
+        confettiMesh.setMatrixAt(i, dummy.matrix);
+      });
+      confettiMesh.instanceMatrix.needsUpdate = true;
+      if (!alive) clearConfetti();
+    }
+
+    // ---------- Effetti sonori sintetizzati (nessun file audio) ----------
+    let audioContext = null;
+    let masterGain = null;
+    let muted = false;
+    const soundButton = document.getElementById('sound-btn');
+
+    function ensureAudio() {
+      if (!audioContext) {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return false;
+        audioContext = new AudioCtx();
+        masterGain = audioContext.createGain();
+        masterGain.gain.value = 0.32;
+        const compressor = audioContext.createDynamicsCompressor();
+        compressor.threshold.value = -18;
+        compressor.ratio.value = 5;
+        masterGain.connect(compressor);
+        compressor.connect(audioContext.destination);
+      }
+      if (audioContext.state === 'suspended') audioContext.resume();
+      return true;
+    }
+
+    function tone(frequency, duration, options = {}) {
+      if (muted || !ensureAudio()) return;
+      const { type = 'square', volume = 0.12, delay = 0, endFrequency = frequency } = options;
+      const now = audioContext.currentTime + delay;
+      const oscillator = audioContext.createOscillator();
+      const gain = audioContext.createGain();
+      oscillator.type = type;
+      oscillator.frequency.setValueAtTime(frequency, now);
+      oscillator.frequency.exponentialRampToValueAtTime(Math.max(20, endFrequency), now + duration);
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.exponentialRampToValueAtTime(volume, now + 0.008);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+      oscillator.connect(gain);
+      gain.connect(masterGain);
+      oscillator.start(now);
+      oscillator.stop(now + duration + 0.02);
+    }
+
+    function noise(duration = 0.06, volume = 0.05, delay = 0) {
+      if (muted || !ensureAudio()) return;
+      const length = Math.ceil(audioContext.sampleRate * duration);
+      const buffer = audioContext.createBuffer(1, length, audioContext.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < length; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / length);
+      const source = audioContext.createBufferSource();
+      const filter = audioContext.createBiquadFilter();
+      const gain = audioContext.createGain();
+      filter.type = 'lowpass';
+      filter.frequency.value = 950;
+      gain.gain.value = volume;
+      source.buffer = buffer;
+      source.connect(filter);
+      filter.connect(gain);
+      gain.connect(masterGain);
+      source.start(audioContext.currentTime + delay);
+    }
+
+    function playMoveSound(type) {
+      if (type === 'X') {
+        noise(0.055, 0.065);
+        tone(260, 0.09, { type: 'square', volume: 0.1, endFrequency: 390 });
+        tone(520, 0.08, { type: 'triangle', volume: 0.07, delay: 0.045 });
+      } else {
+        noise(0.06, 0.05);
+        tone(190, 0.12, { type: 'square', volume: 0.1, endFrequency: 145 });
+        tone(285, 0.07, { type: 'triangle', volume: 0.055, delay: 0.035 });
+      }
+    }
+
+    function playResultSound(result) {
+      if (result === 'win') {
+        [523, 659, 784, 1047].forEach((f, i) => tone(f, 0.22, { type: 'square', volume: 0.09, delay: i * 0.11 }));
+      } else if (result === 'lose') {
+        [330, 277, 220].forEach((f, i) => tone(f, 0.25, { type: 'sawtooth', volume: 0.055, delay: i * 0.16, endFrequency: f * 0.86 }));
+      } else {
+        tone(330, 0.15, { volume: 0.07 });
+        tone(330, 0.15, { volume: 0.07, delay: 0.19 });
+        tone(392, 0.22, { volume: 0.07, delay: 0.38 });
+      }
+    }
+
+    function playUiSound() {
+      tone(440, 0.055, { type: 'square', volume: 0.06, endFrequency: 560 });
+    }
+
+    function toggleSound() {
+      muted = !muted;
+      soundButton.textContent = muted ? 'AUDIO: OFF' : 'AUDIO: ON';
+      soundButton.setAttribute('aria-label', muted ? 'Attiva audio' : 'Disattiva audio');
+      if (!muted) {
+        ensureAudio();
+        playUiSound();
+      }
+    }
+
+    // ---------- Input: raycasting, mouse, touch e tastiera ----------
+    const raycaster = new THREE.Raycaster();
+    const pointer = new THREE.Vector2();
+    let pointerStart = null;
+
+    function hitTest(event) {
+      const rect = canvas.getBoundingClientRect();
+      pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+      pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+      raycaster.setFromCamera(pointer, camera);
+      const hits = raycaster.intersectObjects(cells, false);
+      return hits.length ? hits[0].object.userData.index : -1;
+    }
+
+    function updateHover(index) {
+      if (hoveredCell === index) return;
+      hoveredCell = index;
+      cells.forEach((cell, i) => {
+        if (gameOver && evaluate(board)?.line?.includes(i)) return;
+        cell.material.emissive.setHex(i === index && turn === 'X' && !board[i] ? 0x168da9 : 0x000000);
+        cell.material.emissiveIntensity = i === index ? 0.42 : 0;
+      });
+      const canHover = index >= 0 && !gameOver && turn === 'X' && !board[index];
+      ghostX.visible = canHover;
+      if (canHover) ghostX.position.copy(cellPositions[index]);
+      canvas.style.cursor = canHover ? 'pointer' : 'grab';
+    }
+
+    canvas.addEventListener('pointerdown', event => {
+      ensureAudio();
+      pointerStart = { x: event.clientX, y: event.clientY, id: event.pointerId };
+    });
+
+    canvas.addEventListener('pointerup', event => {
+      if (!pointerStart || pointerStart.id !== event.pointerId) return;
+      const distance = Math.hypot(event.clientX - pointerStart.x, event.clientY - pointerStart.y);
+      pointerStart = null;
+      if (distance > 7) return;
+      const index = hitTest(event);
+      if (index < 0 || gameOver || turn !== 'X') return;
+      if (board[index]) {
+        showToast('Quella casella è già occupata!');
+        tone(120, 0.08, { volume: 0.05, endFrequency: 90 });
+        return;
+      }
+      makeMove(index, 'X');
+    });
+
+    canvas.addEventListener('pointermove', event => {
+      if (event.pointerType !== 'mouse' || pointerStart) return;
+      updateHover(hitTest(event));
+    });
+
+    canvas.addEventListener('pointerleave', () => {
+      pointerStart = null;
+      updateHover(-1);
+    });
+
+    canvas.addEventListener('contextmenu', event => event.preventDefault());
+
+    document.getElementById('restart-btn').addEventListener('click', () => newRound());
+    document.getElementById('play-again-btn').addEventListener('click', () => newRound());
+    soundButton.addEventListener('click', toggleSound);
+
+    window.addEventListener('keydown', event => {
+      if (event.ctrlKey || event.metaKey || event.altKey || event.repeat) return;
+      if (event.key >= '1' && event.key <= '9') {
+        const index = Number(event.key) - 1;
+        if (!gameOver && turn === 'X' && !board[index]) makeMove(index, 'X');
+        else if (board[index]) showToast('Quella casella è già occupata!');
+      } else if (event.key.toLowerCase() === 'r') {
+        newRound();
+      } else if (event.key.toLowerCase() === 'm') {
+        toggleSound();
+      } else if (event.key === 'Escape' && gameOver) {
+        resultOverlay.classList.remove('visible');
+      }
+    });
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    });
+
+    // ---------- Animazione ----------
+    const clock = new THREE.Clock();
+    let elapsed = 0;
+
+    function easeOutBack(t) {
+      const c1 = 1.70158;
+      const c3 = c1 + 1;
+      return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2);
+    }
+
+    function animate() {
+      requestAnimationFrame(animate);
+      const dt = Math.min(clock.getDelta(), 0.05);
+      elapsed += dt;
+      controls.update();
+
+      clouds.forEach(cloud => {
+        cloud.position.x += cloud.userData.speed * dt;
+        if (cloud.position.x > 39) cloud.position.x = -42;
+      });
+
+      fireflies.forEach(fly => {
+        fly.position.y = fly.userData.baseY + Math.sin(elapsed * 1.5 + fly.userData.phase) * 0.35;
+        const pulse = 0.65 + Math.sin(elapsed * 3 + fly.userData.phase) * 0.35;
+        fly.scale.setScalar(pulse);
+      });
+
+      flames.forEach((flame, i) => {
+        flame.scale.y = 0.88 + Math.sin(elapsed * 12 + i * 1.7) * 0.16;
+        flame.rotation.y = Math.sin(elapsed * 4 + i) * 0.16;
+        if (flame.userData.light) flame.userData.light.intensity = 7.5 + Math.sin(elapsed * 10 + i) * 1.5;
+      });
+
+      for (const symbol of animatedSymbols) {
+        symbol.userData.age += dt;
+        const t = Math.min(symbol.userData.age / 0.38, 1);
+        if (t < 1) {
+          symbol.scale.setScalar(Math.max(0.01, easeOutBack(t)));
+          symbol.position.y = symbol.userData.baseY + (1 - t) * 1.8;
+        } else {
+          const pulse = symbol.userData.winning ? 1 + Math.sin(elapsed * 6) * 0.055 : 1;
+          symbol.scale.setScalar(pulse);
+          symbol.position.y = symbol.userData.baseY;
+          symbol.userData.material.emissiveIntensity = symbol.userData.winning
+            ? 0.8 + Math.sin(elapsed * 6) * 0.35
+            : 0.28;
+        }
+      }
+
+      if (winLine) {
+        winLine.material.emissiveIntensity = 1.4 + Math.sin(elapsed * 7) * 0.65;
+        winLine.material.opacity = 0.7 + Math.sin(elapsed * 7) * 0.15;
+      }
+
+      waterTexture.offset.x = elapsed * 0.003;
+      waterTexture.offset.y = elapsed * 0.002;
+      updateConfetti(dt);
+      renderer.render(scene, camera);
+    }
+
+    updateScoreboard();
+    animate();
+    setTimeout(() => showToast('Sei X: tocca una casella per iniziare!'), 650);
+  </script>
+</body>
+</html>

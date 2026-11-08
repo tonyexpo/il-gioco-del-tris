@@ -85,6 +85,7 @@ src/
   tictactoe18/  → tentativo fallito/modello 18 (nessun gioco prodotto, vedi nota)
   tictactoe19/  → batch di test con LFM2.5-24B q6_k_xl (vedi nota)
   tictactoe20/  → batch di test con LFM-3-1.7B Q8_0 (vedi nota)
+  tictactoe21/  → batch di test con Nemotron-3.5-Bolt-E4B UD Q8_K_XL (vedi nota)
 ```
 
 ## Abbinamento cartella → modello
@@ -111,6 +112,7 @@ src/
 | `tictactoe18` | Qwen 3.8 27B IQ1 (Unsloth) — tentativo fallito, nessun gioco prodotto |
 | `tictactoe19` | LFM2.5-24B (q6_k_xl) — batch di test multipli (hello world, tris JS vanilla, QA, sito Valsesia), vedi nota |
 | `tictactoe20` | LFM-3-1.7B (Q8_0, LiquidAI) — batch di test multipli (hello world, tris JS vanilla, tesina Milano, traduzioni IT/EN), QA codice di GPT-6.1-Terra e review accademiche del "professor GPT", entrambi via OpenCode, vedi nota |
+| `tictactoe21` | Nemotron-3.5-Bolt-E4B UD (Unsloth Dynamic) Q8_K_XL — batch di test multipli (hello world, tris JS vanilla, diorama 3D Natale, tesina Milano, classificazione 200 email), vedi nota |
 
 ## tictactoe-slm1 — confronto multi-modello SLM (orchestrato da GPT-6-Sol)
 
@@ -278,6 +280,25 @@ tictactoe20/
   milano-review.html                  → review accademica della tesina ("professor GPT")
   traduzioni_ita_eng.md               → set di traduzioni italiano/inglese
   traduzioni_ita_eng-review.html      → review delle traduzioni ("professor GPT")
+```
+
+## tictactoe21 — batch di test con Nemotron-3.5-Bolt-E4B (UD Q8_K_XL)
+
+Come `tictactoe19/`/`tictactoe20/`, anche `tictactoe21/` raccoglie una
+sessione di test più ampia, con **Nemotron-3.5-Bolt-E4B** alla
+quantizzazione **UD (Unsloth Dynamic) Q8_K_XL**:
+
+```
+tictactoe21/
+  helloworld.html              → file di prova minimo, verifica scrittura file
+  tris.html                     → tris in JS vanilla, single-file
+  tris-qa.md                     → QA sul tris
+  natale.html                    → diorama 3D di Natale (JS vanilla + three.js)
+  natale-qa.md / natale-qa2.md    → due round di QA sul diorama
+  milano.md                      → tesina su Milano
+  milano-review.html              → review accademica della tesina
+  email_analysis.md               → classificazione di 200 email sintetiche
+  email_analysis-review.html       → review della classificazione
 ```
 
 ## Altre demo

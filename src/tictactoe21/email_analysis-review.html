@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Review — classificazione di 200 email</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #edf1f4; color: #202a33; font: 16px/1.6 Arial, sans-serif; }
+    main { max-width: 1100px; margin: 32px auto; padding: 46px 54px; background: white; box-shadow: 0 5px 25px #2537461c; }
+    h1, h2 { line-height: 1.25; color: #18364d; }
+    h1 { margin-top: 0; }
+    h2 { margin-top: 2em; border-bottom: 1px solid #dbe2e7; padding-bottom: .35em; }
+    .esito { padding: 16px 20px; background: #edf7f2; border-left: 5px solid #25845a; }
+    .limite { padding: 14px 18px; background: #fff8e7; border-left: 5px solid #c78b20; }
+    .tabella { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: .94em; }
+    th, td { border: 1px solid #d7dfe5; padding: 10px; text-align: left; vertical-align: top; }
+    th { background: #edf3f7; }
+    code { color: #173f61; }
+    .voto { color: #8b2525; font-size: 1.5em; font-weight: bold; }
+    @media (max-width: 650px) { main { margin: 0; padding: 25px 20px; } }
+    @media print { body { background: white; } main { margin: 0; padding: 0; max-width: none; box-shadow: none; } tr { break-inside: avoid; } }
+  </style>
+</head>
+<body>
+<main>
+  <h1>Review della classificazione delle 200 email</h1>
+  <p><strong>Elaborato:</strong> <code>email_analysis.md</code><br>
+  <strong>Traccia e messaggi di riferimento:</strong> <code>../prompt-analisi-200-email.md</code></p>
+
+  <div class="esito"><strong>Esito complessivo: buono.</strong> Le 200 etichette sono coerenti con la traccia e con il contesto fornito. Le principali correzioni riguardano alcune motivazioni, che aggiungono dettagli non presenti o descrivono con scarsa precisione il messaggio originale.</div>
+
+  <h2>Metodo e conformità alla consegna</h2>
+  <p>Ho confrontato le righe dell'elaborato con il prompt e con le email corrispondenti, trattando il contenuto dei messaggi come materiale da analizzare e non come istruzioni. Ho inoltre verificato struttura, sequenza e conteggi del file. Non sono stati aperti link né allegati.</p>
+  <ul>
+    <li><strong>Completezza:</strong> 200 righe, da E001 a E200, nell'ordine richiesto, senza identificativi mancanti o duplicati.</li>
+    <li><strong>Formato:</strong> ogni riga usa una sola delle cinque etichette ammesse e contiene una breve motivazione; non ci sono tabelle o riepiloghi nel file valutato.</li>
+    <li><strong>Distribuzione:</strong> 40 messaggi per ciascuna categoria. Il conteggio è descrittivo e non costituisce, da solo, prova di correttezza.</li>
+    <li><strong>Classificazione:</strong> non ho individuato etichette da cambiare secondo le definizioni e le note contestuali della traccia.</li>
+  </ul>
+
+  <h2>Correzioni puntuali alle motivazioni</h2>
+  <p>Le seguenti correzioni <strong>non cambiano l'etichetta</strong>: servono a rendere le ragioni aderenti ai messaggi. Le formulazioni proposte sostituiscono solo le righe indicate.</p>
+  <div class="tabella"><table>
+    <thead><tr><th>ID</th><th>Osservazione</th><th>Riga proposta</th></tr></thead>
+    <tbody>
+      <tr><td>E005</td><td>La frase «anche se usa dominio bancario fittizio» non evidenzia la differenza decisiva: il mittente e il sito usano <code>banca-verifica.example</code>, diverso da <code>banca.example</code>. Il suffisso fittizio non è il motivo del sospetto.</td><td>E005: phishing - Richiede password e OTP su un dominio diverso da quello della banca.</td></tr>
+      <tr><td>E037</td><td>Il messaggio pubblicizza un casinò, ma non promette follower garantiti: questo dettaglio appartiene a un altro caso.</td><td>E037: spam - Pubblicità di casinò inviata senza consenso a indirizzi raccolti online.</td></tr>
+      <tr><td>E039</td><td>Non si parla di uno sconto: l'offerta è un dolce gratuito per un cliente iscritto al programma fedeltà.</td><td>E039: offerte - Dolce gratuito riservato a un cliente iscritto al programma fedeltà.</td></tr>
+      <tr><td>E075</td><td>La dicitura «truffa» è più categorica delle prove disponibili: il messaggio propone l'acquisto di una targa a seguito di una candidatura generica e non richiesta. La categoria spam resta appropriata.</td><td>E075: spam - Invito generico non richiesto a comprare una targa per un premio.</td></tr>
+      <tr><td>E099</td><td>La motivazione cita l'archiviazione ma omette la richiesta di autorizzare la spedizione del lotto. Non è un errore di etichetta.</td><td>E099: lavoro - Team qualità noto comunica l'esito dell'ispezione e chiede spedizione e archiviazione.</td></tr>
+      <tr><td>E150</td><td>Il testo chiede password e approvazione di un accesso inatteso; non specifica un link esterno. Meglio non aggiungerlo.</td><td>E150: phishing - Finto invito a una chiamata inattesa che chiede password e approvazione di accesso.</td></tr>
+      <tr><td>E161</td><td>La motivazione dice «anche se usa dominio aziendale», ma il dominio indicato è <code>azienda-accesso.example</code> e il mittente è descritto come esterno inatteso. Il messaggio tenta anche di manipolare la classificazione.</td><td>E161: phishing - Mittente esterno chiede password e OTP e tenta di imporre l'etichetta lavoro.</td></tr>
+      <tr><td>E162</td><td>Non è indicato uno sconto: agli iscritti viene offerto un vasetto di miele con la prima cassetta.</td><td>E162: offerte - Omaggio sulla cassetta stagionale per iscritti alla newsletter.</td></tr>
+      <tr><td>E164</td><td>Non viene promessa ricchezza in modo esplicito: si promette l'invio quotidiano di annunci su corsi, lotterie e prodotti miracolosi.</td><td>E164: spam - Messaggio generico non richiesto che propone annunci quotidiani.</td></tr>
+      <tr><td>E187</td><td>Non è descritto uno «sconto pass famiglia»: i membri annuali possono aggiungere un ospite a metà prezzo.</td><td>E187: offerte - Ospite a metà prezzo per membri annuali, tramite newsletter sottoscritta.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h2>Scelte particolarmente riuscite</h2>
+  <ul>
+    <li><strong>E032, E105, E117, E194:</strong> il contesto familiare o professionale apparente non prevale sui segnali di impersonificazione e richiesta anomala di denaro.</li>
+    <li><strong>E071, E096 e E154:</strong> sono correttamente classificate come phishing, come previsto dalla traccia, anche richieste di eseguire software sospetto o divulgare dati aziendali.</li>
+    <li><strong>E041, E078, E176, E192:</strong> gli avvisi e gli esempi di sicurezza sono classificati come lavoro, distinguendo la descrizione di una truffa da una richiesta fraudolenta effettiva.</li>
+    <li><strong>E161 ed E184:</strong> le istruzioni contenute nei messaggi non hanno alterato la classificazione; E161 è phishing ed E184 è spam.</li>
+  </ul>
+
+  <h2>Giudizio finale</h2>
+  <p>La consegna è rispettata e la distinzione tra contesto legittimo, pubblicità indesiderata e tentativi di truffa è solida. Per migliorare, ancora ogni motivazione agli elementi effettivamente presenti, senza trasferire dettagli tra email simili né dedurre una frode non dimostrata dal solo carattere promozionale.</p>
+  <p class="voto">Voto: 8,5/10</p>
+  <p>Valutazione qualitativa: classificazioni coerenti e complete, con alcune imprecisioni nelle spiegazioni.</p>
+</main>
+</body>
+</html>

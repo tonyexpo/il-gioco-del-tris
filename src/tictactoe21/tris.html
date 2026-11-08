@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tris - X vs O</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background-color: #f4f4f9;
+            color: #333;
+        }
+        h1 {
+            color: #2c3e50;
+        }
+        #game-board {
+            display: grid;
+            grid-template-columns: repeat(3, 100px);
+            grid-template-rows: repeat(3, 100px);
+            gap: 5px;
+            margin: 20px 0;
+            border: 3px solid #2c3e50;
+        }
+        .cell {
+            background-color: #ecf0f1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .cell:hover {
+            background-color: #dce1e3;
+        }
+        #status {
+            margin-bottom: 15px;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 18px;
+            cursor: pointer;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            transition: background-color 0.2s;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Tris (X vs O)</h1>
+    <div id="status">Turno di X (Umano)</div>
+    <div id="game-board">
+        <!-- Le celle verranno generate da JS -->
+    </div>
+    <button id="reset-button">Nuova Partita</button>
+
+    <script>
+        // --- Variabili di Stato ---
+        let board = ['', '', '', '', '', '', '', '', ''];
+        let currentPlayer = 'X'; // X è l'umano
+        let gameActive = true;
+        const WINNING_COMBINATIONS = [
+            [0, 1, 2], [3, 4, 5], [6, 7, 8], // Righe
+            [0, 3, 6], [1, 4, 7], [2, 5, 8], // Colonne
+            [0, 4, 8], [2, 4, 6]             // Diagonali
+        ];
+
+        const boardElement = document.getElementById('game-board');
+        const statusElement = document.getElementById('status');
+        const resetButton = document.getElementById('reset-button');
+
+        // --- Audio Synthesis (Web Audio API) ---
+        let audioContext;
+
+        function initAudio() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function playSound(frequency, duration) {
+            initAudio();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+
+            oscillator.type = 'sine'; // Onda sinusoidale semplice
+            oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
+            gainNode.gain.setValueAtTime(0.5, audioContext.currentTime);
+
+            // Attenua gradualmente per un suono pulito
+            gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + duration);
+
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+
+            oscillator.start();
+            oscillator.stop(audioContext.currentTime + duration);
+        }
+
+        // Suoni specifici
+        const SOUND_WIN = () => playSound(440, 0.5); // La
+        const SOUND_MOVE = () => playSound(300, 0.1); // Tono basso per movimento
+        const SOUND_DRAW = () => playSound(220, 0.3); // Do
+
+        // --- Logica di Gioco ---
+
+        function checkWinner() {
+            for (let i = 0; i < WINNING_COMBINATIONS.length; i++) {
+                const [a, b, c] = WINNING_COMBINATIONS[i];
+                if (board[a] && board[a] === board[b] && board[a] === board[c]) {
+                    return board[a]; // Restituisce il simbolo del vincitore ('X' o 'O')
+                }
+            }
+            // Controlla pareggio
+            if (!board.includes('')) {
+                return 'Draw';
+            }
+            return null; // Nessun vincitore, gioco in corso
+        }
+
+        function handleResult(winner) {
+            gameActive = false;
+            if (winner === 'X') {
+                statusElement.textContent = "🎉 Hai vinto! Complimenti!";
+                SOUND_WIN();
+            } else if (winner === 'O') {
+                statusElement.textContent = "🤖 Il PC ha vinto! Riprova.";
+                SOUND_WIN();
+            } else if (winner === 'Draw') {
+                statusElement.textContent = "🤝 Pareggio!";
+                SOUND_DRAW();
+            }
+        }
+
+        function updateStatus() {
+            if (gameActive) {
+                const playerText = currentPlayer === 'X' ? "Turno di X (Umano)" : "🤖 Turno del PC (O)...";
+                statusElement.textContent = playerText;
+            }
+        }
+
+        // --- Minimax (Easy Implementation) ---
+        // Valori: 10 (PC vince), -10 (Umano vince), 0 (Pareggio/In corso)
+        function evaluate(currentBoard) {
+            for (const combo of WINNING_COMBINATIONS) {
+                const [a, b, c] = combo;
+                if (currentBoard[a] && currentBoard[a] === currentBoard[b] && currentBoard[a] === currentBoard[c]) {
+                    return currentBoard[a] === 'O' ? 10 : -10; // O è il PC, vogliamo massimizzare per lui
+                }
+            }
+            if (!currentBoard.includes('')) return 0; // Pareggio
+            return 0; // Gioco in corso
+        }
+
+        // Minimax ricorsivo (facile: non limita la profondità ma usa l'evaluazione)
+        function minimax(newBoard, depth, isMaximizing) {
+            const score = evaluate(newBoard);
+            if (score !== 0) return score; // Gioco finito
+
+            if (isMaximizing) { // PC (O) cerca il massimo punteggio
+                let bestScore = -Infinity;
+                for (let i = 0; i < 9; i++) {
+                    if (newBoard[i] === '') {
+                        newBoard[i] = 'O';
+                        let score = minimax(newBoard, depth + 1, false);
+                        newBoard[i] = ''; // Undo move
+                        bestScore = Math.max(bestScore, score);
+                    }
+                }
+                return bestScore;
+            } else { // Umano (X) cerca il minimo punteggio
+                let bestScore = Infinity;
+                for (let i = 0; i < 9; i++) {
+                    if (newBoard[i] === '') {
+                        newBoard[i] = 'X';
+                        let score = minimax(newBoard, depth + 1, true);
+                        newBoard[i] = ''; // Undo move
+                        bestScore = Math.min(bestScore, score);
+                    }
+                }
+                return bestScore;
+            }
+        }
+
+        // Funzione per trovare la mossa migliore del PC
+        function findBestMove() {
+            let bestScore = -Infinity;
+            let bestMove = -1;
+
+            for (let i = 0; i < 9; i++) {
+                if (board[i] === '') {
+                    // Prova la mossa e calcola il punteggio minimax per O (massimizzatore)
+                    board[i] = 'O';
+                    // Il prossimo turno è di X (minimizzatore)
+                    let score = minimax([...board], 0, false);
+                    board[i] = ''; // Ripristina lo stato
+
+                    if (score > bestScore) {
+                        bestScore = score;
+                        bestMove = i;
+                    }
+                }
+            }
+            return bestMove;
+        }
+
+
+        // --- Gestione Eventi e Rendering ---
+
+        function handleCellClick(clickedCellEvent) {
+            const clickedCell = clickedCellEvent.target;
+            const clickedCellIndex = parseInt(clickedCell.getAttribute('data-index'));
+
+            if (board[clickedCellIndex] !== '' || !gameActive || currentPlayer !== 'X') {
+                return; // Cellula già occupata, gioco finito o non è il turno umano
+            }
+
+            // 1. Esegui mossa umana (X)
+            handleMove(clickedCellIndex);
+
+            // 2. Controlla se X ha vinto/pareggiato
+            const winner = checkWinner();
+            if (winner) {
+                handleResult(winner);
+                return;
+            }
+
+            // 3. Passa il turno al PC (O)
+            currentPlayer = 'O';
+            updateStatus();
+            setTimeout(pcMove, 500); // Ritardo per UX
+        }
+
+        function handleMove(index) {
+            board[index] = currentPlayer;
+            const cellElement = document.querySelector(`[data-index="${index}"]`);
+            cellElement.textContent = currentPlayer;
+            cellElement.style.color = currentPlayer === 'X' ? '#e74c3c' : '#2980b9'; // Colori distintivi
+            SOUND_MOVE();
+
+            // Controlla lo stato dopo la mossa
+            const winner = checkWinner();
+            if (winner) {
+                handleResult(winner);
+            } else {
+                currentPlayer = currentPlayer === 'X' ? 'O' : 'X'; // Alterna il turno
+                updateStatus();
+            }
+        }
+
+        function pcMove() {
+            if (!gameActive || currentPlayer !== 'O') return;
+
+            const moveIndex = findBestMove();
+
+            if (moveIndex !== -1) {
+                handleMove(moveIndex); // handleMove gestisce l'alternanza del turno e il controllo dello stato
+            } else {
+                 // Non dovrebbe succedere se checkWinner è corretto, ma per sicurezza:
+                 const winner = checkWinner();
+                 if (winner === 'Draw') handleResult('Draw');
+            }
+        }
+
+        function initializeGame() {
+            board = ['', '', '', '', '', '', '', '', ''];
+            gameActive = true;
+            currentPlayer = 'X';
+            statusElement.textContent = "Turno di X (Umano)";
+            boardElement.innerHTML = ''; // Pulisce il tabellone
+
+            // Genera le celle
+            for (let i = 0; i < 9; i++) {
+                const cell = document.createElement('div');
+                cell.classList.add('cell');
+                cell.setAttribute('data-index', i);
+                cell.addEventListener('click', handleCellClick);
+                boardElement.appendChild(cell);
+            }
+
+            // Inizializza audio (necessario per l'interazione utente)
+            initAudio();
+        }
+
+        resetButton.addEventListener('click', initializeGame);
+
+        // Avvia il gioco all'inizio della pagina
+        initializeGame();
+
+    </script>
+</body>
+</html>

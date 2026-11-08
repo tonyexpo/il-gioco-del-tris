@@ -11,13 +11,14 @@ Sviluppa una single page application in JavaScript con Three.js che generi proce
 - Slitta con sacco e due renne con corna, pupazzi di neve con carote e cappelli, pacchetti con nastri, cassette postali, lampioni, bastoncini di zucchero, ghirlande e catasta di legna.
 - Mercatino con almeno 4 bancarelle diverse: dolci, giocattoli, decorazioni e bevande. Laghetto ghiacciato laterale con pattinatori, impronte squadrate nella neve.
 - Scene narrative: elfi che caricano la slitta, bambini che costruiscono un pupazzo, famiglia al mercatino.
+- Il villaggio deve sembrare vivo e animato in continuazione, non una diorama statica con pochi punti cliccabili: abitanti che camminano avanti e indietro lungo sentieri e rampe fra i livelli, fumo che sale dai camini, bancarelle presidiate dai venditori, luci delle finestre che si accendono/spengono a intervalli, porte che si apre/chiudono di tanto in tanto. L'animazione ambientale gira sempre, indipendentemente dalle interazioni.
 - Palette bianco, verde abete, rosso e oro; crepuscolo blu e luci calde. Neve a strati geometrici; pochi fiocchi cubici, senza oscurare i dettagli. Limita le luci dinamiche costose; simula quelle secondarie con materiali emissivi.
 
 ## Interazione e animazione
 - Interfaccia responsive con titolo, legenda e controlli discreti; canvas a piena finestra. OrbitControls con smorzamento, zoom e rotazione limitati, mouse e touch.
 - Pulsanti per ripristino camera, rotazione automatica, pausa animazioni, audio e cattura PNG. Rispetta `prefers-reduced-motion`.
 - Raycasting su albero, regalo e slitta: clic sull'albero cambia il ritmo delle luci; su un regalo apre il coperchio e rivela un giocattolo voxel; sulla slitta muove brevemente le renne e attiva i sonagli. Evidenzia gli oggetti interattivi e mostra brevi schede. Non attivare clic durante il trascinamento della camera.
-- Anima pattinatori su percorsi chiusi, fiocchi riciclati in un pool e leggere oscillazioni delle decorazioni con delta time. Niente crescita illimitata di particelle.
+- Anima pattinatori su percorsi chiusi, abitanti che camminano su sentieri/rampe con percorsi e velocità variabili, fiocchi riciclati in un pool e leggere oscillazioni delle decorazioni con delta time. Niente crescita illimitata di particelle.
 - Canvas nitido, pixel ratio limitato e qualità configurabile. Esporta un vero PNG 3840×2160 con un pulsante, senza semplice upscaling, ripristinando dopo la cattura dimensioni, camera e pixel ratio originali.
 
 ## Suoni e musica sintetizzati

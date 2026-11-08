@@ -8,15 +8,16 @@ Sviluppa una single page application in JavaScript con Three.js che generi proce
 - Mura merlate, archi a blocchi, scale, ponticelli e almeno 12 casette con tetti viola scuro, camini e finestre illuminate. Torre stregata con orologio, tetto a gradoni e luna cubica sullo sfondo.
 - Almeno 10 alberi voxel: querce con foglie arancio/rosse, alberi secchi e un grande albero contorto presso la cittadella.
 - Almeno 12 personaggi voxel con teste, arti, occhi e accessori: strega con scopa, scheletro, vampiro, fantasma, guardiano e bambini in costume con secchielli. Proporzioni coerenti con gli edifici.
-- Zucche di varie dimensioni, almeno 8 jack-o'-lantern luminose, calderone verde, dolci, cimitero con lapidi e cancello, ragnatele stilizzate, pipistrelli cubici, funghi e foglie cadute.
-- Scene narrative: bambini al portone, strega al calderone, fantasma fra le lapidi. Nessun elemento splatter.
+- Zucche di varie dimensioni, almeno 8 jack-o'-lantern luminose, calderone verde, dolci, ragnatele stilizzate, pipistrelli cubici, funghi e foglie cadute.
+- Il borgo deve includere un vero cimitero, non solo decorativo: un'area dedicata con almeno 15 lapidi di forme diverse, cancello in ferro voxel, alberi spogli e nebbia rasoterra leggera. Alcune tombe hanno scheletri voxel che si alzano periodicamente dal terreno (animazione ciclica, non solo su interazione): la lapide/terra si apre, lo scheletro emerge, si muove per qualche istante e poi rientra. Aggiungi anche zombie che escono dalla terra in modo simile, ragni che scendono dalle ragnatele a intervalli e corvi che si posano sulle lapidi. Nessun elemento splatter.
+- Scene narrative: bambini al portone, strega al calderone, fantasma fra le lapidi, scheletri e zombie che emergono nel cimitero.
 - Palette arancio, viola, nero e verde acido; atmosfera serale con luce blu-viola e finestre calde. Ombre curate e dettagli leggibili, senza nebbia densa. Limita le luci dinamiche costose; simula quelle secondarie con materiali emissivi.
 
 ## Interazione e animazione
 - Interfaccia responsive con titolo, legenda e controlli discreti; canvas a piena finestra. OrbitControls con smorzamento, zoom e rotazione limitati, mouse e touch.
 - Pulsanti per ripristino camera, rotazione automatica, pausa animazioni, audio e cattura PNG. Rispetta `prefers-reduced-motion`.
 - Raycasting su zucche, calderone e torre: clic su una zucca alterna la luce; sul calderone attiva bolle cubiche; sulla torre fa suonare la campana. Evidenzia gli oggetti interattivi e mostra brevi schede. Non attivare clic durante il trascinamento della camera.
-- Anima pipistrelli, lieve galleggiamento del fantasma, bolle e tremolio delle luci con delta time. Niente crescita illimitata di particelle.
+- Anima pipistrelli, lieve galleggiamento del fantasma, scheletri/zombie che emergono ciclicamente dalle tombe, ragni che scendono dalle ragnatele, bolle e tremolio delle luci con delta time. Niente crescita illimitata di particelle.
 - Canvas nitido, pixel ratio limitato e qualità configurabile. Esporta un vero PNG 3840×2160 con un pulsante, senza semplice upscaling, ripristinando dopo la cattura dimensioni, camera e pixel ratio originali.
 
 ## Suoni e musica sintetizzati
